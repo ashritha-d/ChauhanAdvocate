@@ -264,6 +264,36 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .jr-modal-close { position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 1.6rem; color: #888; cursor: pointer; line-height: 1; }
 .jr-modal-close:hover { color: var(--dark); }
 
+/* ── Mobile Navbar Book Appointment Button ── */
+.mobile-appt-btn {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-right: 6px;
+  line-height: 1.5;
+}
+
+/* ── Mobile nav dropdown background ── */
+@media (max-width: 991px) {
+  #navMenu.show {
+    background: rgba(10,10,20,0.98);
+    border-radius: 0 0 16px 16px;
+    padding: 12px 0 16px;
+    margin-top: 6px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+  #navMenu .nav-link {
+    padding: 10px 16px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  #navMenu .navbar-nav .nav-item:last-child .nav-link {
+    border-bottom: none;
+  }
+}
+
+/* ── 768px: tablets ── */
 @media (max-width: 768px) {
   .section-padding { padding: 60px 0; }
   .section-title { font-size: 1.7rem; }
@@ -272,4 +302,112 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .appointment-form-card { padding: 24px; }
   .contact-form-card { padding: 24px; }
   .book-card { min-width: 220px; max-width: 220px; }
+
+  /* Hero buttons: center on tablets */
+  .hero-section .d-flex.flex-wrap { justify-content: center; }
+
+  /* Services slider: hide arrow buttons, enable native touch scroll */
+  .slider-scroll-btn { display: none; }
+  .slider-track {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 16px;
+    scroll-snap-type: x mandatory;
+  }
+  .slider-track::-webkit-scrollbar { display: none; }
+  .service-card-slide,
+  .book-card,
+  .video-card { scroll-snap-align: start; }
+}
+
+/* ── 576px: phones ── */
+@media (max-width: 576px) {
+  .section-padding { padding: 50px 0; }
+  .section-title { font-size: 1.5rem; }
+
+  /* Hide navbar tagline to save space */
+  .brand-tagline { display: none !important; }
+
+  /* Top bar: compact on small phones */
+  .top-bar { padding: 0 12px; }
+  .top-bar-item { font-size: 0.7rem; }
+
+  /* Hero: font & image */
+  .hero-title { font-size: 1.9rem !important; }
+  .hero-subtitle { font-size: 0.95rem !important; }
+  .hero-img { width: 100%; max-width: 260px; height: 260px; }
+  .hero-card-float { left: 0; font-size: 0.75rem; padding: 8px 12px; }
+
+  /* Hero buttons: full-width stacked */
+  .hero-section .d-flex.flex-wrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero-section .d-flex.flex-wrap .btn {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    padding: 12px 20px !important;
+  }
+
+  /* Hero stats: wrap into 2×2 grid */
+  .hero-stats {
+    flex-wrap: wrap !important;
+    margin-top: 24px !important;
+  }
+  .hero-stats .col-auto {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+  }
+  .stat-item { padding: 12px 14px; }
+  .stat-number { font-size: 1.5rem; }
+
+  /* Forms */
+  .appointment-form-card { padding: 20px 16px; }
+  .contact-form-card { padding: 20px 16px; }
+  .contact-info-card { padding: 24px 18px; }
+
+  /* Floating buttons: smaller, tighter stack */
+  .phone-float  { width: 50px; height: 50px; font-size: 1.2rem; bottom: 20px; right: 16px; }
+  .whatsapp-float { width: 50px; height: 50px; font-size: 1.4rem; bottom: 84px; right: 16px; }
+  .back-to-top  { width: 40px; height: 40px; font-size: 0.9rem; bottom: 148px; right: 18px; }
+
+  /* Footer */
+  .footer-top { padding: 40px 0 24px; }
+  .footer-bottom .d-flex { flex-direction: column; gap: 6px; text-align: center; }
+
+  /* Service & content cards: slightly narrower */
+  .service-card-slide { min-width: 240px; max-width: 240px; }
+}
+
+/* ── 380px: very small phones (iPhone SE, Galaxy A series) ── */
+@media (max-width: 380px) {
+  /* Appointment button: icon only to save navbar space */
+  .mobile-appt-label { display: none; }
+  .mobile-appt-btn { padding: 6px 9px; font-size: 0.9rem; margin-right: 4px; }
+  .brand-name { font-size: 0.95rem !important; }
+
+  /* Hero */
+  .hero-title { font-size: 1.65rem !important; }
+  .hero-img { max-width: 230px; height: 230px; }
+  .hero-card-float { display: none; }
+
+  .section-padding { padding: 40px 0; }
+  .section-title { font-size: 1.35rem; }
+
+  /* Forms */
+  .appointment-form-card { padding: 16px 12px; }
+  .contact-form-card { padding: 16px 12px; }
+  .contact-info-card { padding: 18px 12px; }
+
+  /* Floating buttons */
+  .phone-float  { width: 46px; height: 46px; font-size: 1.1rem; bottom: 16px; right: 14px; }
+  .whatsapp-float { width: 46px; height: 46px; font-size: 1.25rem; bottom: 74px; right: 14px; }
+  .back-to-top  { width: 38px; height: 38px; font-size: 0.85rem; bottom: 134px; right: 16px; }
+
+  /* Jr modal */
+  .jr-modal { padding: 24px 18px; }
 }

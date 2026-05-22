@@ -20,7 +20,7 @@ export default function Hero() {
             <p className="hero-subtitle lead mb-5">
               {s.hero_subtitle || 'Expert legal representation across criminal, civil, family & corporate law. Your rights, our commitment.'}
             </p>
-            <div className="d-flex flex-wrap gap-3">
+            <div className="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
               <a href="#appointment" className="btn btn-gold btn-lg px-5">
                 <i className="fas fa-calendar-check me-2"></i> Book Free Consultation
               </a>

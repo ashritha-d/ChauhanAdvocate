@@ -19,6 +19,11 @@ export default function Navbar() {
         <a className="navbar-brand d-flex align-items-center gap-2" href="#home">
           <img src="/logo.jpeg" alt="Advocate Chauhan Logo" style={{ height: '60px', width: '60px', objectFit: 'contain' }} />
         </a>
+        {/* Mobile: Book Appointment button — outside hamburger menu, always visible */}
+        <a href="#appointment" className="btn btn-gold d-lg-none mobile-appt-btn">
+          <i className="fas fa-calendar-check"></i>
+          <span className="mobile-appt-label"> Book</span>
+        </a>
         <button className="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
           <span className="navbar-toggler-icon"></span>
         </button>
@@ -34,7 +39,8 @@ export default function Navbar() {
               </li>
             ))}
           </ul>
-          <a href="#appointment" className="btn btn-gold ms-3">Book Appointment</a>
+          {/* Desktop only button inside collapse */}
+          <a href="#appointment" className="btn btn-gold ms-3 d-none d-lg-inline-flex align-items-center">Book Appointment</a>
         </div>
       </div>
     </nav>
