@@ -26,7 +26,7 @@ function AppLayout({ children }) {
 export default function App() {
   return (
     <SiteProvider>
-      <BrowserRouter>
+      <BrowserRouter basename="/ChauhanAdvocate">
         <AppLayout>
           <Routes>
             <Route path="/" element={<Home />} />
