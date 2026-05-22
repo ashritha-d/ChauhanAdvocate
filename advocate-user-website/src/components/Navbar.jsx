@@ -11,7 +11,7 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const links = ['home','about','services','profile','testimonials','blog','faq','contact'];
+  const links = ['home','services','testimonials','blog','faq','contact'];
 
   return (
     <nav className={`navbar navbar-expand-lg navbar-dark fixed-top ${scrolled ? 'scrolled' : ''}`} id="mainNavbar">

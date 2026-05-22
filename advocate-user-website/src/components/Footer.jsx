@@ -50,7 +50,7 @@ export default function Footer() {
             <div className="col-lg-2 col-md-4">
               <h6 className="footer-heading">Quick Links</h6>
               <ul className="footer-links">
-                {['home','about','services','appointment','blog','contact'].map(l => (
+                {['home','services','appointment','blog','contact'].map(l => (
                   <li key={l}><a href={`#${l}`}>{l.charAt(0).toUpperCase()+l.slice(1)}</a></li>
                 ))}
               </ul>
