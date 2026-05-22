@@ -17,9 +17,10 @@ export default function Footer() {
     getServices().then(r => { if (r.data.success) setServices(r.data.data.slice(0, 6)); }).catch(() => {});
   }, []);
 
-  const phone = s.contact_phone || '+91 98765 43210';
+  const phone = s.contact_phone || '9392538226';
+  const phone2 = s.contact_phone2 || '9441335292';
   const email = s.contact_email || 'info@advocatechauhan.com';
-  const address = s.contact_address || 'District Court Complex, New Delhi';
+  const address = s.contact_address || 'District Court Complex, Hyderabad';
 
   return (
     <footer className="footer-section">
@@ -67,6 +68,7 @@ export default function Footer() {
               <h6 className="footer-heading">Contact Info</h6>
               <ul className="footer-contact-list">
                 <li><i className="fas fa-phone-alt"></i><a href={`tel:${phone}`}>{phone}</a></li>
+                <li><i className="fas fa-phone-alt"></i><a href={`tel:${phone2}`}>{phone2}</a></li>
                 <li><i className="fas fa-envelope"></i><a href={`mailto:${email}`}>{email}</a></li>
                 <li><i className="fas fa-map-marker-alt"></i><span>{address}</span></li>
                 <li><i className="fas fa-clock"></i><span>Mon–Sat: 9AM – 7PM</span></li>

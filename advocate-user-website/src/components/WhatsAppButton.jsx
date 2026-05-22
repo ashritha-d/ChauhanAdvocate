@@ -2,7 +2,7 @@ import { useSite } from '../context/SiteContext';
 
 export default function WhatsAppButton() {
   const { settings: s } = useSite();
-  const number = s.contact_whatsapp ? s.contact_whatsapp.replace(/\D/g, '') : '';
+  const number = (s.contact_whatsapp || '9866222461').replace(/\D/g, '');
   const href = number ? `https://wa.me/${number}?text=Hello, I need legal assistance.` : '#';
 
   return (

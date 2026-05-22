@@ -33,9 +33,11 @@ export default function Contact() {
   };
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
-  const phone = s.contact_phone || '+91 98765 43210';
+  const phone = s.contact_phone || '9392538226';
+  const phone2 = s.contact_phone2 || '9441335292';
   const email = s.contact_email || 'info@advocatechauhan.com';
-  const address = s.contact_address || 'District Court Complex, New Delhi';
+  const address = s.contact_address || 'District Court Complex, Hyderabad';
+  const mapUrl = s.contact_map || 'https://maps.google.com/maps?q=17.33365821838379%2C78.55482482910156&z=17&hl=en';
 
   return (
     <section id="contact" className="section-padding bg-white">
@@ -49,9 +51,20 @@ export default function Contact() {
           <div className="col-lg-4" data-aos="fade-right">
             <div className="contact-info-card">
               {[
-                { icon: 'fas fa-phone-alt', label: 'Phone', content: <a href={`tel:${phone}`} className="text-dark">{phone}</a> },
+                { icon: 'fas fa-phone-alt', label: 'Phone', content: (
+                  <>
+                    <a href={`tel:${phone}`} className="text-dark d-block">{phone}</a>
+                    <a href={`tel:${phone2}`} className="text-dark d-block">{phone2}</a>
+                  </>
+                )},
+                { icon: 'fab fa-whatsapp', label: 'WhatsApp', content: <a href={`https://wa.me/91${s.contact_whatsapp || '9866222461'}`} className="text-dark" target="_blank" rel="noreferrer">{s.contact_whatsapp || '9866222461'}</a> },
                 { icon: 'fas fa-envelope', label: 'Email', content: <a href={`mailto:${email}`} className="text-dark">{email}</a> },
-                { icon: 'fas fa-map-marker-alt', label: 'Office Address', content: <p className="mb-0 text-muted">{address}</p> },
+                { icon: 'fas fa-map-marker-alt', label: 'Office Address', content: (
+                  <>
+                    <p className="mb-1 text-muted">{address}</p>
+                    <a href={mapUrl} target="_blank" rel="noreferrer" className="text-gold small"><i className="fas fa-directions me-1"></i>Get Directions</a>
+                  </>
+                )},
                 { icon: 'fas fa-clock', label: 'Office Hours', content: <p className="mb-0 text-muted">Mon–Sat: 9:00 AM – 7:00 PM</p> },
               ].map(({ icon, label, content }) => (
                 <div className="contact-info-item" key={label}>
