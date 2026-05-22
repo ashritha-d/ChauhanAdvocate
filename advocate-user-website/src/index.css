@@ -218,7 +218,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .video-card-title { padding: 10px 14px 12px; font-size: 0.85rem; font-weight: 600; color: #fff; line-height: 1.4; }
 
 /* ── Back to Top ── */
-.back-to-top { position: fixed; bottom: 100px; right: 28px; width: 44px; height: 44px; background: var(--gold); color: #fff; border: none; border-radius: 50%; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(201,168,76,0.4); opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 999; }
+.back-to-top { position: fixed; bottom: 164px; right: 28px; width: 44px; height: 44px; background: var(--gold); color: #fff; border: none; border-radius: 50%; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(201,168,76,0.4); opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 999; }
 .back-to-top.show { opacity: 1; pointer-events: auto; }
 .back-to-top:hover { transform: translateY(-3px); }
 
