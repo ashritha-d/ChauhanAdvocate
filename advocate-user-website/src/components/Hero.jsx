@@ -5,7 +5,7 @@ export default function Hero() {
   const { settings: s } = useSite();
 
   return (
-    <section id="home" className="hero-section d-flex align-items-center">
+    <section id="home" className="hero-section d-flex">
       <div className="hero-overlay"></div>
       <div className="container position-relative" style={{ zIndex: 2 }}>
         <div className="row align-items-center">

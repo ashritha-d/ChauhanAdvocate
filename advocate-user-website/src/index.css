@@ -64,7 +64,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .navbar .nav-link:hover, .navbar .nav-link.active { color: var(--gold) !important; }
 
 /* ── Hero ── */
-.hero-section { min-height: 100vh; background: linear-gradient(135deg, var(--darker) 0%, #16213e 50%, #0f3460 100%); position: relative; overflow: hidden; }
+.hero-section { min-height: 100vh; background: linear-gradient(135deg, var(--darker) 0%, #16213e 50%, #0f3460 100%); position: relative; overflow: hidden; align-items: center; }
 .hero-overlay { position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a84c' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
 .hero-badge { display: inline-flex; align-items: center; background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.3); color: var(--gold); padding: 8px 20px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; }
 .hero-title { color: #fff; text-shadow: 0 2px 20px rgba(0,0,0,0.3); }
@@ -275,8 +275,28 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   line-height: 1.5;
 }
 
-/* ── Mobile nav dropdown background ── */
+/* ════════════════════════════════════════════════
+   RESPONSIVE MOBILE FIXES
+   ════════════════════════════════════════════════ */
+
+/* ── ≤991px: tablet & mobile — hero fix + nav dropdown ── */
 @media (max-width: 991px) {
+  /* Hero: shift to flex-start so content is NOT vertically centred
+     (centring pushes long mobile content behind the fixed header). */
+  .hero-section {
+    align-items: flex-start;
+    padding-top: 150px;   /* topbar 40 + navbar ~76 + 34 breathing room */
+    padding-bottom: 60px;
+  }
+
+  /* Navbar logo: landscape logo.jpeg at proper height, full image visible */
+  #mainNavbar .navbar-brand img {
+    height: 44px !important;
+    width: auto !important;
+    max-width: 150px;
+  }
+
+  /* Nav dropdown styling */
   #navMenu.show {
     background: rgba(10,10,20,0.98);
     border-radius: 0 0 16px 16px;
@@ -291,23 +311,9 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   #navMenu .navbar-nav .nav-item:last-child .nav-link {
     border-bottom: none;
   }
-
-  /* Hero: stop vertical centering so content isn't pushed behind the fixed header */
-  .hero-section {
-    align-items: flex-start !important;
-    padding-top: 148px;  /* topbar(40) + navbar(~92) + 16 breathing room */
-    padding-bottom: 60px;
-  }
-
-  /* Navbar logo: show full landscape logo without cropping */
-  #mainNavbar .navbar-brand img {
-    height: 44px !important;
-    width: auto !important;
-    max-width: 160px;
-  }
 }
 
-/* ── 768px: tablets ── */
+/* ── ≤768px: tablets ── */
 @media (max-width: 768px) {
   .section-padding { padding: 60px 0; }
   .section-title { font-size: 1.7rem; }
@@ -317,14 +323,14 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .contact-form-card { padding: 24px; }
   .book-card { min-width: 220px; max-width: 220px; }
 
-  /* Hero buttons: center on tablets */
+  /* Hero buttons: centered on tablet */
   .hero-section .d-flex.flex-wrap { justify-content: center; }
 
-  /* Services slider: hide arrow buttons, enable native touch scroll */
+  /* Sliders: hide arrow buttons, enable native touch scroll */
   .slider-scroll-btn { display: none; }
   .slider-track {
     overflow-x: auto;
-    min-width: 0;           /* allow flex item to shrink below content size */
+    min-width: 0;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -337,25 +343,30 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .video-card { scroll-snap-align: start; }
 }
 
-/* ── 576px: phones ── */
+/* ── ≤576px: phones ── */
 @media (max-width: 576px) {
   .section-padding { padding: 50px 0; }
   .section-title { font-size: 1.5rem; }
 
-  /* Hide navbar tagline to save space */
-  .brand-tagline { display: none !important; }
+  /* Top bar: compact + ensure all 4 social icons visible */
+  .top-bar { padding: 0 10px; }
+  .top-bar-item { font-size: 0.68rem; }
+  .top-bar-social { width: 26px; height: 26px; }
+  .top-bar-social svg { width: 13px; height: 13px; }
 
-  /* Top bar: compact on small phones */
-  .top-bar { padding: 0 12px; }
-  .top-bar-item { font-size: 0.7rem; }
+  /* Navbar logo: slightly smaller on phones */
+  #mainNavbar .navbar-brand img {
+    height: 40px !important;
+    max-width: 130px;
+  }
 
-  /* Hero: font & image */
+  /* Hero title & subtitle */
   .hero-title { font-size: 1.9rem !important; }
   .hero-subtitle { font-size: 0.95rem !important; }
   .hero-img { width: 100%; max-width: 260px; height: 260px; }
   .hero-card-float { left: 0; font-size: 0.75rem; padding: 8px 12px; }
 
-  /* Hero buttons: full-width stacked */
+  /* Hero buttons: full-width stacked column */
   .hero-section .d-flex.flex-wrap {
     flex-direction: column;
     align-items: stretch;
@@ -368,7 +379,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
     padding: 12px 20px !important;
   }
 
-  /* Hero stats: wrap into 2×2 grid */
+  /* Hero stats: 2×2 grid */
   .hero-stats {
     flex-wrap: wrap !important;
     margin-top: 24px !important;
@@ -385,27 +396,33 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .contact-form-card { padding: 20px 16px; }
   .contact-info-card { padding: 24px 18px; }
 
-  /* Floating buttons: smaller, tighter stack */
-  .phone-float  { width: 50px; height: 50px; font-size: 1.2rem; bottom: 20px; right: 16px; }
-  .whatsapp-float { width: 50px; height: 50px; font-size: 1.4rem; bottom: 84px; right: 16px; }
-  .back-to-top  { width: 40px; height: 40px; font-size: 0.9rem; bottom: 148px; right: 18px; }
+  /* Floating buttons: visible, properly stacked from bottom */
+  .phone-float    { width: 50px; height: 50px; font-size: 1.2rem; bottom: 20px;  right: 16px; }
+  .whatsapp-float { width: 50px; height: 50px; font-size: 1.4rem; bottom: 84px;  right: 16px; }
+  .back-to-top    { width: 40px; height: 40px; font-size: 0.9rem; bottom: 148px; right: 18px; }
 
   /* Footer */
   .footer-top { padding: 40px 0 24px; }
   .footer-bottom .d-flex { flex-direction: column; gap: 6px; text-align: center; }
 
-  /* Service & content cards: slightly narrower */
+  /* Service cards: slightly narrower */
   .service-card-slide { min-width: 240px; max-width: 240px; }
 }
 
-/* ── 380px: very small phones (iPhone SE, Galaxy A series) ── */
+/* ── ≤380px: very small phones (iPhone SE, Galaxy A) ── */
 @media (max-width: 380px) {
-  /* Appointment button: icon only to save navbar space */
+  /* Navbar: icon-only Book button + tighter logo */
   .mobile-appt-label { display: none; }
-  .mobile-appt-btn { padding: 6px 9px; font-size: 0.9rem; margin-right: 4px; }
-  .brand-name { font-size: 0.95rem !important; }
+  .mobile-appt-btn { padding: 6px 9px; margin-right: 4px; }
+  #mainNavbar .navbar-brand img { max-width: 110px !important; }
+
+  /* TopBar: tightest layout — all 4 icons must still fit */
+  .top-bar { padding: 0 8px; }
+  .top-bar-social { width: 24px; height: 24px; gap: 2px; }
+  .top-bar-social svg { width: 12px; height: 12px; }
 
   /* Hero */
+  .hero-section { padding-top: 140px; }
   .hero-title { font-size: 1.65rem !important; }
   .hero-img { max-width: 230px; height: 230px; }
   .hero-card-float { display: none; }
@@ -419,10 +436,9 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .contact-info-card { padding: 18px 12px; }
 
   /* Floating buttons */
-  .phone-float  { width: 46px; height: 46px; font-size: 1.1rem; bottom: 16px; right: 14px; }
-  .whatsapp-float { width: 46px; height: 46px; font-size: 1.25rem; bottom: 74px; right: 14px; }
-  .back-to-top  { width: 38px; height: 38px; font-size: 0.85rem; bottom: 134px; right: 16px; }
+  .phone-float    { width: 46px; height: 46px; font-size: 1.1rem;  bottom: 16px;  right: 14px; }
+  .whatsapp-float { width: 46px; height: 46px; font-size: 1.25rem; bottom: 74px;  right: 14px; }
+  .back-to-top    { width: 38px; height: 38px; font-size: 0.85rem; bottom: 134px; right: 16px; }
 
-  /* Jr modal */
   .jr-modal { padding: 24px 18px; }
 }
