@@ -1,0 +1,100 @@
+:root { --gold: #c9a84c; --gold-dark: #a8893a; --dark: #1a1a2e; --sidebar-w: 260px; }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: #f4f6fa; color: #333; }
+h1,h2,h3,h4,h5 { font-family: 'Inter', sans-serif; }
+
+.text-gold { color: var(--gold) !important; }
+.btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: #fff; border: none; font-weight: 600; transition: all .3s; }
+.btn-gold:hover { opacity: .9; color: #fff; transform: translateY(-1px); }
+
+/* ── Login Page ── */
+.login-page { min-height: 100vh; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); display: flex; align-items: center; justify-content: center; }
+.login-card { background: #fff; border-radius: 20px; padding: 48px 40px; width: 100%; max-width: 440px; box-shadow: 0 30px 80px rgba(0,0,0,0.4); }
+.login-logo { text-align: center; margin-bottom: 32px; }
+.logo-icon { width: 64px; height: 64px; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #fff; margin: 0 auto 16px; }
+.login-logo h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 4px; }
+.login-logo p { color: #888; font-size: .9rem; }
+
+/* ── Layout ── */
+.admin-layout { display: flex; min-height: 100vh; }
+.admin-sidebar { width: var(--sidebar-w); background: var(--dark); position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100; transition: transform .3s; display: flex; flex-direction: column; }
+.admin-main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+.admin-header { background: #fff; border-bottom: 1px solid #eee; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+.admin-content { padding: 28px; flex: 1; }
+
+/* ── Sidebar ── */
+.sidebar-brand { padding: 20px; border-bottom: 1px solid rgba(255,255,255,.08); display: flex; align-items: center; gap: 12px; }
+.sidebar-brand .brand-icon { width: 38px; height: 38px; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1rem; flex-shrink: 0; }
+.sidebar-brand span { font-family: 'Playfair Display', serif; font-size: .95rem; color: #fff; font-weight: 600; }
+.sidebar-nav { padding: 16px 12px; flex: 1; }
+.sidebar-section { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,.3); padding: 16px 12px 6px; }
+.nav-item-link { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; color: rgba(255,255,255,.65); text-decoration: none; font-size: .88rem; font-weight: 500; transition: all .2s; margin-bottom: 2px; cursor: pointer; border: none; background: none; width: 100%; text-align: left; }
+.nav-item-link i { width: 18px; text-align: center; font-size: .95rem; }
+.nav-item-link:hover { background: rgba(255,255,255,.07); color: #fff; }
+.nav-item-link.active { background: rgba(201,168,76,.2); color: var(--gold); }
+.sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,.08); }
+
+/* ── Stat Cards ── */
+.stat-card { background: #fff; border-radius: 16px; padding: 24px; border: 1px solid #eee; }
+.stat-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+.stat-value { font-size: 2rem; font-weight: 800; line-height: 1; }
+.stat-label { font-size: .8rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+.stat-change { font-size: .78rem; font-weight: 600; }
+
+/* ── Cards ── */
+.page-card { background: #fff; border-radius: 16px; border: 1px solid #eee; overflow: hidden; }
+.page-card-header { padding: 20px 24px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+.page-card-body { padding: 24px; }
+
+/* ── Table ── */
+.table-responsive { border-radius: 12px; overflow: hidden; }
+.admin-table { margin: 0; }
+.admin-table thead th { background: #f8f9fa; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #666; border: none; padding: 14px 16px; }
+.admin-table tbody td { padding: 14px 16px; vertical-align: middle; border-color: #f0f0f0; font-size: .88rem; }
+.admin-table tbody tr:hover { background: #fafbff; }
+
+/* ── Badge ── */
+.status-badge { padding: 4px 12px; border-radius: 50px; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+.badge-active { background: #e8f5e9; color: #2e7d32; }
+.badge-inactive { background: #fce4ec; color: #c62828; }
+.badge-pending { background: #fff3e0; color: #e65100; }
+.badge-confirmed { background: #e3f2fd; color: #1565c0; }
+.badge-completed { background: #e8f5e9; color: #2e7d32; }
+.badge-cancelled { background: #fce4ec; color: #c62828; }
+
+/* ── Forms ── */
+.form-control, .form-select { border: 2px solid #f0f0f0; border-radius: 10px; padding: 10px 14px; font-size: .9rem; transition: border-color .2s; }
+.form-control:focus, .form-select:focus { border-color: var(--gold); box-shadow: 0 0 0 .2rem rgba(201,168,76,.15); }
+.form-label { font-weight: 600; font-size: .85rem; margin-bottom: 6px; }
+
+/* ── Modal ── */
+.modal-content { border-radius: 16px; border: none; }
+.modal-header { border-bottom: 1px solid #f0f0f0; }
+.modal-footer { border-top: 1px solid #f0f0f0; }
+
+/* ── Image Preview ── */
+.img-preview { width: 120px; height: 120px; object-fit: cover; border-radius: 12px; border: 2px solid #eee; }
+.upload-area { border: 2px dashed #ddd; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: all .2s; }
+.upload-area:hover { border-color: var(--gold); background: rgba(201,168,76,.03); }
+
+/* ── Search ── */
+.search-input { border-radius: 10px; border: 2px solid #f0f0f0; padding: 8px 16px; font-size: .88rem; }
+.search-input:focus { border-color: var(--gold); box-shadow: none; outline: none; }
+
+/* ── Avatar ── */
+.admin-avatar { width: 36px; height: 36px; background: var(--gold); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .9rem; }
+
+/* ── Quill ── */
+.ql-container { border-radius: 0 0 10px 10px !important; font-size: .95rem; min-height: 200px; }
+.ql-toolbar { border-radius: 10px 10px 0 0 !important; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .admin-sidebar { transform: translateX(-100%); }
+  .admin-sidebar.open { transform: translateX(0); }
+  .admin-main { margin-left: 0; }
+  .admin-content { padding: 16px; }
+  .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 99; display: none; }
+  .sidebar-overlay.show { display: block; }
+}

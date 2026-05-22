@@ -1,0 +1,55 @@
+import api from './axios';
+
+// Auth
+export const login = (data) => api.post('/auth/login', data);
+export const getMe = () => api.get('/auth/me');
+export const changePassword = (data) => api.put('/auth/change-password', data);
+export const updateProfile = (data) => api.put('/auth/profile', data);
+
+// Services
+export const getServices = () => api.get('/services');
+export const createService = (data) => api.post('/services', data);
+export const updateService = (id, data) => api.put(`/services/${id}`, data);
+export const deleteService = (id) => api.delete(`/services/${id}`);
+
+// Blogs
+export const getBlogs = (p = 1, l = 10) => api.get(`/blogs/admin/all?page=${p}&limit=${l}`);
+export const createBlog = (data) => api.post('/blogs', data);
+export const updateBlog = (id, data) => api.put(`/blogs/${id}`, data);
+export const deleteBlog = (id) => api.delete(`/blogs/${id}`);
+
+// Testimonials
+export const getTestimonials = () => api.get('/testimonials/admin/all');
+export const createTestimonial = (data) => api.post('/testimonials', data);
+export const updateTestimonial = (id, data) => api.put(`/testimonials/${id}`, data);
+export const deleteTestimonial = (id) => api.delete(`/testimonials/${id}`);
+
+// FAQs
+export const getFAQs = () => api.get('/faqs/admin/all');
+export const createFAQ = (data) => api.post('/faqs', data);
+export const updateFAQ = (id, data) => api.put(`/faqs/${id}`, data);
+export const deleteFAQ = (id) => api.delete(`/faqs/${id}`);
+
+// Appointments
+export const getAppointments = (p = 1, l = 10, status = '') => api.get(`/appointments?page=${p}&limit=${l}${status ? `&status=${status}` : ''}`);
+export const updateAppointment = (id, data) => api.put(`/appointments/${id}`, data);
+export const deleteAppointment = (id) => api.delete(`/appointments/${id}`);
+
+// Contacts
+export const getContacts = (p = 1, l = 10) => api.get(`/contacts?page=${p}&limit=${l}`);
+export const updateContact = (id, data) => api.put(`/contacts/${id}`, data);
+export const deleteContact = (id) => api.delete(`/contacts/${id}`);
+
+// Site Settings
+export const getSiteSettings = () => api.get('/site-settings');
+export const updateSiteSettings = (data) => api.put('/site-settings', data);
+export const seedSiteSettings = () => api.get('/site-settings/seed');
+
+// Hero Banners
+export const getHeroBanners = () => api.get('/hero-banners/admin');
+export const createHeroBanner = (data) => api.post('/hero-banners', data);
+export const updateHeroBanner = (id, data) => api.put(`/hero-banners/${id}`, data);
+export const deleteHeroBanner = (id) => api.delete(`/hero-banners/${id}`);
+
+// Upload
+export const uploadFile = (formData) => api.post('/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });

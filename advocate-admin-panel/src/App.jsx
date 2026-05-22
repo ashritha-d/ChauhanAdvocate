@@ -1,0 +1,44 @@
+import { useState } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Sidebar from './components/Sidebar';
+import Header from './components/Header';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Services from './pages/Services';
+import Blogs from './pages/Blogs';
+import Testimonials from './pages/Testimonials';
+import FAQs from './pages/FAQs';
+import Appointments from './pages/Appointments';
+import Contacts from './pages/Contacts';
+import SiteSettings from './pages/SiteSettings';
+import HeroBanners from './pages/HeroBanners';
+import Profile from './pages/Profile';
+
+const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile };
+
+function AdminApp() {
+  const { admin, loading } = useAuth();
+  const [page, setPage] = useState('dashboard');
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  if (loading) return <div className="d-flex align-items-center justify-content-center" style={{ minHeight:'100vh' }}><div className="spinner-border text-warning"></div></div>;
+  if (!admin) return <Login />;
+
+  const PageComponent = PAGES[page] || Dashboard;
+
+  return (
+    <div className="admin-layout">
+      <Sidebar current={page} onChange={setPage} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <div className="admin-main">
+        <Header page={page} onMenuClick={() => setMobileOpen(true)} />
+        <div className="admin-content">
+          <PageComponent />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  return <AuthProvider><AdminApp /></AuthProvider>;
+}
