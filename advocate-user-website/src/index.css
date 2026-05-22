@@ -219,6 +219,31 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 /* ── Spinner ── */
 .spinner-gold { color: var(--gold); }
 
+/* ── Content Slider (Books / Drafts / Magazines / JoinUs) ── */
+.slider-outer { display: flex; align-items: center; gap: 10px; }
+.slider-track { display: flex; gap: 24px; overflow-x: hidden; flex: 1; padding: 12px 4px 20px; }
+.slider-scroll-btn { flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--gold); background: transparent; color: var(--gold); font-size: 1.5rem; line-height: 1; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+.slider-scroll-btn:hover { background: var(--gold); color: #fff; }
+
+.book-card { min-width: 260px; max-width: 260px; background: #fff; border-radius: 16px; border: 1px solid #eee; overflow: hidden; display: flex; flex-direction: column; transition: all 0.3s; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+.book-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.12); border-color: var(--gold); }
+.book-card-img { width: 100%; height: 175px; overflow: hidden; background: #f0f0f0; }
+.book-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+.book-card:hover .book-card-img img { transform: scale(1.06); }
+.book-card-body { padding: 18px 16px; display: flex; flex-direction: column; flex: 1; }
+.book-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; color: var(--dark); margin-bottom: 4px; }
+.book-author { font-size: 0.78rem; color: #888; margin-bottom: 6px; }
+.book-rating { color: var(--gold); font-size: 0.85rem; margin-bottom: 8px; }
+.book-rating span { color: #aaa; font-size: 0.75rem; }
+.book-desc { font-size: 0.8rem; color: #666; line-height: 1.55; margin-bottom: 12px; flex: 1; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.book-price { font-size: 1.1rem; font-weight: 700; color: var(--gold); margin-bottom: 10px; }
+
+/* ── Jr. Advocate Modal ── */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.jr-modal { background: #fff; border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 460px; position: relative; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
+.jr-modal-close { position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 1.6rem; color: #888; cursor: pointer; line-height: 1; }
+.jr-modal-close:hover { color: var(--dark); }
+
 @media (max-width: 768px) {
   .section-padding { padding: 60px 0; }
   .section-title { font-size: 1.7rem; }
@@ -226,4 +251,5 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .about-badge-box { right: 0; }
   .appointment-form-card { padding: 24px; }
   .contact-form-card { padding: 24px; }
+  .book-card { min-width: 220px; max-width: 220px; }
 }
