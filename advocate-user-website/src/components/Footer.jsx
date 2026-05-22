@@ -4,6 +4,7 @@ import { getServices } from '../api';
 
 const SOCIALS = [
   { key: 'social_facebook', icon: 'fab fa-facebook-f' },
+  { key: 'social_youtube', icon: 'fab fa-youtube' },
   { key: 'social_twitter', icon: 'fab fa-twitter' },
   { key: 'social_linkedin', icon: 'fab fa-linkedin-in' },
   { key: 'social_instagram', icon: 'fab fa-instagram' },

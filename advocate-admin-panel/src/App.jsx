@@ -13,8 +13,9 @@ import Contacts from './pages/Contacts';
 import SiteSettings from './pages/SiteSettings';
 import HeroBanners from './pages/HeroBanners';
 import Profile from './pages/Profile';
+import YouTubeVideos from './pages/YouTubeVideos';
 
-const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile };
+const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile, youtube: YouTubeVideos };
 
 function AdminApp() {
   const { admin, loading } = useAuth();

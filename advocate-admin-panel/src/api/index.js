@@ -51,5 +51,11 @@ export const createHeroBanner = (data) => api.post('/hero-banners', data);
 export const updateHeroBanner = (id, data) => api.put(`/hero-banners/${id}`, data);
 export const deleteHeroBanner = (id) => api.delete(`/hero-banners/${id}`);
 
+// YouTube Videos
+export const getYouTubeVideos = () => api.get('/youtube-videos/admin');
+export const createYouTubeVideo = (data) => api.post('/youtube-videos', data);
+export const updateYouTubeVideo = (id, data) => api.put(`/youtube-videos/${id}`, data);
+export const deleteYouTubeVideo = (id) => api.delete(`/youtube-videos/${id}`);
+
 // Upload
 export const uploadFile = (formData) => api.post('/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });

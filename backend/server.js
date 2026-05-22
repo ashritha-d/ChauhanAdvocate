@@ -51,6 +51,7 @@ app.use('/api/faqs', require('./routes/faqs'));
 app.use('/api/contacts', require('./routes/contacts'));
 app.use('/api/site-settings', require('./routes/siteSettings'));
 app.use('/api/hero-banners', require('./routes/heroBanners'));
+app.use('/api/youtube-videos', require('./routes/youtubeVideos'));
 app.use('/api/upload', require('./routes/upload'));
 
 // Health check

@@ -4,6 +4,7 @@ import { useSite } from '../context/SiteContext';
 
 const SOCIALS = [
   { key: 'social_facebook', icon: 'fab fa-facebook-f', label: 'Facebook' },
+  { key: 'social_youtube', icon: 'fab fa-youtube', label: 'YouTube' },
   { key: 'social_twitter', icon: 'fab fa-twitter', label: 'Twitter' },
   { key: 'social_linkedin', icon: 'fab fa-linkedin-in', label: 'LinkedIn' },
   { key: 'social_instagram', icon: 'fab fa-instagram', label: 'Instagram' },
