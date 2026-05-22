@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { SiteProvider } from './context/SiteContext';
+import TopBar from './components/TopBar';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
@@ -14,6 +15,7 @@ function AppLayout({ children }) {
   }, []);
   return (
     <>
+      <TopBar />
       <Navbar />
       <main>{children}</main>
       <Footer />
