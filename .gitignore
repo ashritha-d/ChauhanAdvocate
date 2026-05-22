@@ -1,6 +1,7 @@
 admin/
 frontend/
 node_modules/
+gh-pages-deploy/
 .DS_Store
 Thumbs.db
 *.log
