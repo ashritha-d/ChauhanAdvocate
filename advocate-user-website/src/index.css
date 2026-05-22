@@ -291,6 +291,20 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   #navMenu .navbar-nav .nav-item:last-child .nav-link {
     border-bottom: none;
   }
+
+  /* Hero: stop vertical centering so content isn't pushed behind the fixed header */
+  .hero-section {
+    align-items: flex-start !important;
+    padding-top: 148px;  /* topbar(40) + navbar(~92) + 16 breathing room */
+    padding-bottom: 60px;
+  }
+
+  /* Navbar logo: show full landscape logo without cropping */
+  #mainNavbar .navbar-brand img {
+    height: 44px !important;
+    width: auto !important;
+    max-width: 160px;
+  }
 }
 
 /* ── 768px: tablets ── */
