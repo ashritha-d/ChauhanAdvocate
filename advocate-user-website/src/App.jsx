@@ -4,6 +4,7 @@ import { SiteProvider } from './context/SiteContext';
 import TopBar from './components/TopBar';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import PhoneButton from './components/PhoneButton';
 import WhatsAppButton from './components/WhatsAppButton';
 import BackToTop from './components/BackToTop';
 import Home from './pages/Home';
@@ -19,6 +20,7 @@ function AppLayout({ children }) {
       <Navbar />
       <main>{children}</main>
       <Footer />
+      <PhoneButton />
       <WhatsAppButton />
       <BackToTop />
     </>
