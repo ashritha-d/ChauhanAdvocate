@@ -310,6 +310,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .slider-scroll-btn { display: none; }
   .slider-track {
     overflow-x: auto;
+    min-width: 0;           /* allow flex item to shrink below content size */
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
