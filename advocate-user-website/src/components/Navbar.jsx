@@ -17,11 +17,7 @@ export default function Navbar() {
     <nav className={`navbar navbar-expand-lg navbar-dark fixed-top ${scrolled ? 'scrolled' : ''}`} id="mainNavbar">
       <div className="container">
         <a className="navbar-brand d-flex align-items-center gap-2" href="#home">
-          <div className="brand-icon"><i className="fas fa-balance-scale"></i></div>
-          <div>
-            <span className="brand-name">{settings.site_name || 'Advocate Chauhan'}</span>
-            <small className="d-block brand-tagline">{settings.site_tagline || 'Justice. Integrity. Excellence.'}</small>
-          </div>
+          <img src="/logo.jpeg" alt="Advocate Chauhan Logo" style={{ height: '60px', width: '60px', objectFit: 'contain' }} />
         </a>
         <button className="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
           <span className="navbar-toggler-icon"></span>
