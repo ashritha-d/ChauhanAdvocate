@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { useSite } from '../context/SiteContext';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Navbar() {
-  const { settings } = useSite();
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -11,36 +11,77 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const links = ['home','services','testimonials','blog','faq','contact'];
+  // Close menu when clicking outside the navbar
+  useEffect(() => {
+    const handleClickOutside = e => {
+      if (navRef.current && !navRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const close = () => setMenuOpen(false);
+  const links = ['home', 'services', 'testimonials', 'blog', 'faq', 'contact'];
 
   return (
-    <nav className={`navbar navbar-expand-lg navbar-dark fixed-top ${scrolled ? 'scrolled' : ''}`} id="mainNavbar">
+    <nav
+      ref={navRef}
+      className={`navbar navbar-dark fixed-top ${scrolled ? 'scrolled' : ''}`}
+      id="mainNavbar"
+    >
       <div className="container">
-        <a className="navbar-brand d-flex align-items-center gap-2" href="#home">
-          <img src="/logo.jpeg" alt="Advocate Chauhan Logo" style={{ height: '60px', width: '60px', objectFit: 'contain' }} />
+        {/* Hamburger — mobile only */}
+        <button
+          className={`hamburger d-lg-none ${menuOpen ? 'active' : ''}`}
+          onClick={() => setMenuOpen(o => !o)}
+          aria-label="Toggle navigation"
+          type="button"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        {/* Logo */}
+        <a className="navbar-brand navbar-logo d-flex align-items-center" href="#home">
+          <img
+            src="/logo.jpeg"
+            alt="Advocate Chauhan Logo"
+            style={{ height: '44px', objectFit: 'contain' }}
+          />
         </a>
-        {/* Mobile: Book Appointment button — outside hamburger menu, always visible */}
-        <a href="#appointment" className="btn btn-gold d-lg-none mobile-appt-btn">
+
+        {/* Book button — mobile only, outside menu */}
+        <a
+          href="#appointment"
+          className="btn btn-gold d-lg-none mobile-appt-btn book-appointment-btn"
+          onClick={close}
+        >
           <i className="fas fa-calendar-check"></i>
           <span className="mobile-appt-label"> Book</span>
         </a>
-        <button className="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-          <span className="navbar-toggler-icon"></span>
-        </button>
-        <div className="collapse navbar-collapse" id="navMenu">
-          <ul className="navbar-nav ms-auto gap-1">
-            {links.map(l => (
-              <li className="nav-item" key={l}>
-                <a className="nav-link" href={`#${l}`} onClick={() => {
-                  const el = document.getElementById('navMenu');
-                  const bs = window.bootstrap?.Collapse.getInstance(el);
-                  bs?.hide();
-                }}>{l.charAt(0).toUpperCase() + l.slice(1)}</a>
-              </li>
-            ))}
-          </ul>
-          {/* Desktop only button inside collapse */}
-          <a href="#appointment" className="btn btn-gold ms-3 d-none d-lg-inline-flex align-items-center">Book Appointment</a>
+
+        {/* Desktop nav — visible only on lg+ */}
+        <div className="d-none d-lg-flex ms-auto align-items-center gap-1">
+          {links.map(l => (
+            <a key={l} className="nav-link" href={`#${l}`}>
+              {l.charAt(0).toUpperCase() + l.slice(1)}
+            </a>
+          ))}
+          <a href="#appointment" className="btn btn-gold ms-2">
+            Book Appointment
+          </a>
+        </div>
+
+        {/* Mobile dropdown */}
+        <div className={`nav-links d-lg-none ${menuOpen ? 'active' : ''}`}>
+          {links.map(l => (
+            <a key={l} className="nav-link" href={`#${l}`} onClick={close}>
+              {l.charAt(0).toUpperCase() + l.slice(1)}
+            </a>
+          ))}
         </div>
       </div>
     </nav>

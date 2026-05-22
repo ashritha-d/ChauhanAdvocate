@@ -55,13 +55,27 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 }
 
 /* ── Navbar ── */
-.navbar { background: rgba(26,26,46,0.95); backdrop-filter: blur(10px); transition: all 0.3s; padding: 16px 0; top: 40px !important; }
+.navbar { background: rgba(26,26,46,0.95); backdrop-filter: blur(10px); transition: all 0.3s; padding: 16px 0; top: 40px !important; overflow: visible !important; flex-wrap: nowrap !important; }
 .navbar.scrolled { padding: 10px 0; box-shadow: 0 4px 30px rgba(0,0,0,0.3); }
 .brand-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.1rem; }
 .brand-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: #fff; }
 .brand-tagline { font-size: 0.65rem; color: rgba(255,255,255,0.6); letter-spacing: 1px; }
 .navbar .nav-link { color: rgba(255,255,255,0.8) !important; font-weight: 500; font-size: 0.9rem; padding: 6px 12px !important; transition: color 0.2s; }
 .navbar .nav-link:hover, .navbar .nav-link.active { color: var(--gold) !important; }
+
+/* ── Custom Hamburger Button ── */
+.hamburger { display: none; flex-direction: column; gap: 4px; cursor: pointer; z-index: 1101; padding: 14px 16px; align-self: center; background: none; border: none; order: 1; }
+.hamburger span { display: block; width: 24px; height: 2px; background: var(--gold); margin: 3px 0; border-radius: 2px; transition: all 0.3s ease; }
+.hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.hamburger.active span:nth-child(2) { opacity: 0; }
+.hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+/* ── Mobile Nav Links Dropdown ── */
+.nav-links { display: none; flex-direction: column; width: 100%; position: absolute; top: 100%; left: 0; background: #1a1a2e; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.35); padding: 8px 0; gap: 0; }
+.nav-links.active { display: flex; }
+.nav-links .nav-link { display: block !important; padding: 14px 28px !important; width: 100% !important; border-radius: 0 !important; font-size: 1em !important; letter-spacing: 0.3px !important; color: rgba(255,255,255,0.85) !important; border-bottom: 1px solid rgba(255,255,255,0.06) !important; }
+.nav-links .nav-link:last-child { border-bottom: none !important; }
+.nav-links .nav-link:hover { background: rgba(201,168,76,0.12) !important; color: var(--gold) !important; }
 
 /* ── Hero ── */
 .hero-section { min-height: 100vh; background: linear-gradient(135deg, var(--darker) 0%, #16213e 50%, #0f3460 100%); position: relative; overflow: hidden; align-items: center; }
@@ -279,42 +293,23 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
    RESPONSIVE MOBILE FIXES
    ════════════════════════════════════════════════ */
 
-/* ── ≤991px: tablet & mobile — hero fix + nav dropdown ── */
+/* ── ≤991px: tablet & mobile ── */
 @media (max-width: 991px) {
-  /* Hero: shift to flex-start so content is NOT vertically centred
-     (centring pushes long mobile content behind the fixed header). */
+  /* Hero: flex-start so content clears the fixed header */
   .hero-section {
     align-items: flex-start;
-    padding-top: 150px;   /* topbar 40 + navbar ~76 + 34 breathing room */
+    padding-top: 150px;
     padding-bottom: 60px;
-  }
-
-  /* Navbar logo: landscape logo.jpeg at proper height, full image visible */
-  #mainNavbar .navbar-brand img {
-    height: 44px !important;
-    width: auto !important;
-    max-width: 150px;
-  }
-
-  /* Nav dropdown styling */
-  #navMenu.show {
-    background: rgba(10,10,20,0.98);
-    border-radius: 0 0 16px 16px;
-    padding: 12px 0 16px;
-    margin-top: 6px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-  }
-  #navMenu .nav-link {
-    padding: 10px 16px !important;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-  }
-  #navMenu .navbar-nav .nav-item:last-child .nav-link {
-    border-bottom: none;
   }
 }
 
-/* ── ≤768px: tablets ── */
+/* ── ≤768px: tablets & phones ── */
 @media (max-width: 768px) {
+  /* Show hamburger, enforce navbar item order */
+  .hamburger { display: flex !important; }
+  .navbar-logo { order: 2 !important; flex: 1 !important; padding: 8px 12px !important; }
+  .book-appointment-btn { order: 3 !important; flex: 0 0 auto !important; margin-left: auto !important; white-space: nowrap !important; }
+
   .section-padding { padding: 60px 0; }
   .section-title { font-size: 1.7rem; }
   .hero-img { width: 260px; height: 320px; }
