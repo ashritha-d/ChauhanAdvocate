@@ -61,7 +61,7 @@ export default function Hero() {
         </div>
       </div>
       <div className="hero-scroll-indicator">
-        <a href="#about"><i className="fas fa-chevron-down"></i></a>
+        <a href="#services"><i className="fas fa-chevron-down"></i></a>
       </div>
     </section>
   );
