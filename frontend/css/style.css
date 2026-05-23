@@ -743,6 +743,116 @@ h1, h2, h3, h4, h5 { font-family: var(--font-heading); }
 }
 
 /* ============================================================
+   SLIDER SECTIONS (YouTube, Facebook, Books, Drafts, Magazines, Join Us)
+   ============================================================ */
+.slider-outer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.slider-track {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 4px 16px;
+  scrollbar-width: none;
+}
+.slider-track::-webkit-scrollbar { display: none; }
+.slider-scroll-btn {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  border: none;
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.6rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 12px rgba(201,168,76,0.3);
+}
+.slider-scroll-btn:hover { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); transform: scale(1.08); }
+
+/* Book / Slide Card */
+.book-card {
+  flex: 0 0 260px;
+  scroll-snap-align: start;
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition);
+}
+.book-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.book-card-img { width: 100%; height: 160px; overflow: hidden; background: #f0f0f0; }
+.book-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.book-card-body { padding: 16px; display: flex; flex-direction: column; flex: 1; }
+.book-title { font-family: var(--font-heading); font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+.book-author { font-size: 0.78rem; color: #666; margin-bottom: 6px; }
+.book-rating { color: var(--gold); font-size: 0.82rem; margin-bottom: 6px; }
+.book-rating span { color: #999; }
+.book-desc { font-size: 0.78rem; color: #555; flex: 1; margin-bottom: 10px; line-height: 1.5; }
+.book-price { font-size: 1rem; font-weight: 700; color: var(--gold); margin-bottom: 10px; }
+
+/* Video Cards */
+.video-card {
+  flex: 0 0 300px;
+  scroll-snap-align: start;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+.video-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.video-card-thumb { position: relative; width: 100%; height: 170px; overflow: hidden; }
+.video-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.video-play-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.3s;
+}
+.video-card:hover .video-play-overlay { background: rgba(0,0,0,0.55); }
+.video-play-btn {
+  width: 52px; height: 52px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  color: #111;
+  transition: transform 0.2s;
+}
+.video-card:hover .video-play-btn { transform: scale(1.15); }
+.video-card-title { padding: 10px 14px; font-size: 0.85rem; font-weight: 600; background: #fff; }
+
+.video-subscribe-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 22px;
+  border-radius: 50px;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+.video-subscribe-btn:hover { opacity: 0.85; color: #fff; transform: translateY(-2px); }
+
+/* Jr. Advocate Modal */
+#jrModal .modal-content { border-radius: var(--radius); border: none; }
+#jrModal .modal-header { border-bottom: 1px solid #f0f0f0; }
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 
