@@ -2,7 +2,7 @@
    Advocate Chauhan - Main Frontend JS
    ============================================================ */
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://chauhanadvocate.onrender.com/api';
 
 // ─── INIT ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
