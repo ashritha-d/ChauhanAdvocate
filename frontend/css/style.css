@@ -18,12 +18,13 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; max-width: 100%; }
 
 body {
   font-family: var(--font-body);
   color: var(--dark);
   overflow-x: hidden;
+  max-width: 100%;
   background: #fff;
 }
 
@@ -754,52 +755,15 @@ h1, h2, h3, h4, h5 { font-family: var(--font-heading); }
 @media screen and (max-width: 768px) {
   .section-padding { padding: 60px 0; }
 
+  /* Contain overflow on every section and the hero */
+  section, .hero-section { overflow-x: hidden; }
+  .hero-section .container { overflow-x: hidden; }
+
   .hero-section { text-align: center; }
+  .hero-title { font-size: 2.2rem !important; }
   .hero-subtitle { margin: 0 auto 2rem; }
-  .hero-stats { justify-content: center; }
-  .stat-item { border-right: none; padding-right: 0; }
 
-  .appointment-form-card { padding: 28px 24px; }
-  .contact-form-card { padding: 28px 24px; }
-
-  .hero-card-float { display: none; }
-  .about-badge-box { position: static; margin-top: 16px; text-align: center; }
-  .about-badge { display: inline-flex; }
-
-  /* Services: horizontal scroll on mobile like a YouTube shelf */
-  .services-scroll-outer {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    margin: 0 -12px;
-    padding: 4px 12px 20px;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .services-scroll-outer::-webkit-scrollbar { display: none; }
-  .services-scroll-outer > .row {
-    flex-wrap: nowrap;
-    padding-bottom: 4px;
-  }
-  .services-scroll-outer > .row > [class*="col-"] {
-    flex: 0 0 270px !important;
-    min-width: 270px !important;
-    max-width: 270px !important;
-  }
-}
-
-/* ── 576px: mobile ── */
-@media screen and (max-width: 480px) {
-  .section-padding { padding: 50px 0; }
-
-  /* Navbar brand: hide tagline to save space */
-  .brand-tagline { display: none !important; }
-
-  /* Hero */
-  .hero-title { font-size: 1.9rem; }
-  .hero-subtitle { font-size: 1rem; }
-  .hero-img { max-width: 100%; height: 260px; border-radius: 20px 20px 60px 20px; }
-
-  /* Hero buttons: full width stacked */
+  /* Hero buttons: full-width stacked for all mobile sizes */
   .hero-section .d-flex.flex-wrap {
     flex-direction: column;
     align-items: stretch;
@@ -808,25 +772,80 @@ h1, h2, h3, h4, h5 { font-family: var(--font-heading); }
     width: 100%;
     text-align: center;
     justify-content: center;
-    font-size: 0.9rem;
-    padding: 12px 20px !important;
+    padding: 13px 20px !important;
   }
 
-  /* Hero stats: 2×2 grid */
+  /* Hero stats: fix Bootstrap row negative margins, 2-col grid */
   .hero-stats {
-    flex-wrap: wrap !important;
-    gap: 12px !important;
-    justify-content: flex-start !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
   }
   .hero-stats .col-auto {
-    flex: 0 0 calc(50% - 6px) !important;
-    max-width: calc(50% - 6px) !important;
+    flex: unset !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
   }
   .stat-item {
+    border-right: none;
+    padding-right: 0;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 12px 14px;
     align-items: flex-start;
-    border-right: none !important;
-    padding-right: 0 !important;
   }
+
+  .appointment-form-card { padding: 28px 24px; }
+  .contact-form-card { padding: 28px 24px; }
+
+  .hero-card-float { display: none; }
+  .about-badge-box { position: static; margin-top: 16px; text-align: center; }
+  .about-badge { display: inline-flex; }
+
+  /* Navbar brand: shrink to fit beside book + toggler */
+  .navbar-brand { max-width: calc(100% - 140px); flex-shrink: 1; min-width: 0; }
+  .brand-name { font-size: 0.95rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brand-tagline { font-size: 0.6rem; }
+
+  /* Services: horizontal scroll — remove negative margin to prevent page overflow */
+  .services-scroll-outer {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0;
+    padding: 4px 0 20px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .services-scroll-outer::-webkit-scrollbar { display: none; }
+  .services-scroll-outer > .row {
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .services-scroll-outer > .row > [class*="col-"] {
+    flex: 0 0 270px !important;
+    min-width: 270px !important;
+    max-width: 270px !important;
+  }
+}
+
+/* ── 480px: mobile ── */
+@media screen and (max-width: 480px) {
+  .section-padding { padding: 50px 0; }
+
+  /* Navbar brand: hide tagline to save space */
+  .brand-tagline { display: none !important; }
+
+  /* Hero */
+  .hero-title { font-size: 1.9rem !important; }
+  .hero-subtitle { font-size: 1rem; }
+  .hero-img { max-width: 100%; height: 260px; border-radius: 20px 20px 60px 20px; }
+
   .stat-number { font-size: 1.5rem; }
 
   /* Form cards */
