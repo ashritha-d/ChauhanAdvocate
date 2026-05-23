@@ -261,7 +261,7 @@
               <div class="book-rating">&#9733;&#9733;&#9733;&#9733;&#9733; <span>(128 reviews)</span></div>
               <p class="book-desc">Comprehensive guide covering all aspects of civil litigation, including contract disputes, property matters, and personal injury cases.</p>
               <div class="book-price">&#8377;29.99</div>
-              <a href="#" class="btn btn-gold btn-sm mt-auto">Order Now</a>
+              <button class="btn btn-gold btn-sm mt-auto" onclick="openBookOrder('Civil Law Handbook','&#8377;29.99')">Order Now</button>
             </div>
           </div>
           <div class="book-card" data-aos="fade-up" data-aos-delay="60">
@@ -272,7 +272,7 @@
               <div class="book-rating">&#9733;&#9733;&#9733;&#9733;&#9734; <span>(95 reviews)</span></div>
               <p class="book-desc">Essential resource for understanding criminal law principles, from investigation through trial. Covers constitutional rights and defense strategies.</p>
               <div class="book-price">&#8377;34.99</div>
-              <a href="#" class="btn btn-gold btn-sm mt-auto">Order Now</a>
+              <button class="btn btn-gold btn-sm mt-auto" onclick="openBookOrder('Criminal Law Guide','&#8377;34.99')">Order Now</button>
             </div>
           </div>
           <div class="book-card" data-aos="fade-up" data-aos-delay="120">
@@ -283,7 +283,7 @@
               <div class="book-rating">&#9733;&#9733;&#9733;&#9733;&#9733; <span>(156 reviews)</span></div>
               <p class="book-desc">Compassionate and thorough guide to family law matters including divorce, child custody, adoption, and domestic relations.</p>
               <div class="book-price">&#8377;24.99</div>
-              <a href="#" class="btn btn-gold btn-sm mt-auto">Order Now</a>
+              <button class="btn btn-gold btn-sm mt-auto" onclick="openBookOrder('Family Law Manual','&#8377;24.99')">Order Now</button>
             </div>
           </div>
           <div class="book-card" data-aos="fade-up" data-aos-delay="180">
@@ -294,7 +294,7 @@
               <div class="book-rating">&#9733;&#9733;&#9733;&#9733;&#9734; <span>(87 reviews)</span></div>
               <p class="book-desc">Comprehensive reference for business law including corporate formation, mergers &amp; acquisitions, regulatory compliance, and governance.</p>
               <div class="book-price">&#8377;39.99</div>
-              <a href="#" class="btn btn-gold btn-sm mt-auto">Order Now</a>
+              <button class="btn btn-gold btn-sm mt-auto" onclick="openBookOrder('Corporate Law Reference','&#8377;39.99')">Order Now</button>
             </div>
           </div>
           <div class="book-card" data-aos="fade-up" data-aos-delay="240">
@@ -305,7 +305,7 @@
               <div class="book-rating">&#9733;&#9733;&#9733;&#9733;&#9733; <span>(203 reviews)</span></div>
               <p class="book-desc">In-depth analysis of constitutional principles and landmark Supreme Court decisions with expert commentary on modern applications.</p>
               <div class="book-price">&#8377;32.99</div>
-              <a href="#" class="btn btn-gold btn-sm mt-auto">Order Now</a>
+              <button class="btn btn-gold btn-sm mt-auto" onclick="openBookOrder('Constitutional Law Essentials','&#8377;32.99')">Order Now</button>
             </div>
           </div>
           <div class="book-card" data-aos="fade-up" data-aos-delay="300">
@@ -316,7 +316,7 @@
               <div class="book-rating">&#9733;&#9733;&#9733;&#9733;&#9734; <span>(112 reviews)</span></div>
               <p class="book-desc">Complete guide to patents, trademarks, copyrights, and trade secrets with step-by-step filing procedures and enforcement strategies.</p>
               <div class="book-price">&#8377;27.99</div>
-              <a href="#" class="btn btn-gold btn-sm mt-auto">Order Now</a>
+              <button class="btn btn-gold btn-sm mt-auto" onclick="openBookOrder('Intellectual Property Law','&#8377;27.99')">Order Now</button>
             </div>
           </div>
         </div>
@@ -894,6 +894,59 @@
             </div>
             <button type="submit" class="btn btn-gold w-100">Submit Application</button>
           </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== BOOK ORDER MODAL ========== -->
+  <div class="modal fade" id="bookOrderModal" tabindex="-1" aria-labelledby="bookOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold" id="bookOrderModalLabel" style="font-family:'Playfair Display',serif;">
+            Order <span class="text-gold" id="bookOrderModalTitle">Book</span>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Success state (hidden by default) -->
+          <div id="bookOrderSuccess" class="text-center py-4" style="display:none;">
+            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+            <p class="fw-bold fs-5">Order Placed!</p>
+            <p class="text-muted">Thank you for your order. We will confirm and arrange delivery shortly.</p>
+          </div>
+          <!-- Form state -->
+          <div id="bookOrderFormWrap">
+            <div id="bookOrderSummary" class="alert alert-warning py-2 mb-3 small"></div>
+            <form id="bookOrderForm" novalidate>
+              <input type="hidden" id="bo-book-title" name="bookTitle" />
+              <input type="hidden" id="bo-book-price" name="bookPrice" />
+              <div class="mb-3">
+                <input class="form-control" name="name" id="bo-name" placeholder="Full Name *" required />
+              </div>
+              <div class="mb-3">
+                <input class="form-control" type="tel" name="phone" id="bo-phone" placeholder="Phone Number *" required />
+              </div>
+              <div class="mb-3">
+                <input class="form-control" type="email" name="email" id="bo-email" placeholder="Email Address *" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label text-muted small mb-1">Quantity</label>
+                <input class="form-control" type="number" name="quantity" id="bo-quantity" value="1" min="1" max="20" required />
+              </div>
+              <div class="mb-3">
+                <textarea class="form-control" name="address" id="bo-address" rows="3" placeholder="Delivery Address *" required></textarea>
+              </div>
+              <div class="mb-3">
+                <textarea class="form-control" name="notes" id="bo-notes" rows="2" placeholder="Additional notes (optional)"></textarea>
+              </div>
+              <button type="submit" class="btn btn-gold w-100" id="bookOrderSubmitBtn">
+                <i class="fas fa-shopping-cart me-2"></i> Place Order
+              </button>
+              <div id="bookOrderAlert" class="mt-3"></div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

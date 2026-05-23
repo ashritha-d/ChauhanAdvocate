@@ -676,6 +676,56 @@ function initForms() {
       showToast('Server error. Please try again later.', 'danger');
     }
   });
+
+
+  // Book Order Form (inside modal)
+  const bookOrderForm = document.getElementById('bookOrderForm');
+  bookOrderForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('bookOrderSubmitBtn');
+    const alert = document.getElementById('bookOrderAlert');
+
+    if (!bookOrderForm.checkValidity()) {
+      bookOrderForm.classList.add('was-validated');
+      return;
+    }
+
+    setButtonLoading(btn, true, 'Placing order...');
+    try {
+      const payload = getFormData(bookOrderForm);
+      const data = await apiFetch('/book-orders', 'POST', payload);
+      if (data.success) {
+        document.getElementById('bookOrderFormWrap').style.display = 'none';
+        document.getElementById('bookOrderSuccess').style.display = 'block';
+      } else {
+        showAlert(alert, 'danger', data.message || 'Something went wrong.');
+        setButtonLoading(btn, false, '<i class="fas fa-shopping-cart me-2"></i> Place Order');
+      }
+    } catch (err) {
+      showAlert(alert, 'danger', 'Server error. Please try again later.');
+      setButtonLoading(btn, false, '<i class="fas fa-shopping-cart me-2"></i> Place Order');
+    }
+  });
+}
+
+// ─── BOOK ORDER MODAL OPENER ─────────────────────────────────
+function openBookOrder(title, price) {
+  // Reset to form state (hide success, show form)
+  document.getElementById('bookOrderSuccess').style.display = 'none';
+  document.getElementById('bookOrderFormWrap').style.display = 'block';
+  document.getElementById('bookOrderModalTitle').textContent = title;
+  document.getElementById('bookOrderSummary').innerHTML =
+    '<i class="fas fa-book me-2"></i><strong>' + title + '</strong> &nbsp;|&nbsp; Price: <strong>' + price + '</strong>';
+  const form = document.getElementById('bookOrderForm');
+  form.reset();
+  document.getElementById('bo-book-title').value = title;
+  document.getElementById('bo-book-price').value = price;
+  document.getElementById('bo-quantity').value = 1;
+  form.classList.remove('was-validated');
+  document.getElementById('bookOrderAlert').innerHTML = '';
+  const btn = document.getElementById('bookOrderSubmitBtn');
+  setButtonLoading(btn, false, '<i class="fas fa-shopping-cart me-2"></i> Place Order');
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('bookOrderModal')).show();
 }
 
 // ─── UTILITIES ───────────────────────────────────────────────

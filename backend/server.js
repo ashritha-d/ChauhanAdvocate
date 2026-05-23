@@ -55,6 +55,7 @@ app.use('/api/youtube-videos', require('./routes/youtubeVideos'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/jr-advocates', require('./routes/jrAdvocates'));
+app.use('/api/book-orders', require('./routes/bookOrders'));
 app.use('/api/notifications', require('./routes/notifications'));
 
 // Health check

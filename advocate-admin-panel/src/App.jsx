@@ -16,8 +16,9 @@ import Profile from './pages/Profile';
 import YouTubeVideos from './pages/YouTubeVideos';
 import Orders from './pages/Orders';
 import JrAdvocates from './pages/JrAdvocates';
+import BookOrders from './pages/BookOrders';
 
-const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile, youtube: YouTubeVideos, orders: Orders, jradvocates: JrAdvocates };
+const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile, youtube: YouTubeVideos, orders: Orders, jradvocates: JrAdvocates, bookorders: BookOrders };
 
 function AdminApp() {
   const { admin, loading } = useAuth();

@@ -7,12 +7,12 @@ const PAGE_TITLES = {
   services: 'Services', blogs: 'Blogs', testimonials: 'Testimonials',
   faqs: 'FAQs', appointments: 'Appointments', contacts: 'Contacts',
   profile: 'My Profile', youtube: 'YouTube Videos',
-  orders: 'Orders', jradvocates: 'Jr. Advocate Applications',
+  orders: 'Orders', jradvocates: 'Jr. Advocate Applications', bookorders: 'Book Orders',
 };
 
 export default function Header({ page, onMenuClick, onNavigate }) {
   const { admin } = useAuth();
-  const [counts, setCounts] = useState({ appointments: 0, orders: 0, jrAdvocates: 0, total: 0 });
+  const [counts, setCounts] = useState({ appointments: 0, orders: 0, jrAdvocates: 0, bookOrders: 0, total: 0 });
   const [open, setOpen] = useState(false);
   const dropRef = useRef(null);
 
@@ -37,6 +37,7 @@ export default function Header({ page, onMenuClick, onNavigate }) {
   const notifItems = [
     { label: 'Appointments', count: counts.appointments, page: 'appointments', icon: 'fas fa-calendar-alt' },
     { label: 'Orders', count: counts.orders, page: 'orders', icon: 'fas fa-file-alt' },
+    { label: 'Book Orders', count: counts.bookOrders, page: 'bookorders', icon: 'fas fa-book' },
     { label: 'Jr. Advocates', count: counts.jrAdvocates, page: 'jradvocates', icon: 'fas fa-user-tie' },
   ].filter(n => n.count > 0);
 

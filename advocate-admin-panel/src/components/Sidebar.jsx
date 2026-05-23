@@ -16,6 +16,7 @@ const NAV = [
   { label: 'Inquiries', items: [
     { icon: 'fas fa-calendar-alt', label: 'Appointments', page: 'appointments' },
     { icon: 'fas fa-file-alt', label: 'Orders', page: 'orders' },
+    { icon: 'fas fa-book', label: 'Book Orders', page: 'bookorders' },
     { icon: 'fas fa-user-tie', label: 'Jr. Advocates', page: 'jradvocates' },
     { icon: 'fas fa-envelope', label: 'Contacts', page: 'contacts' },
   ]},

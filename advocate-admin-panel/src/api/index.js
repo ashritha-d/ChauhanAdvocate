@@ -67,6 +67,11 @@ export const getJrAdvocates = (p = 1, l = 10, status = '') => api.get(`/jr-advoc
 export const updateJrAdvocate = (id, data) => api.put(`/jr-advocates/${id}`, data);
 export const deleteJrAdvocate = (id) => api.delete(`/jr-advocates/${id}`);
 
+// Book Orders
+export const getBookOrders = (p = 1, l = 10, status = '') => api.get(`/book-orders?page=${p}&limit=${l}${status ? `&status=${status}` : ''}`);
+export const updateBookOrder = (id, data) => api.put(`/book-orders/${id}`, data);
+export const deleteBookOrder = (id) => api.delete(`/book-orders/${id}`);
+
 // Notifications
 export const getNotificationCounts = () => api.get('/notifications/counts');
 
