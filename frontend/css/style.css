@@ -19,6 +19,7 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; overflow-x: hidden; max-width: 100%; }
+img, video, iframe { max-width: 100%; height: auto; }
 
 body {
   font-family: var(--font-body);
