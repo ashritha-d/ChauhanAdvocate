@@ -974,6 +974,12 @@ h1, h2, h3, h4, h5 { font-family: var(--font-heading); }
   .footer-bottom .container { flex-direction: column; gap: 6px; text-align: center; }
 }
 
+/* Slider arrows: hide on touch screens (users swipe), show on desktop */
+@media (max-width: 768px) {
+  .slider-scroll-btn { display: none; }
+  .slider-track { padding-left: 4px; padding-right: 4px; }
+}
+
 /* ── 380px: very small phones (iPhone SE, etc.) ── */
 @media screen and (max-width: 380px) {
   /* Hide appointment button label, show icon only */
