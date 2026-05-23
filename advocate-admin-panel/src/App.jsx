@@ -14,8 +14,10 @@ import SiteSettings from './pages/SiteSettings';
 import HeroBanners from './pages/HeroBanners';
 import Profile from './pages/Profile';
 import YouTubeVideos from './pages/YouTubeVideos';
+import Orders from './pages/Orders';
+import JrAdvocates from './pages/JrAdvocates';
 
-const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile, youtube: YouTubeVideos };
+const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile, youtube: YouTubeVideos, orders: Orders, jradvocates: JrAdvocates };
 
 function AdminApp() {
   const { admin, loading } = useAuth();
@@ -31,7 +33,7 @@ function AdminApp() {
     <div className="admin-layout">
       <Sidebar current={page} onChange={setPage} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
       <div className="admin-main">
-        <Header page={page} onMenuClick={() => setMobileOpen(true)} />
+        <Header page={page} onMenuClick={() => setMobileOpen(true)} onNavigate={setPage} />
         <div className="admin-content">
           <PageComponent />
         </div>

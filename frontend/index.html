@@ -43,6 +43,7 @@
           <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
           <li class="nav-item"><a class="nav-link" href="#testimonials">Testimonials</a></li>
           <li class="nav-item"><a class="nav-link" href="#blog">Blog</a></li>
+          <li class="nav-item"><a class="nav-link" href="#order">Submit Case</a></li>
           <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
           <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
         </ul>
@@ -563,6 +564,77 @@
     </div>
   </section>
 
+  <!-- ========== ORDER DETAILS SECTION ========== -->
+  <section id="order" class="section-padding order-section">
+    <div class="container">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <span class="section-badge">Legal Services</span>
+        <h2 class="section-title">Submit Your Case Details</h2>
+        <p class="section-subtitle">Fill in the details below and we will get back to you with a consultation plan</p>
+      </div>
+      <div class="row justify-content-center">
+        <div class="col-lg-8" data-aos="fade-up" data-aos-delay="100">
+          <div class="order-form-card">
+            <h4 class="mb-4"><i class="fas fa-file-alt text-gold me-2"></i> Order Details</h4>
+            <form id="orderForm" novalidate enctype="multipart/form-data">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <input type="text" class="form-control" id="order-name" name="name" placeholder="Full Name *" required />
+                </div>
+                <div class="col-md-6">
+                  <input type="tel" class="form-control" id="order-phone" name="phone" placeholder="Phone Number *" required />
+                </div>
+                <div class="col-md-6">
+                  <input type="email" class="form-control" id="order-email" name="email" placeholder="Email Address *" required />
+                </div>
+                <div class="col-md-6">
+                  <select class="form-select" id="order-service" name="serviceType" required>
+                    <option value="" disabled selected>Select Service Type *</option>
+                    <option value="Civil Law">Civil Law</option>
+                    <option value="Criminal Law">Criminal Law</option>
+                    <option value="Family Law">Family Law</option>
+                    <option value="Property Law">Property Law</option>
+                    <option value="Corporate Law">Corporate Law</option>
+                    <option value="Labour Law">Labour Law</option>
+                    <option value="Consumer Court">Consumer Court</option>
+                    <option value="High Court">High Court</option>
+                    <option value="Supreme Court">Supreme Court</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <textarea class="form-control" id="order-description" name="description" rows="4" placeholder="Describe your case / legal matter *" required></textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label text-muted small mb-1">Preferred Contact Method</label>
+                  <select class="form-select" id="order-contact-method" name="contactMethod">
+                    <option value="phone">Phone Call</option>
+                    <option value="whatsapp">WhatsApp</option>
+                    <option value="email">Email</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label text-muted small mb-1">Upload Documents (optional)</label>
+                  <input type="file" class="form-control" id="order-documents" name="documents" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" />
+                  <div class="form-text">Max 5 files. Images, PDF, Word docs accepted.</div>
+                </div>
+                <div class="col-12">
+                  <input type="text" class="form-control" id="order-address" name="address" placeholder="Your Address (optional)" />
+                </div>
+                <div class="col-12 mt-2">
+                  <button type="submit" class="btn btn-gold px-5 py-3 w-100" id="orderSubmitBtn">
+                    <i class="fas fa-paper-plane me-2"></i> Submit Case Details
+                  </button>
+                </div>
+              </div>
+            </form>
+            <div id="orderAlert" class="mt-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ========== BLOG SECTION ========== -->
   <section id="blog" class="section-padding bg-white">
     <div class="container">
@@ -800,18 +872,25 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body" id="jrModalBody">
-          <form id="jrForm" novalidate>
+          <form id="jrForm" novalidate enctype="multipart/form-data">
             <div class="mb-3">
-              <input class="form-control" placeholder="Full Name *" required id="jr-name" />
+              <input class="form-control" name="name" placeholder="Full Name *" required id="jr-name" />
             </div>
             <div class="mb-3">
-              <input class="form-control" type="email" placeholder="Email Address *" required id="jr-email" />
+              <input class="form-control" type="email" name="email" placeholder="Email Address *" required id="jr-email" />
             </div>
             <div class="mb-3">
-              <input class="form-control" type="tel" placeholder="Phone Number *" required id="jr-phone" />
+              <input class="form-control" type="tel" name="phone" placeholder="Phone Number *" required id="jr-phone" />
             </div>
             <div class="mb-3">
-              <textarea class="form-control" rows="3" placeholder="Brief about your experience / education" id="jr-experience"></textarea>
+              <input class="form-control" name="qualification" placeholder="Qualification (e.g. LLB, LLM) *" required id="jr-qualification" />
+            </div>
+            <div class="mb-3">
+              <textarea class="form-control" name="message" rows="2" placeholder="Brief about your experience / education" id="jr-experience"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted small">Upload Resume / CV (optional)</label>
+              <input class="form-control" type="file" name="resume" id="jr-resume" accept=".pdf,.doc,.docx" />
             </div>
             <button type="submit" class="btn btn-gold w-100">Submit Application</button>
           </form>
@@ -823,17 +902,6 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-  <script src="js/main.js?v=2"></script>
-  <script>
-    document.getElementById('jrForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      document.getElementById('jrModalBody').innerHTML =
-        '<div class="text-center py-4">' +
-        '<i class="fas fa-check-circle fa-3x mb-3" style="color:var(--gold)"></i>' +
-        '<p class="fw-bold">Application submitted!</p>' +
-        '<p class="text-muted small">We will contact you shortly.</p>' +
-        '</div>';
-    });
-  </script>
+  <script src="js/main.js?v=3"></script>
 </body>
 </html>

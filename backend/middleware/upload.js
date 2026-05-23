@@ -15,11 +15,12 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp|svg/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+  const allowedExts = /jpeg|jpg|png|gif|webp|svg|pdf|doc|docx/;
+  const allowedMimes = /image\/(jpeg|jpg|png|gif|webp|svg\+xml)|application\/(pdf|msword|vnd\.openxmlformats-officedocument\.wordprocessingml\.document)/;
+  const extname = allowedExts.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedMimes.test(file.mimetype);
   if (extname && mimetype) return cb(null, true);
-  cb(new Error('Only image files are allowed'));
+  cb(new Error('Only images, PDFs, and Word documents are allowed'));
 };
 
 const upload = multer({

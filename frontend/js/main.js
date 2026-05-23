@@ -616,6 +616,66 @@ function initForms() {
     }
     setButtonLoading(btn, false, '<i class="fas fa-paper-plane me-2"></i> Send Message');
   });
+
+  // Order Details Form
+  const orderForm = document.getElementById('orderForm');
+  orderForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('orderSubmitBtn');
+    const alert = document.getElementById('orderAlert');
+
+    if (!orderForm.checkValidity()) {
+      orderForm.classList.add('was-validated');
+      return;
+    }
+
+    setButtonLoading(btn, true, 'Submitting...');
+    try {
+      const formData = new FormData(orderForm);
+      const res = await fetch(API_BASE + '/orders', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        showAlert(alert, 'success', '<i class="fas fa-check-circle me-2"></i>' + data.message);
+        orderForm.reset();
+        orderForm.classList.remove('was-validated');
+        showToast('Case details submitted successfully!', 'success');
+      } else {
+        showAlert(alert, 'danger', data.message || 'Something went wrong.');
+      }
+    } catch (err) {
+      showAlert(alert, 'danger', 'Server error. Please try again later or call us directly.');
+    }
+    setButtonLoading(btn, false, '<i class="fas fa-paper-plane me-2"></i> Submit Case Details');
+  });
+
+  // Jr. Advocate Application Modal Form
+  const jrForm = document.getElementById('jrForm');
+  jrForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = jrForm.querySelector('[type="submit"]');
+    const modalBody = document.getElementById('jrModalBody');
+
+    if (!jrForm.checkValidity()) {
+      jrForm.classList.add('was-validated');
+      return;
+    }
+
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...'; }
+    try {
+      const formData = new FormData(jrForm);
+      const res = await fetch(API_BASE + '/jr-advocates', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        modalBody.innerHTML = '<div class="text-center py-4"><i class="fas fa-check-circle fa-3x text-success mb-3"></i><p class="fw-bold fs-5">Application Submitted!</p><p class="text-muted">We have received your application. Our team will review it and get back to you shortly.</p></div>';
+      } else {
+        if (btn) { btn.disabled = false; btn.innerHTML = 'Submit Application'; }
+        showToast(data.message || 'Submission failed. Please try again.', 'danger');
+      }
+    } catch (err) {
+      if (btn) { btn.disabled = false; btn.innerHTML = 'Submit Application'; }
+      showToast('Server error. Please try again later.', 'danger');
+    }
+  });
 }
 
 // ─── UTILITIES ───────────────────────────────────────────────

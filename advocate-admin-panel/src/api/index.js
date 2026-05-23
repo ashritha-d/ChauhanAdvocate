@@ -57,5 +57,18 @@ export const createYouTubeVideo = (data) => api.post('/youtube-videos', data);
 export const updateYouTubeVideo = (id, data) => api.put(`/youtube-videos/${id}`, data);
 export const deleteYouTubeVideo = (id) => api.delete(`/youtube-videos/${id}`);
 
+// Orders
+export const getOrders = (p = 1, l = 10, status = '') => api.get(`/orders?page=${p}&limit=${l}${status ? `&status=${status}` : ''}`);
+export const updateOrder = (id, data) => api.put(`/orders/${id}`, data);
+export const deleteOrder = (id) => api.delete(`/orders/${id}`);
+
+// Jr. Advocates
+export const getJrAdvocates = (p = 1, l = 10, status = '') => api.get(`/jr-advocates?page=${p}&limit=${l}${status ? `&status=${status}` : ''}`);
+export const updateJrAdvocate = (id, data) => api.put(`/jr-advocates/${id}`, data);
+export const deleteJrAdvocate = (id) => api.delete(`/jr-advocates/${id}`);
+
+// Notifications
+export const getNotificationCounts = () => api.get('/notifications/counts');
+
 // Upload
 export const uploadFile = (formData) => api.post('/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });

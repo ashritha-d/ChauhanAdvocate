@@ -53,6 +53,9 @@ app.use('/api/site-settings', require('./routes/siteSettings'));
 app.use('/api/hero-banners', require('./routes/heroBanners'));
 app.use('/api/youtube-videos', require('./routes/youtubeVideos'));
 app.use('/api/upload', require('./routes/upload'));
+app.use('/api/orders', require('./routes/orders'));
+app.use('/api/jr-advocates', require('./routes/jrAdvocates'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
