@@ -1,0 +1,41 @@
+name: Deploy Frontend to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync frontend to gh-pages
+        run: |
+          cp -r frontend /tmp/frontend-deploy
+
+          git checkout gh-pages
+
+          rsync -av --delete \
+            --exclude='.git' \
+            --exclude='admin' \
+            /tmp/frontend-deploy/ ./
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "chore: deploy from main [skip ci]"
+            git push origin gh-pages
+          fi
