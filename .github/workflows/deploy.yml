@@ -33,9 +33,5 @@ jobs:
             /tmp/frontend-deploy/ ./
 
           git add -A
-          if git diff --cached --quiet; then
-            echo "No changes to deploy"
-          else
-            git commit -m "chore: deploy from main [skip ci]"
-            git push origin gh-pages
-          fi
+          git diff --cached --quiet && git commit --allow-empty -m "chore: trigger Pages deploy" || git commit -m "chore: deploy from main"
+          git push origin gh-pages
