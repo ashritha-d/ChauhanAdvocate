@@ -58,14 +58,13 @@ exports.changePassword = async (req, res) => {
 
 exports.seedAdmin = async (req, res) => {
   try {
-    const exists = await Admin.findOne({ email: process.env.ADMIN_EMAIL });
+    const email = req.body.email || process.env.ADMIN_EMAIL;
+    const password = req.body.password || process.env.ADMIN_PASSWORD;
+    const name = req.body.name || process.env.ADMIN_NAME || 'Admin';
+    if (!email || !password) return res.status(400).json({ success: false, message: 'Email and password are required' });
+    const exists = await Admin.findOne({ email });
     if (exists) return res.json({ success: true, message: 'Admin already exists' });
-    await Admin.create({
-      name: process.env.ADMIN_NAME || 'Admin',
-      email: process.env.ADMIN_EMAIL,
-      password: process.env.ADMIN_PASSWORD,
-      role: 'superadmin'
-    });
+    await Admin.create({ name, email, password, role: 'superadmin' });
     res.json({ success: true, message: 'Admin created successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
