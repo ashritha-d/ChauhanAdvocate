@@ -75,10 +75,70 @@ h1, h2, h3, h4, h5 { font-family: var(--font-heading); }
 }
 
 /* ============================================================
+   TOP BAR
+   ============================================================ */
+.top-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1031;
+  background: #07101f;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 36px;
+  font-size: 0.78rem;
+}
+.top-bar-left, .top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.top-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+.top-bar-item:hover { color: var(--gold); }
+.top-bar-item svg { width: 13px; height: 13px; fill: var(--gold); flex-shrink: 0; }
+.top-bar-divider { width: 1px; height: 16px; background: rgba(255,255,255,0.15); }
+.top-bar-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: 6px;
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+.top-bar-social svg { width: 14px; height: 14px; fill: currentColor; }
+.top-bar-social:hover { color: #fff; }
+.top-bar-social.instagram:hover { background: #e1306c; }
+.top-bar-social.facebook:hover { background: #1877f2; }
+.top-bar-social.whatsapp:hover { background: #25d366; }
+.top-bar-social.youtube:hover { background: #ff0000; }
+.top-bar-social.twitter:hover { background: #000; }
+@media (max-width: 767px) {
+  .top-bar-item:not(.location-item) { display: none; }
+  .top-bar-divider { display: none; }
+}
+@media (max-width: 480px) {
+  .top-bar-left { display: none; }
+  .top-bar { justify-content: flex-end; }
+}
+
+/* ============================================================
    NAVBAR
    ============================================================ */
 #mainNavbar {
   background: transparent;
+  top: 36px;
   padding: 16px 0;
   transition: var(--transition);
 }
