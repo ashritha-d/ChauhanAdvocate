@@ -21,7 +21,7 @@ export default function Footer() {
   const phone = s.contact_phone || '9392538226';
   const phone2 = s.contact_phone2 || '9441335292';
   const email = s.contact_email || 'info@advocatechauhan.com';
-  const address = s.contact_address || 'District Court Complex, Hyderabad';
+  const address = s.contact_address || 'Balu Law Chamber, New Venkatramana Colony, Hasthinapuram, LB Nagar';
 
   return (
     <footer className="footer-section">

@@ -7,6 +7,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -36,6 +37,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Ensure gallery upload directory exists
+const galleryDir = path.join(__dirname, 'uploads', 'gallery');
+if (!fs.existsSync(galleryDir)) fs.mkdirSync(galleryDir, { recursive: true });
+
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
@@ -60,6 +65,20 @@ app.use('/api/notifications', require('./routes/notifications'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
+
+// Gallery images listing
+app.get('/api/gallery', (req, res) => {
+  const imageExts = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif']);
+  try {
+    const files = fs.existsSync(galleryDir)
+      ? fs.readdirSync(galleryDir).filter(f => imageExts.has(path.extname(f).toLowerCase()))
+      : [];
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    res.json({ success: true, data: files.map(f => ({ filename: f, url: `${baseUrl}/uploads/gallery/${f}` })) });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 // Global error handler
 app.use((err, req, res, next) => {

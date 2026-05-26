@@ -37,8 +37,8 @@ export default function Contact() {
   const phone = s.contact_phone || '9392538226';
   const phone2 = s.contact_phone2 || '9441335292';
   const email = s.contact_email || 'info@advocatechauhan.com';
-  const address = s.contact_address || 'District Court Complex, Hyderabad';
-  const mapUrl = s.contact_map || 'https://maps.google.com/maps?q=17.33365821838379%2C78.55482482910156&z=17&hl=en';
+  const address = s.contact_address || 'Balu Law Chamber, New Venkatramana Colony, Hasthinapuram, LB Nagar';
+  const mapUrl = s.contact_map || 'https://maps.google.com/maps?q=17.333658%2C78.554825&z=17&hl=en';
 
   return (
     <section id="contact" className="section-padding bg-white">

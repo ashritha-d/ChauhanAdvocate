@@ -50,8 +50,8 @@ export default function Appointment() {
             <div className="appointment-info">
               {[
                 { icon: 'fas fa-clock', title: 'Office Hours', text: 'Mon-Sat: 9:00 AM – 7:00 PM' },
-                { icon: 'fas fa-phone', title: 'Emergency Contact', text: s.contact_phone || '+91 98765 43210' },
-                { icon: 'fas fa-map-marker-alt', title: 'Location', text: s.contact_address || 'District Court Complex, New Delhi' },
+                { icon: 'fas fa-phone', title: 'Emergency Contact', text: s.contact_phone || '+91 93925 38226' },
+                { icon: 'fas fa-map-marker-alt', title: 'Location', text: s.contact_address || 'Balu Law Chamber, New Venkatramana Colony, Hasthinapuram, LB Nagar' },
               ].map(({ icon, title, text }) => (
                 <div className="info-item" key={title}>
                   <i className={`${icon} text-gold`}></i>
