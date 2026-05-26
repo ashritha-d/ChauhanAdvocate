@@ -237,22 +237,12 @@
           <div class="stat-card"><div class="stat-icon gold"><i class="fas fa-star"></i></div><div><div class="stat-val" id="st-testimonials">—</div><div class="stat-label">Testimonials</div></div></div>
           <div class="stat-card"><div class="stat-icon navy"><i class="fas fa-question-circle"></i></div><div><div class="stat-val" id="st-faqs">—</div><div class="stat-label">FAQs</div></div></div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
-          <div class="card" style="margin-bottom:0">
-            <div class="card-header">
-              <h3><i class="fas fa-chart-bar" style="color:var(--gold);margin-right:6px"></i> Weekly Appointments</h3>
-              <span id="week-range" style="font-size:12px;color:var(--muted)"></span>
-            </div>
-            <div class="card-body"><canvas id="weekly-chart" height="180"></canvas></div>
+        <div class="card" style="margin-bottom:24px">
+          <div class="card-header">
+            <h3><i class="fas fa-chart-bar" style="color:var(--gold);margin-right:6px"></i> Weekly Appointments</h3>
+            <span id="week-range" style="font-size:12px;color:var(--muted)"></span>
           </div>
-          <div class="card" style="margin-bottom:0">
-            <div class="card-header">
-              <h3><i class="fas fa-chart-doughnut" style="color:var(--gold);margin-right:6px"></i> Status Breakdown</h3>
-            </div>
-            <div class="card-body" style="display:flex;align-items:center;justify-content:center">
-              <canvas id="status-chart" height="180" style="max-width:200px"></canvas>
-            </div>
-          </div>
+          <div class="card-body"><canvas id="weekly-chart" height="100"></canvas></div>
         </div>
         <div class="card">
           <div class="card-header"><h3>Recent Appointments</h3></div>
@@ -1342,22 +1332,6 @@
             borderColor: '#c9a84c', borderWidth: 2, borderRadius: 6 }]
         },
         options: { responsive:true, plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{stepSize:1}, grid:{color:'rgba(0,0,0,.05)'} }, x:{ grid:{display:false} } } }
-      });
-
-      // Status doughnut chart
-      const statusCounts = { pending:0, confirmed:0, cancelled:0, completed:0 };
-      allApts.forEach(a => { const s = a.status||'pending'; if (statusCounts[s]!==undefined) statusCounts[s]++; });
-      const sCtx = document.getElementById('status-chart').getContext('2d');
-      if (window._statusChart) window._statusChart.destroy();
-      window._statusChart = new Chart(sCtx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Pending','Confirmed','Cancelled','Completed'],
-          datasets: [{ data: Object.values(statusCounts),
-            backgroundColor: ['#c9a84c','#43a047','#e53935','#1976d2'],
-            borderWidth: 0, hoverOffset: 6 }]
-        },
-        options: { responsive:true, cutout:'65%', plugins:{ legend:{ position:'bottom', labels:{ font:{size:11}, padding:10 } } } }
       });
 
       const apts = allApts.slice(0,5);
