@@ -1,37 +1,35 @@
-name: Deploy Frontend to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload frontend as Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          path: ./frontend
 
-      - name: Setup git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Sync frontend to gh-pages
-        run: |
-          cp -r frontend /tmp/frontend-deploy
-
-          git checkout gh-pages
-
-          rsync -av --delete \
-            --exclude='.git' \
-            --exclude='admin' \
-            /tmp/frontend-deploy/ ./
-
-          git add -A
-          git diff --cached --quiet && git commit --allow-empty -m "chore: trigger Pages deploy" || git commit -m "chore: deploy from main"
-          git push origin gh-pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
