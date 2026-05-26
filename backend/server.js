@@ -42,7 +42,8 @@ const galleryDir = path.join(__dirname, 'uploads', 'gallery');
 if (!fs.existsSync(galleryDir)) fs.mkdirSync(galleryDir, { recursive: true });
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI)
+const mongoOptions = process.env.NODE_ENV === 'development' ? { tlsAllowInvalidCertificates: true } : {};
+mongoose.connect(process.env.MONGO_URI, mongoOptions)
   .then(() => console.log('MongoDB connected'))
   .catch(err => { console.error('MongoDB connection error:', err); process.exit(1); });
 
