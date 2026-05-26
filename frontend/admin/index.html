@@ -144,6 +144,7 @@
 
     .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .upload-preview { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; display: none; margin-top: 8px; }
+    .notif-badge { background: var(--red); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; margin-left: 4px; }
     .pagination { display: flex; gap: 6px; align-items: center; justify-content: flex-end; margin-top: 12px; }
     .page-btn { padding: 5px 11px; border: 1.5px solid var(--border); background: var(--white); border-radius: 6px; cursor: pointer; font-size: 13px; }
     .page-btn.active { background: var(--gold); border-color: var(--gold); color: var(--navy); font-weight: 700; }
@@ -193,7 +194,17 @@
       <div class="nav-section">Inquiries</div>
       <div class="nav-item" onclick="showSection('appointments')"><i class="fas fa-calendar-check"></i> Appointments</div>
       <div class="nav-item" onclick="showSection('contacts')"><i class="fas fa-envelope"></i> Contacts</div>
+      <div class="nav-section">Content II</div>
+      <div class="nav-item" onclick="showSection('facebook')"><i class="fab fa-facebook"></i> Facebook Posts</div>
+      <div class="nav-item" onclick="showSection('magazines')"><i class="fas fa-book-open"></i> Magazines</div>
+      <div class="nav-item" onclick="showSection('drafts')"><i class="fas fa-file-alt"></i> Drafts</div>
+      <div class="nav-item" onclick="showSection('books')"><i class="fas fa-book"></i> Books for Sale</div>
+      <div class="nav-item" onclick="showSection('joinwithus')"><i class="fas fa-user-plus"></i> Join With Us</div>
+      <div class="nav-section">Notifications</div>
+      <div class="nav-item" onclick="showSection('jradvocates')"><i class="fas fa-user-tie"></i> Jr. Advocate Apps <span id="badge-jr" class="notif-badge" style="display:none">0</span></div>
+      <div class="nav-item" onclick="showSection('bookorders')"><i class="fas fa-shopping-bag"></i> Book Orders <span id="badge-bo" class="notif-badge" style="display:none">0</span></div>
       <div class="nav-section">Settings</div>
+      <div class="nav-item" onclick="showSection('contactdetails')"><i class="fas fa-map-marker-alt"></i> Contact Details</div>
       <div class="nav-item" onclick="showSection('settings')"><i class="fas fa-cog"></i> Site Settings</div>
     </nav>
     <div class="sidebar-footer">
@@ -299,6 +310,70 @@
         <div class="card">
           <div class="card-header"><h3>All Contact Messages</h3></div>
           <div class="card-body" id="contacts-table"><div class="loading"><i class="fas fa-spinner fa-spin"></i></div></div>
+        </div>
+      </div>
+
+      <!-- FACEBOOK POSTS -->
+      <div id="sec-facebook" class="section">
+        <div class="card">
+          <div class="card-header"><h3>Facebook Posts</h3><button class="btn btn-gold btn-sm" onclick="openModal('facebook')"><i class="fas fa-plus"></i> Add Post</button></div>
+          <div class="card-body" id="facebook-table"><div class="loading"><i class="fas fa-spinner fa-spin"></i></div></div>
+        </div>
+      </div>
+
+      <!-- MAGAZINES -->
+      <div id="sec-magazines" class="section">
+        <div class="card">
+          <div class="card-header"><h3>Magazines</h3><button class="btn btn-gold btn-sm" onclick="openModal('magazine')"><i class="fas fa-plus"></i> Add Magazine</button></div>
+          <div class="card-body" id="magazines-table"><div class="loading"><i class="fas fa-spinner fa-spin"></i></div></div>
+        </div>
+      </div>
+
+      <!-- DRAFTS -->
+      <div id="sec-drafts" class="section">
+        <div class="card">
+          <div class="card-header"><h3>Legal Drafts</h3><button class="btn btn-gold btn-sm" onclick="openModal('draft')"><i class="fas fa-plus"></i> Add Draft</button></div>
+          <div class="card-body" id="drafts-table"><div class="loading"><i class="fas fa-spinner fa-spin"></i></div></div>
+        </div>
+      </div>
+
+      <!-- BOOKS -->
+      <div id="sec-books" class="section">
+        <div class="card">
+          <div class="card-header"><h3>Books for Sale</h3><button class="btn btn-gold btn-sm" onclick="openModal('book')"><i class="fas fa-plus"></i> Add Book</button></div>
+          <div class="card-body" id="books-table"><div class="loading"><i class="fas fa-spinner fa-spin"></i></div></div>
+        </div>
+      </div>
+
+      <!-- JOIN WITH US -->
+      <div id="sec-joinwithus" class="section">
+        <div class="card">
+          <div class="card-header"><h3>Join With Us</h3><button class="btn btn-gold btn-sm" onclick="openModal('joinwithus')"><i class="fas fa-plus"></i> Add Opening</button></div>
+          <div class="card-body" id="joinwithus-table"><div class="loading"><i class="fas fa-spinner fa-spin"></i></div></div>
+        </div>
+      </div>
+
+      <!-- JR ADVOCATE APPLICATIONS -->
+      <div id="sec-jradvocates" class="section">
+        <div class="card">
+          <div class="card-header"><h3>Jr. Advocate Applications</h3></div>
+          <div class="card-body" id="jradvocates-table"><div class="loading"><i class="fas fa-spinner fa-spin"></i></div></div>
+        </div>
+      </div>
+
+      <!-- BOOK ORDERS -->
+      <div id="sec-bookorders" class="section">
+        <div class="card">
+          <div class="card-header"><h3>Book Enquiries / Orders</h3></div>
+          <div class="card-body" id="bookorders-table"><div class="loading"><i class="fas fa-spinner fa-spin"></i></div></div>
+        </div>
+      </div>
+
+      <!-- CONTACT DETAILS -->
+      <div id="sec-contactdetails" class="section">
+        <div class="card">
+          <div class="card-header"><h3>Contact Details</h3><button class="btn btn-gold btn-sm" onclick="saveContactDetails()"><i class="fas fa-save"></i> Save</button></div>
+          <div class="card-body" id="contactdetails-form"><div class="loading"><i class="fas fa-spinner fa-spin"></i></div></div>
         </div>
       </div>
 
@@ -758,6 +833,478 @@
 
   // ENTER key on login
   document.addEventListener('keydown', e => { if (e.key === 'Enter' && document.getElementById('login-page').style.display !== 'none') doLogin(); });
+
+  // --- FACEBOOK ---
+  async function loadFacebook() {
+    try {
+      const d = await req('/api/facebook-posts/admin/all');
+      const items = d.data || [];
+      document.getElementById('facebook-table').innerHTML = items.length ? `
+        <table><thead><tr><th>Thumbnail</th><th>Title</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        ${items.map(p => `<tr>
+          <td>${p.thumbnail ? `<img src="${API}${esc(p.thumbnail)}" class="img-thumb" onerror="this.style.display='none'">` : '—'}</td>
+          <td><strong>${esc(p.title)}</strong><br><small style="color:#888">${esc((p.description||'').slice(0,50))}</small></td>
+          <td>${fmt(p.date)}</td>
+          <td><span class="badge badge-${p.isActive?'green':'red'}">${p.isActive?'Active':'Inactive'}</span></td>
+          <td class="actions">
+            ${p.facebookUrl ? `<a href="${esc(p.facebookUrl)}" target="_blank" class="btn btn-sm btn-green"><i class="fab fa-facebook"></i></a>` : ''}
+            <button class="btn btn-sm btn-navy" onclick='editFacebook("${p._id}")'><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-red" onclick='deleteSimple("facebook-posts","${p._id}","loadFacebook")'><i class="fas fa-trash"></i></button>
+          </td></tr>`).join('')}
+        </tbody></table>` : '<div class="empty">No Facebook posts yet.</div>';
+    } catch(e) { document.getElementById('facebook-table').innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+  }
+  async function editFacebook(id) {
+    const d = await req('/api/facebook-posts/admin/all');
+    const item = (d.data||[]).find(x=>x._id===id)||{};
+    openFileModal('facebook', item);
+  }
+
+  // --- MAGAZINES ---
+  async function loadMagazines() {
+    try {
+      const d = await req('/api/magazines/admin/all');
+      const items = d.data || [];
+      document.getElementById('magazines-table').innerHTML = items.length ? `
+        <table><thead><tr><th>Cover</th><th>Title</th><th>Published</th><th>PDF</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        ${items.map(m => `<tr>
+          <td>${m.coverImage ? `<img src="${API}${esc(m.coverImage)}" class="img-thumb" onerror="this.style.display='none'">` : '—'}</td>
+          <td><strong>${esc(m.title)}</strong></td>
+          <td>${fmt(m.publishedDate)}</td>
+          <td>${m.pdfFile ? `<a href="${API}${esc(m.pdfFile)}" target="_blank" class="btn btn-sm btn-navy"><i class="fas fa-file-pdf"></i> View</a>` : '—'}</td>
+          <td><span class="badge badge-${m.isActive?'green':'red'}">${m.isActive?'Active':'Inactive'}</span></td>
+          <td class="actions">
+            <button class="btn btn-sm btn-navy" onclick='editMagazine("${m._id}")'><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-red" onclick='deleteSimple("magazines","${m._id}","loadMagazines")'><i class="fas fa-trash"></i></button>
+          </td></tr>`).join('')}
+        </tbody></table>` : '<div class="empty">No magazines yet.</div>';
+    } catch(e) { document.getElementById('magazines-table').innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+  }
+  async function editMagazine(id) {
+    const d = await req('/api/magazines/admin/all');
+    const item = (d.data||[]).find(x=>x._id===id)||{};
+    openFileModal('magazine', item);
+  }
+
+  // --- DRAFTS ---
+  async function loadDrafts() {
+    try {
+      const d = await req('/api/drafts/admin/all');
+      const items = d.data || [];
+      document.getElementById('drafts-table').innerHTML = items.length ? `
+        <table><thead><tr><th>Title</th><th>Category</th><th>Date</th><th>File</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        ${items.map(dr => `<tr>
+          <td><strong>${esc(dr.title)}</strong><br><small style="color:#888">${esc((dr.description||'').slice(0,40))}</small></td>
+          <td><span class="tag">${esc(dr.category)}</span></td>
+          <td>${fmt(dr.date)}</td>
+          <td>${dr.file ? `<a href="${API}${esc(dr.file)}" target="_blank" class="btn btn-sm btn-navy"><i class="fas fa-download"></i> Download</a>` : '—'}</td>
+          <td><span class="badge badge-${dr.isActive?'green':'red'}">${dr.isActive?'Active':'Inactive'}</span></td>
+          <td class="actions">
+            <button class="btn btn-sm btn-navy" onclick='editDraft("${dr._id}")'><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-red" onclick='deleteSimple("drafts","${dr._id}","loadDrafts")'><i class="fas fa-trash"></i></button>
+          </td></tr>`).join('')}
+        </tbody></table>` : '<div class="empty">No drafts yet.</div>';
+    } catch(e) { document.getElementById('drafts-table').innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+  }
+  async function editDraft(id) {
+    const d = await req('/api/drafts/admin/all');
+    const item = (d.data||[]).find(x=>x._id===id)||{};
+    openFileModal('draft', item);
+  }
+
+  // --- BOOKS ---
+  async function loadBooks() {
+    try {
+      const d = await req('/api/books/admin/all');
+      const items = d.data || [];
+      document.getElementById('books-table').innerHTML = items.length ? `
+        <table><thead><tr><th>Image</th><th>Book Name</th><th>Author</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead><tbody>
+        ${items.map(b => `<tr>
+          <td>${b.image ? `<img src="${API}${esc(b.image)}" class="img-thumb" onerror="this.style.display='none'">` : '—'}</td>
+          <td><strong>${esc(b.name)}</strong></td>
+          <td>${esc(b.author||'—')}</td>
+          <td>₹${b.price}</td>
+          <td><span class="badge badge-${b.stockStatus==='available'?'green':'red'}">${b.stockStatus==='available'?'Available':'Out of Stock'}</span></td>
+          <td class="actions">
+            <button class="btn btn-sm btn-navy" onclick='editBook("${b._id}")'><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-red" onclick='deleteSimple("books","${b._id}","loadBooks")'><i class="fas fa-trash"></i></button>
+          </td></tr>`).join('')}
+        </tbody></table>` : '<div class="empty">No books yet.</div>';
+    } catch(e) { document.getElementById('books-table').innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+  }
+  async function editBook(id) {
+    const d = await req('/api/books/admin/all');
+    const item = (d.data||[]).find(x=>x._id===id)||{};
+    openFileModal('book', item);
+  }
+
+  // --- JOIN WITH US ---
+  async function loadJoinwithus() {
+    try {
+      const d = await req('/api/join-with-us/admin/all');
+      const items = d.data || [];
+      document.getElementById('joinwithus-table').innerHTML = items.length ? `
+        <table><thead><tr><th>Title</th><th>Last Date</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        ${items.map(j => `<tr>
+          <td><strong>${esc(j.title)}</strong><br><small style="color:#888">${esc((j.eligibility||'').slice(0,50))}</small></td>
+          <td>${fmt(j.lastDate)}</td>
+          <td><span class="badge badge-${j.isActive?'green':'red'}">${j.isActive?'Active':'Inactive'}</span></td>
+          <td class="actions">
+            <button class="btn btn-sm btn-navy" onclick='editJoinwithus("${j._id}")'><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-red" onclick='deleteSimple("join-with-us","${j._id}","loadJoinwithus")'><i class="fas fa-trash"></i></button>
+          </td></tr>`).join('')}
+        </tbody></table>` : '<div class="empty">No openings yet.</div>';
+    } catch(e) { document.getElementById('joinwithus-table').innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+  }
+  async function editJoinwithus(id) {
+    const d = await req('/api/join-with-us/admin/all');
+    const item = (d.data||[]).find(x=>x._id===id)||{};
+    openFileModal('joinwithus', item);
+  }
+
+  // --- JR ADVOCATES ---
+  async function loadJradvocates() {
+    try {
+      const d = await req('/api/jr-advocates');
+      const items = d.data || d.jrAdvocates || [];
+      const unread = items.filter(x=>!x.isRead).length;
+      const badge = document.getElementById('badge-jr');
+      badge.textContent = unread; badge.style.display = unread ? 'inline' : 'none';
+      document.getElementById('jradvocates-table').innerHTML = items.length ? `
+        <table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Qualification</th><th>Resume</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>
+        ${items.map(a => `<tr style="${!a.isRead?'background:#fffbf0':''}">
+          <td><strong>${esc(a.name)}</strong></td>
+          <td>${esc(a.email)}</td>
+          <td>${esc(a.phone)}</td>
+          <td>${esc(a.qualification)}</td>
+          <td>${a.resume ? `<a href="${API}${esc(a.resume)}" target="_blank" class="btn btn-sm btn-navy"><i class="fas fa-download"></i></a>` : '—'}</td>
+          <td>${fmt(a.createdAt)}</td>
+          <td><span class="badge badge-${a.status==='pending'?'gold':a.status==='accepted'?'green':'red'}">${a.status}</span></td>
+          <td class="actions">
+            <select onchange='updateStatus("jr-advocate","${a._id}",this.value)' style="padding:4px 8px;border-radius:6px;border:1px solid #ddd;font-size:12px">
+              <option ${a.status==='pending'?'selected':''}>pending</option>
+              <option ${a.status==='reviewed'?'selected':''}>reviewed</option>
+              <option ${a.status==='accepted'?'selected':''}>accepted</option>
+              <option ${a.status==='rejected'?'selected':''}>rejected</option>
+            </select>
+            ${!a.isRead?`<button class="btn btn-sm btn-green" onclick='markRead("jr-advocates","${a._id}","loadJradvocates")'><i class="fas fa-check"></i></button>`:''}
+          </td></tr>`).join('')}
+        </tbody></table>` : '<div class="empty">No applications yet.</div>';
+    } catch(e) { document.getElementById('jradvocates-table').innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+  }
+
+  // --- BOOK ORDERS ---
+  async function loadBookorders() {
+    try {
+      const d = await req('/api/book-orders');
+      const items = d.data || d.bookOrders || [];
+      const unread = items.filter(x=>!x.isRead).length;
+      const badge = document.getElementById('badge-bo');
+      badge.textContent = unread; badge.style.display = unread ? 'inline' : 'none';
+      document.getElementById('bookorders-table').innerHTML = items.length ? `
+        <table><thead><tr><th>Name</th><th>Phone</th><th>Book</th><th>Qty</th><th>Address</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>
+        ${items.map(o => `<tr style="${!o.isRead?'background:#fffbf0':''}">
+          <td><strong>${esc(o.name)}</strong><br><small>${esc(o.email)}</small></td>
+          <td>${esc(o.phone)}</td>
+          <td>${esc(o.bookTitle)}</td>
+          <td>${o.quantity}</td>
+          <td>${esc((o.address||'').slice(0,40))}</td>
+          <td>${fmt(o.createdAt)}</td>
+          <td><span class="badge badge-${o.status==='pending'?'gold':o.status==='delivered'?'green':'blue'}">${o.status}</span></td>
+          <td class="actions">
+            <select onchange='updateStatus("book-order","${o._id}",this.value)' style="padding:4px 8px;border-radius:6px;border:1px solid #ddd;font-size:12px">
+              <option ${o.status==='pending'?'selected':''}>pending</option>
+              <option ${o.status==='confirmed'?'selected':''}>confirmed</option>
+              <option ${o.status==='shipped'?'selected':''}>shipped</option>
+              <option ${o.status==='delivered'?'selected':''}>delivered</option>
+              <option ${o.status==='cancelled'?'selected':''}>cancelled</option>
+            </select>
+            ${!o.isRead?`<button class="btn btn-sm btn-green" onclick='markRead("book-orders","${o._id}","loadBookorders")'><i class="fas fa-check"></i></button>`:''}
+            <button class="btn btn-sm btn-red" onclick='deleteSimple("book-orders","${o._id}","loadBookorders")'><i class="fas fa-trash"></i></button>
+          </td></tr>`).join('')}
+        </tbody></table>` : '<div class="empty">No orders yet.</div>';
+    } catch(e) { document.getElementById('bookorders-table').innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+  }
+
+  // --- CONTACT DETAILS ---
+  async function loadContactdetails() {
+    try {
+      const d = await req('/api/contact-details/admin/all');
+      const item = (d.data||[])[0] || {};
+      const fields = [
+        ['officeName','Office Name','text'],['address','Address','textarea'],
+        ['phone','Phone','text'],['whatsapp','WhatsApp Number','text'],
+        ['email','Email','text'],['mapsLink','Google Maps Link','text'],
+        ['facebookLink','Facebook Link','text'],['instagramLink','Instagram Link','text']
+      ];
+      document.getElementById('contactdetails-form').innerHTML = `
+        <div class="settings-grid">
+        ${fields.map(([k,l,t]) => `<div class="form-group" style="${t==='textarea'?'grid-column:1/-1':''}">
+          <label>${l}</label>
+          ${t==='textarea'
+            ? `<textarea id="cd-${k}" rows="3">${esc(item[k]||'')}</textarea>`
+            : `<input type="text" id="cd-${k}" value="${esc(item[k]||'')}" />`}
+        </div>`).join('')}
+        </div>`;
+    } catch(e) { document.getElementById('contactdetails-form').innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+  }
+
+  async function saveContactDetails() {
+    const keys = ['officeName','address','phone','whatsapp','email','mapsLink','facebookLink','instagramLink'];
+    const data = {};
+    keys.forEach(k => { const el = document.getElementById('cd-' + k); if (el) data[k] = el.value; });
+    try {
+      await req('/api/contact-details', { method: 'PUT', body: JSON.stringify(data) });
+      toast('Contact details saved!');
+    } catch(e) { toast(e.message, 'error'); }
+  }
+
+  // --- FILE MODAL (for upload-based forms) ---
+  const fileModalForms = {
+    facebook: (d={}) => `
+      <div class="form-group"><label>Title *</label><input id="ff-title" value="${esc(d.title||'')}" /></div>
+      <div class="form-group"><label>Description</label><textarea id="ff-description">${esc(d.description||'')}</textarea></div>
+      <div class="form-group"><label>Facebook URL</label><input id="ff-facebookUrl" value="${esc(d.facebookUrl||'')}" /></div>
+      <div class="form-group"><label>Thumbnail Image</label><input type="file" id="ff-thumbnail" accept="image/*" />${d.thumbnail?`<img src="${API}${d.thumbnail}" style="width:80px;height:80px;object-fit:cover;border-radius:6px;margin-top:6px">`:''}</div>
+      <div class="form-row">
+        <div class="form-group"><label>Date</label><input type="date" id="ff-date" value="${d.date?d.date.slice(0,10):''}" /></div>
+        <div class="form-group"><label>Active</label><br><label class="switch"><input type="checkbox" id="ff-isActive" ${d.isActive!==false?'checked':''}><span class="slider"></span></label></div>
+      </div>`,
+    magazine: (d={}) => `
+      <div class="form-group"><label>Magazine Title *</label><input id="ff-title" value="${esc(d.title||'')}" /></div>
+      <div class="form-group"><label>Description</label><textarea id="ff-description">${esc(d.description||'')}</textarea></div>
+      <div class="form-group"><label>Cover Image</label><input type="file" id="ff-coverImage" accept="image/*" />${d.coverImage?`<img src="${API}${d.coverImage}" style="width:80px;height:80px;object-fit:cover;border-radius:6px;margin-top:6px">`:''}</div>
+      <div class="form-group"><label>PDF File</label><input type="file" id="ff-pdfFile" accept=".pdf" />${d.pdfFile?`<a href="${API}${d.pdfFile}" target="_blank" class="btn btn-sm btn-navy" style="margin-top:6px;display:inline-block"><i class="fas fa-file-pdf"></i> Current PDF</a>`:''}</div>
+      <div class="form-row">
+        <div class="form-group"><label>Published Date</label><input type="date" id="ff-publishedDate" value="${d.publishedDate?d.publishedDate.slice(0,10):''}" /></div>
+        <div class="form-group"><label>Active</label><br><label class="switch"><input type="checkbox" id="ff-isActive" ${d.isActive!==false?'checked':''}><span class="slider"></span></label></div>
+      </div>`,
+    draft: (d={}) => `
+      <div class="form-group"><label>Title *</label><input id="ff-title" value="${esc(d.title||'')}" /></div>
+      <div class="form-row">
+        <div class="form-group"><label>Category</label><input id="ff-category" value="${esc(d.category||'General')}" /></div>
+        <div class="form-group"><label>Date</label><input type="date" id="ff-date" value="${d.date?d.date.slice(0,10):''}" /></div>
+      </div>
+      <div class="form-group"><label>Description</label><textarea id="ff-description">${esc(d.description||'')}</textarea></div>
+      <div class="form-group"><label>File (PDF/DOC)</label><input type="file" id="ff-file" accept=".pdf,.doc,.docx" />${d.file?`<a href="${API}${d.file}" target="_blank" class="btn btn-sm btn-navy" style="margin-top:6px;display:inline-block"><i class="fas fa-download"></i> Current File</a>`:''}</div>
+      <div class="form-group"><label>Active</label><br><label class="switch"><input type="checkbox" id="ff-isActive" ${d.isActive!==false?'checked':''}><span class="slider"></span></label></div>`,
+    book: (d={}) => `
+      <div class="form-row">
+        <div class="form-group"><label>Book Name *</label><input id="ff-name" value="${esc(d.name||'')}" /></div>
+        <div class="form-group"><label>Author</label><input id="ff-author" value="${esc(d.author||'')}" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Price (₹) *</label><input type="number" id="ff-price" value="${d.price||0}" /></div>
+        <div class="form-group"><label>Contact Number</label><input id="ff-contactNumber" value="${esc(d.contactNumber||'')}" /></div>
+      </div>
+      <div class="form-group"><label>Description</label><textarea id="ff-description">${esc(d.description||'')}</textarea></div>
+      <div class="form-group"><label>Book Image</label><input type="file" id="ff-image" accept="image/*" />${d.image?`<img src="${API}${d.image}" style="width:80px;height:80px;object-fit:cover;border-radius:6px;margin-top:6px">`:''}</div>
+      <div class="form-row">
+        <div class="form-group"><label>Stock</label><select id="ff-stockStatus"><option value="available" ${d.stockStatus!=='out_of_stock'?'selected':''}>Available</option><option value="out_of_stock" ${d.stockStatus==='out_of_stock'?'selected':''}>Out of Stock</option></select></div>
+        <div class="form-group"><label>Active</label><br><label class="switch"><input type="checkbox" id="ff-isActive" ${d.isActive!==false?'checked':''}><span class="slider"></span></label></div>
+      </div>`,
+    joinwithus: (d={}) => `
+      <div class="form-group"><label>Title *</label><input id="ff-title" value="${esc(d.title||'')}" /></div>
+      <div class="form-group"><label>Description</label><textarea id="ff-description">${esc(d.description||'')}</textarea></div>
+      <div class="form-group"><label>Eligibility</label><textarea id="ff-eligibility">${esc(d.eligibility||'')}</textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Last Date</label><input type="date" id="ff-lastDate" value="${d.lastDate?d.lastDate.slice(0,10):''}" /></div>
+        <div class="form-group"><label>Apply Link</label><input id="ff-applyLink" value="${esc(d.applyLink||'')}" /></div>
+      </div>
+      <div class="form-group"><label>Application File</label><input type="file" id="ff-applyFile" accept=".pdf,.doc,.docx" />${d.applyFile?`<a href="${API}${d.applyFile}" target="_blank" class="btn btn-sm btn-navy" style="margin-top:6px;display:inline-block"><i class="fas fa-download"></i> Current File</a>`:''}</div>
+      <div class="form-group"><label>Active</label><br><label class="switch"><input type="checkbox" id="ff-isActive" ${d.isActive!==false?'checked':''}><span class="slider"></span></label></div>`,
+  };
+
+  let fileModalType = '', fileModalId = null, fileModalEndpoint = '';
+  const fileModalEndpoints = { facebook:'facebook-posts', magazine:'magazines', draft:'drafts', book:'books', joinwithus:'join-with-us' };
+  const fileModalTitles = { facebook:'Facebook Post', magazine:'Magazine', draft:'Legal Draft', book:'Book', joinwithus:'Join With Us Opening' };
+
+  function openFileModal(type, data={}) {
+    fileModalType = type; fileModalId = data._id || null;
+    fileModalEndpoint = fileModalEndpoints[type];
+    document.getElementById('modal-title').textContent = (fileModalId?'Edit ':'Add ') + fileModalTitles[type];
+    document.getElementById('modal-body').innerHTML = fileModalForms[type](data);
+    document.getElementById('modal-save-btn').onclick = saveFileModal;
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+
+  function openModal(type, data={}) {
+    if (fileModalEndpoints[type]) { openFileModal(type, data); return; }
+    modalType = type; editId = data._id || null;
+    const titles = { service:'Service', blog:'Blog Post', testimonial:'Testimonial', faq:'FAQ', youtube:'YouTube Video' };
+    document.getElementById('modal-title').textContent = (editId?'Edit ':'Add ') + (titles[type]||type);
+    document.getElementById('modal-body').innerHTML = modalForms[type]();
+    if (editId) fillForm(type, data);
+    document.getElementById('modal-save-btn').onclick = saveModal;
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+
+  async function saveFileModal() {
+    const fd = new FormData();
+    const ffv = id => { const el = document.getElementById('ff-' + id); if (!el) return undefined; return el.type==='checkbox' ? el.checked : el.type==='file' ? el.files[0] : el.value; };
+    const appendIfSet = (key, val) => { if (val !== undefined && val !== null) fd.append(key, val); };
+
+    if (fileModalType === 'facebook') {
+      appendIfSet('title', ffv('title')); appendIfSet('description', ffv('description'));
+      appendIfSet('facebookUrl', ffv('facebookUrl')); appendIfSet('date', ffv('date'));
+      appendIfSet('isActive', ffv('isActive'));
+      if (ffv('thumbnail')) fd.append('thumbnail', ffv('thumbnail'));
+    } else if (fileModalType === 'magazine') {
+      appendIfSet('title', ffv('title')); appendIfSet('description', ffv('description'));
+      appendIfSet('publishedDate', ffv('publishedDate')); appendIfSet('isActive', ffv('isActive'));
+      if (ffv('coverImage')) fd.append('coverImage', ffv('coverImage'));
+      if (ffv('pdfFile')) fd.append('pdfFile', ffv('pdfFile'));
+    } else if (fileModalType === 'draft') {
+      appendIfSet('title', ffv('title')); appendIfSet('category', ffv('category'));
+      appendIfSet('description', ffv('description')); appendIfSet('date', ffv('date'));
+      appendIfSet('isActive', ffv('isActive'));
+      if (ffv('file')) fd.append('file', ffv('file'));
+    } else if (fileModalType === 'book') {
+      appendIfSet('name', ffv('name')); appendIfSet('author', ffv('author'));
+      appendIfSet('price', ffv('price')); appendIfSet('contactNumber', ffv('contactNumber'));
+      appendIfSet('description', ffv('description')); appendIfSet('stockStatus', ffv('stockStatus'));
+      appendIfSet('isActive', ffv('isActive'));
+      if (ffv('image')) fd.append('image', ffv('image'));
+    } else if (fileModalType === 'joinwithus') {
+      appendIfSet('title', ffv('title')); appendIfSet('description', ffv('description'));
+      appendIfSet('eligibility', ffv('eligibility')); appendIfSet('lastDate', ffv('lastDate'));
+      appendIfSet('applyLink', ffv('applyLink')); appendIfSet('isActive', ffv('isActive'));
+      if (ffv('applyFile')) fd.append('applyFile', ffv('applyFile'));
+    }
+
+    try {
+      const h = {};
+      if (token) h['Authorization'] = 'Bearer ' + token;
+      const url = API + '/api/' + fileModalEndpoint + (fileModalId ? '/' + fileModalId : '');
+      const method = fileModalId ? 'PUT' : 'POST';
+      const r = await fetch(url, { method, headers: h, body: fd });
+      const json = await r.json();
+      if (!r.ok) throw new Error(json.message || 'Failed');
+      toast((fileModalId?'Updated':'Created') + ' successfully!');
+      closeModal();
+      loadCurrentSection();
+    } catch(e) { toast(e.message, 'error'); }
+  }
+
+  async function deleteSimple(endpoint, id, reloadFn) {
+    if (!confirm('Delete this item?')) return;
+    try {
+      await req('/api/' + endpoint + '/' + id, { method: 'DELETE' });
+      toast('Deleted!');
+      if (window[reloadFn]) window[reloadFn]();
+    } catch(e) { toast(e.message, 'error'); }
+  }
+
+  async function markRead(endpoint, id, reloadFn) {
+    try {
+      await req('/api/' + endpoint + '/' + id, { method: 'PUT', body: JSON.stringify({ isRead: true }) });
+      if (window[reloadFn]) window[reloadFn]();
+    } catch(e) { toast(e.message, 'error'); }
+  }
+
+  // patch showSection to handle new sections
+  const _origShowSection = showSection;
+  function showSection(name) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const sec = document.getElementById('sec-' + name);
+    if (sec) sec.classList.add('active');
+    event && event.currentTarget && event.currentTarget.classList.add('active');
+    currentSection = name;
+    const titles = { dashboard:'Dashboard', services:'Services', blogs:'Blogs', testimonials:'Testimonials', faqs:'FAQs', youtube:'YouTube Videos', appointments:'Appointments', contacts:'Contact Messages', settings:'Site Settings', facebook:'Facebook Posts', magazines:'Magazines', drafts:'Legal Drafts', books:'Books for Sale', joinwithus:'Join With Us', jradvocates:'Jr. Advocate Applications', bookorders:'Book Orders / Enquiries', contactdetails:'Contact Details' };
+    document.getElementById('section-title').textContent = titles[name] || name;
+    const el = document.querySelector(`[onclick="showSection('${name}')"]`);
+    if (el) el.classList.add('active');
+    loadCurrentSection();
+  }
+
+  const _origLoadCurrentSection = loadCurrentSection;
+  function loadCurrentSection() {
+    const loaders = {
+      dashboard: loadDashboard, services: loadServices, blogs: loadBlogs,
+      testimonials: loadTestimonials, faqs: loadFaqs, youtube: loadYoutube,
+      appointments: loadAppointments, contacts: loadContacts, settings: loadSettings,
+      facebook: loadFacebook, magazines: loadMagazines, drafts: loadDrafts,
+      books: loadBooks, joinwithus: loadJoinwithus,
+      jradvocates: loadJradvocates, bookorders: loadBookorders,
+      contactdetails: loadContactdetails
+    };
+    if (loaders[currentSection]) loaders[currentSection]();
+  }
+
+  // load notification badges on startup
+  async function loadNotifBadges() {
+    try {
+      const [jr, bo] = await Promise.allSettled([req('/api/jr-advocates'), req('/api/book-orders')]);
+      if (jr.status==='fulfilled') {
+        const unread = (jr.value.data||jr.value.jrAdvocates||[]).filter(x=>!x.isRead).length;
+        const b = document.getElementById('badge-jr'); b.textContent=unread; b.style.display=unread?'inline':'none';
+      }
+      if (bo.status==='fulfilled') {
+        const unread = (bo.value.data||bo.value.bookOrders||[]).filter(x=>!x.isRead).length;
+        const b = document.getElementById('badge-bo'); b.textContent=unread; b.style.display=unread?'inline':'none';
+      }
+    } catch(e) {}
+  }
+
+  // extend enterApp to load badges
+  const _origEnterApp = enterApp;
+  function enterApp() {
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    if (adminUser && adminUser.name) document.getElementById('admin-name').textContent = adminUser.name;
+    loadDashboard();
+    loadNotifBadges();
+    setInterval(loadNotifBadges, 60000);
+  }
+
+  // extend dashboard stats
+  const _origLoadDashboard = loadDashboard;
+  async function loadDashboard() {
+    try {
+      const results = await Promise.allSettled([
+        req('/api/services/admin/all'), req('/api/blogs/admin/all'),
+        req('/api/appointments'), req('/api/contacts'),
+        req('/api/testimonials/admin/all'), req('/api/faqs/admin/all'),
+        req('/api/facebook-posts/admin/all'), req('/api/magazines/admin/all'),
+        req('/api/drafts/admin/all'), req('/api/books/admin/all'),
+        req('/api/jr-advocates'), req('/api/book-orders')
+      ]);
+      const [svc,blg,apt,cnt,tst,faq,fb,mag,drf,bks,jr,bo] = results;
+      const count = r => r.status==='fulfilled' ? (r.value.data||r.value.services||r.value.blogs||r.value.testimonials||r.value.faqs||r.value.jrAdvocates||r.value.bookOrders||[]).length : '?';
+      document.getElementById('st-services').textContent = count(svc);
+      document.getElementById('st-blogs').textContent = count(blg);
+      document.getElementById('st-appointments').textContent = count(apt);
+      document.getElementById('st-contacts').textContent = count(cnt);
+      document.getElementById('st-testimonials').textContent = count(tst);
+      document.getElementById('st-faqs').textContent = count(faq);
+
+      // Add extra stats
+      const extraGrid = document.getElementById('stats-grid');
+      if (!document.getElementById('st-facebook')) {
+        extraGrid.insertAdjacentHTML('beforeend', `
+          <div class="stat-card"><div class="stat-icon gold"><i class="fab fa-facebook"></i></div><div><div class="stat-val" id="st-facebook">—</div><div class="stat-label">FB Posts</div></div></div>
+          <div class="stat-card"><div class="stat-icon navy"><i class="fas fa-book-open"></i></div><div><div class="stat-val" id="st-magazines">—</div><div class="stat-label">Magazines</div></div></div>
+          <div class="stat-card"><div class="stat-icon green"><i class="fas fa-file-alt"></i></div><div><div class="stat-val" id="st-drafts">—</div><div class="stat-label">Drafts</div></div></div>
+          <div class="stat-card"><div class="stat-icon red"><i class="fas fa-book"></i></div><div><div class="stat-val" id="st-books">—</div><div class="stat-label">Books</div></div></div>
+          <div class="stat-card"><div class="stat-icon gold"><i class="fas fa-user-tie"></i></div><div><div class="stat-val" id="st-jr">—</div><div class="stat-label">Jr. Applications</div></div></div>
+          <div class="stat-card"><div class="stat-icon navy"><i class="fas fa-shopping-bag"></i></div><div><div class="stat-val" id="st-bo">—</div><div class="stat-label">Book Orders</div></div></div>
+        `);
+      }
+      document.getElementById('st-facebook').textContent = count(fb);
+      document.getElementById('st-magazines').textContent = count(mag);
+      document.getElementById('st-drafts').textContent = count(drf);
+      document.getElementById('st-books').textContent = count(bks);
+      document.getElementById('st-jr').textContent = count(jr);
+      document.getElementById('st-bo').textContent = count(bo);
+
+      const apts = apt.status==='fulfilled' ? (apt.value.data||apt.value.appointments||[]).slice(0,5) : [];
+      document.getElementById('recent-appointments').innerHTML = apts.length ? `
+        <table><thead><tr><th>Name</th><th>Service</th><th>Date</th><th>Status</th></tr></thead><tbody>
+        ${apts.map(a => `<tr><td>${esc(a.name)}</td><td>${esc(a.service)}</td><td>${fmt(a.date)}</td><td><span class="badge badge-${a.status==='confirmed'?'green':a.status==='pending'?'gold':'red'}">${a.status||'pending'}</span></td></tr>`).join('')}
+        </tbody></table>` : '<div class="empty">No appointments yet</div>';
+    } catch(e) { toast(e.message, 'error'); }
+  }
 
   // INIT
   checkAuth();

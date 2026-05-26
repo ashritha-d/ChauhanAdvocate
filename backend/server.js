@@ -63,6 +63,12 @@ app.use('/api/orders', require('./routes/orders'));
 app.use('/api/jr-advocates', require('./routes/jrAdvocates'));
 app.use('/api/book-orders', require('./routes/bookOrders'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/facebook-posts', require('./routes/facebookPosts'));
+app.use('/api/magazines', require('./routes/magazines'));
+app.use('/api/drafts', require('./routes/drafts'));
+app.use('/api/books', require('./routes/books'));
+app.use('/api/join-with-us', require('./routes/joinWithUs'));
+app.use('/api/contact-details', require('./routes/contactDetails'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));

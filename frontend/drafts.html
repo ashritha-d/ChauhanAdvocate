@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Legal Drafts — Advocate Chauhan</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .page-hero { background: linear-gradient(135deg,#0a1628 0%,#112240 100%); padding: 100px 0 60px; text-align: center; }
+    .page-hero h1 { color: #fff; font-size: 2.5rem; } .page-hero p { color: #c9a84c; margin-top: 10px; }
+    .drafts-list { padding: 60px 0; }
+    .draft-item { background: #fff; border-radius: 10px; padding: 20px 24px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,.06); gap: 16px; }
+    .draft-info { flex: 1; }
+    .draft-title { font-size: 16px; font-weight: 700; color: #0a1628; }
+    .draft-meta { font-size: 12px; color: #999; margin-top: 4px; }
+    .draft-desc { font-size: 13px; color: #666; margin-top: 6px; }
+    .tag { background: #f0e8d0; color: #a07830; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .btn-download { background: #0a1628; color: #fff; padding: 9px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; white-space: nowrap; }
+    .btn-download:hover { background: #c9a84c; color: #0a1628; }
+    .empty-state { text-align: center; padding: 80px 0; color: #888; }
+    .search-bar { max-width: 400px; margin: 30px auto 0; position: relative; }
+    .search-bar input { width: 100%; padding: 12px 44px 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none; }
+    .search-bar i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #999; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg fixed-top" id="mainNav">
+    <div class="container"><a class="navbar-brand" href="index.html"><img src="logo.jpeg" height="50" alt="Logo"> <span>Advocate Chauhan</span></a></div>
+  </nav>
+  <div class="page-hero">
+    <div class="container">
+      <h1><i class="fas fa-file-alt" style="color:#c9a84c"></i> Legal Drafts</h1>
+      <p>Download legal draft templates and documents</p>
+      <div class="search-bar"><input type="text" id="search" placeholder="Search drafts..." oninput="filterDrafts()" /><i class="fas fa-search"></i></div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="drafts-list" id="drafts-list"><div class="empty-state"><i class="fas fa-spinner fa-spin fa-2x"></i></div></div>
+  </div>
+  <script>
+    const API = 'https://chauhanadvocate.onrender.com';
+    let allDrafts = [];
+    fetch(API + '/api/drafts').then(r=>r.json()).then(d => {
+      allDrafts = d.data || [];
+      renderDrafts(allDrafts);
+    }).catch(() => { document.getElementById('drafts-list').innerHTML = '<div class="empty-state">Failed to load drafts.</div>'; });
+
+    function renderDrafts(items) {
+      const el = document.getElementById('drafts-list');
+      if (!items.length) { el.innerHTML = '<div class="empty-state"><i class="fas fa-file-alt fa-3x" style="color:#c9a84c;margin-bottom:16px"></i><br>No drafts available yet.</div>'; return; }
+      el.innerHTML = items.map(dr => `
+        <div class="draft-item">
+          <div class="draft-info">
+            <div class="draft-title">${dr.title} <span class="tag">${dr.category}</span></div>
+            ${dr.description ? `<div class="draft-desc">${dr.description}</div>` : ''}
+            <div class="draft-meta"><i class="far fa-calendar"></i> ${new Date(dr.date).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>
+          </div>
+          ${dr.file ? `<a href="${API}${dr.file}" target="_blank" download class="btn-download"><i class="fas fa-download"></i> Download</a>` : '<span style="color:#ccc;font-size:13px">No file</span>'}
+        </div>`).join('');
+    }
+
+    function filterDrafts() {
+      const q = document.getElementById('search').value.toLowerCase();
+      renderDrafts(allDrafts.filter(d => d.title.toLowerCase().includes(q) || (d.category||'').toLowerCase().includes(q)));
+    }
+  </script>
+</body>
+</html>

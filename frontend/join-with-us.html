@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Join With Us — Advocate Chauhan</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .page-hero { background: linear-gradient(135deg,#0a1628 0%,#112240 100%); padding: 100px 0 60px; text-align: center; }
+    .page-hero h1 { color: #fff; font-size: 2.5rem; } .page-hero p { color: #c9a84c; margin-top: 10px; }
+    .openings-list { padding: 60px 0; }
+    .opening-card { background: #fff; border-radius: 12px; padding: 28px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,.07); border-left: 4px solid #c9a84c; }
+    .opening-title { font-size: 20px; font-weight: 700; color: #0a1628; margin-bottom: 10px; }
+    .opening-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 14px; }
+    .opening-meta span { font-size: 13px; color: #888; }
+    .opening-meta i { color: #c9a84c; margin-right: 4px; }
+    .opening-desc, .opening-elig { font-size: 14px; color: #555; margin-bottom: 12px; line-height: 1.6; }
+    .opening-label { font-size: 12px; font-weight: 700; color: #0a1628; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+    .btn-apply { background: #c9a84c; color: #0a1628; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px; display: inline-block; margin-right: 10px; }
+    .btn-apply:hover { background: #0a1628; color: #c9a84c; }
+    .btn-outline { border: 2px solid #0a1628; color: #0a1628; padding: 8px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; display: inline-block; }
+    .empty-state { text-align: center; padding: 80px 0; color: #888; }
+    .expired-badge { background: rgba(229,57,53,.1); color: #e53935; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-left: 10px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg fixed-top" id="mainNav">
+    <div class="container"><a class="navbar-brand" href="index.html"><img src="logo.jpeg" height="50" alt="Logo"> <span>Advocate Chauhan</span></a></div>
+  </nav>
+  <div class="page-hero"><div class="container"><h1><i class="fas fa-user-plus" style="color:#c9a84c"></i> Join With Us</h1><p>Career opportunities and openings at Advocate Chauhan's office</p></div></div>
+  <div class="container">
+    <div class="openings-list" id="openings-list"><div class="empty-state"><i class="fas fa-spinner fa-spin fa-2x"></i></div></div>
+  </div>
+  <script>
+    const API = 'https://chauhanadvocate.onrender.com';
+    fetch(API + '/api/join-with-us').then(r=>r.json()).then(d => {
+      const items = d.data || [];
+      const el = document.getElementById('openings-list');
+      if (!items.length) { el.innerHTML = '<div class="empty-state"><i class="fas fa-user-plus fa-3x" style="color:#c9a84c;margin-bottom:16px"></i><br>No openings currently available.<br>Please check back later.</div>'; return; }
+      const now = new Date();
+      el.innerHTML = items.map(j => {
+        const expired = j.lastDate && new Date(j.lastDate) < now;
+        return `<div class="opening-card">
+          <div class="opening-title">${j.title}${expired?'<span class="expired-badge">Expired</span>':''}</div>
+          <div class="opening-meta">
+            ${j.lastDate ? `<span><i class="far fa-calendar"></i> Last Date: ${new Date(j.lastDate).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</span>` : ''}
+          </div>
+          ${j.description ? `<div class="opening-desc">${j.description}</div>` : ''}
+          ${j.eligibility ? `<div class="opening-label">Eligibility</div><div class="opening-elig">${j.eligibility}</div>` : ''}
+          <div style="margin-top:16px">
+            ${j.applyLink ? `<a href="${j.applyLink}" target="_blank" class="btn-apply"><i class="fas fa-external-link-alt"></i> Apply Now</a>` : ''}
+            ${j.applyFile ? `<a href="${API}${j.applyFile}" target="_blank" class="btn-outline"><i class="fas fa-download"></i> Download Form</a>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+    }).catch(() => { document.getElementById('openings-list').innerHTML = '<div class="empty-state">Failed to load openings.</div>'; });
+  </script>
+</body>
+</html>
