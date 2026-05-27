@@ -113,7 +113,7 @@ export default function JrAdvocates() {
 
       {selected && (
         <div className="modal fade show d-block" style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
+          <div className="modal-dialog modal-dialog-scrollable">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">Application Details</h5>

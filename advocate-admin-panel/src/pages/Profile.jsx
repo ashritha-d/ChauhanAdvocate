@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { changePassword, updateProfile } from '../api';
+import { safeStorage } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
 export default function Profile() {
@@ -17,7 +18,7 @@ export default function Profile() {
       const r = await updateProfile({ name: nameForm.name });
       if (r.data.success) {
         setAdmin(r.data.admin);
-        localStorage.setItem('adminUser', JSON.stringify(r.data.admin));
+        safeStorage('set', 'adminUser', JSON.stringify(r.data.admin));
         setNameMsg({ type:'success', text:'Profile updated!' });
       }
     } catch (err) { setNameMsg({ type:'danger', text: err.response?.data?.message || 'Update failed' }); }

@@ -89,12 +89,80 @@ h1,h2,h3,h4,h5 { font-family: 'Inter', sans-serif; }
 .ql-container { border-radius: 0 0 10px 10px !important; font-size: .95rem; min-height: 200px; }
 .ql-toolbar { border-radius: 10px 10px 0 0 !important; }
 
-/* ── Responsive ── */
+/* ── Responsive: Tablet (769px – 1024px) ── */
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root { --sidebar-w: 220px; }
+  .admin-content { padding: 20px; }
+  .page-card-header { padding: 16px 20px; }
+  .page-card-body { padding: 20px; }
+  .stat-card { padding: 18px; }
+  .stat-value { font-size: 1.7rem; }
+}
+
+/* ── Responsive: Mobile (≤ 768px) ── */
 @media (max-width: 768px) {
+  /* Sidebar: off-canvas with overlay */
   .admin-sidebar { transform: translateX(-100%); }
   .admin-sidebar.open { transform: translateX(0); }
   .admin-main { margin-left: 0; }
-  .admin-content { padding: 16px; }
   .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 99; display: none; }
   .sidebar-overlay.show { display: block; }
+
+  /* Header */
+  .admin-header { padding: 0 16px; gap: 8px; }
+  .admin-header h5 { font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+
+  /* Content area */
+  .admin-content { padding: 16px; }
+
+  /* Page cards */
+  .page-card-header { padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
+  .page-card-header h6 { font-size: .88rem; }
+  .page-card-body { padding: 16px; }
+
+  /* Stat cards */
+  .stat-card { padding: 16px; }
+  .stat-value { font-size: 1.6rem; }
+  .stat-icon { width: 44px; height: 44px; font-size: 1.1rem; }
+
+  /* Tables */
+  .admin-table thead th { padding: 10px 12px; font-size: .71rem; }
+  .admin-table tbody td { padding: 10px 12px; font-size: .83rem; }
+
+  /* Search input fills width on mobile */
+  .search-input { width: 100%; min-width: 0; }
+
+  /* Login page */
+  .login-card { padding: 32px 24px; margin: 16px; max-width: 100%; }
+
+  /* Image upload */
+  .img-preview { width: 80px; height: 80px; }
+  .upload-area { padding: 16px 12px; }
+
+  /* Settings nav-tabs: scroll horizontally */
+  .nav-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+  .nav-tabs .nav-link { white-space: nowrap; padding: 8px 14px; }
+
+  /* Modals */
+  .modal-dialog { margin: 0.5rem auto; }
+  .modal-content { border-radius: 12px; }
+
+  /* Notification dropdown: cap width on small phones */
+  .admin-header .dropdown-menu { max-width: calc(100vw - 32px); }
+}
+
+/* ── Responsive: Small phones (≤ 480px) ── */
+@media (max-width: 480px) {
+  .admin-content { padding: 12px; }
+  .page-card-header { padding: 12px 14px; }
+  .page-card-body { padding: 14px; }
+  .stat-card { padding: 14px; }
+  .stat-value { font-size: 1.35rem; }
+  .stat-icon { width: 40px; height: 40px; font-size: 1rem; }
+  .admin-table thead th { padding: 8px 10px; font-size: .7rem; }
+  .admin-table tbody td { padding: 8px 10px; }
+  .login-card { padding: 24px 18px; }
+  .modal-dialog { margin: 0.25rem; }
+  .admin-header h5 { max-width: 120px; }
+  .admin-header .dropdown-menu { min-width: 200px !important; }
 }

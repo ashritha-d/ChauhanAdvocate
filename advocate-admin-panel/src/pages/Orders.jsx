@@ -110,7 +110,7 @@ export default function Orders() {
 
       {selected && (
         <div className="modal fade show d-block" style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-lg">
+          <div className="modal-dialog modal-lg modal-dialog-scrollable">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">Order Details</h5>
