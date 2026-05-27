@@ -141,11 +141,16 @@ h1, h2, h3, h4, h5 { font-family: var(--font-heading); }
   top: 36px;
   padding: 16px 0;
   transition: var(--transition);
+  z-index: 1030;
 }
 #mainNavbar.scrolled {
   background: var(--navy);
   padding: 10px 0;
   box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+}
+/* Ensure navbar always overlaps sliders, AOS elements, hero overlays */
+#mainNavbar, #mainNav {
+  z-index: 1030;
 }
 .brand-icon {
   width: 42px; height: 42px;
@@ -1185,4 +1190,33 @@ h1, h2, h3, h4, h5 { font-family: var(--font-heading); }
     scroll-snap-type: x mandatory;
   }
   .latest-card { min-width: 260px; max-width: 260px; scroll-snap-align: start; }
+}
+
+/* ============================================================
+   STICKY NAVBAR — SCROLL OFFSET & SUBPAGE NAV
+   ============================================================ */
+
+/* Anchor-link offset: total fixed header = 36px top-bar + ~68px navbar = ~104px;
+   use 115px to add comfortable breathing room above each section heading */
+section[id] {
+  scroll-margin-top: 115px;
+}
+/* Hero scrolls to the very top — no offset needed */
+#home {
+  scroll-margin-top: 0;
+}
+
+/* Sub-page standalone navbar (#mainNav) has no top-bar so sits at top:0.
+   Needs an explicit background or it becomes invisible over page content. */
+#mainNav {
+  background: rgba(10, 22, 40, 0.97) !important;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+  padding: 8px 0;
+}
+#mainNav .navbar-brand { color: #fff !important; }
+#mainNav .navbar-brand span {
+  color: #fff;
+  font-weight: 600;
+  margin-left: 8px;
+  font-family: var(--font-heading);
 }

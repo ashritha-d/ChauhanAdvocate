@@ -18,10 +18,13 @@
   <link href="css/style.css" rel="stylesheet" />
 
   <style>
+    /* Gallery page has no top-bar — move navbar flush to top */
+    #mainNavbar { top: 0 !important; }
+
     /* ── Gallery page hero banner ── */
     .gallery-hero {
       background: linear-gradient(135deg, var(--navy) 0%, #1a3550 60%, #0d2035 100%);
-      padding: 120px 0 60px;
+      padding: 90px 0 60px;
       text-align: center;
       position: relative;
       overflow: hidden;
