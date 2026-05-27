@@ -36,8 +36,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ─── NAVBAR ─────────────────────────────────────────────────
 function initNavbar() {
   const navbar = document.getElementById('mainNavbar');
+
+  function updateScrollPadding() {
+    const topBarH = document.querySelector('.top-bar')?.offsetHeight || 0;
+    const navbarH = navbar?.offsetHeight || 0;
+    const total = topBarH + navbarH;
+    document.documentElement.style.setProperty('--header-h', total + 'px');
+    document.documentElement.style.scrollPaddingTop = total + 'px';
+  }
+  updateScrollPadding();
+  window.addEventListener('resize', updateScrollPadding, { passive: true });
+
   const handleScroll = () => {
+    const wasScrolled = navbar.classList.contains('scrolled');
     navbar.classList.toggle('scrolled', window.scrollY > 50);
+    if (navbar.classList.contains('scrolled') !== wasScrolled) updateScrollPadding();
   };
   window.addEventListener('scroll', handleScroll, { passive: true });
 

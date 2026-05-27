@@ -18,7 +18,7 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; overflow-x: hidden; max-width: 100%; }
+html { scroll-behavior: smooth; overflow-x: hidden; max-width: 100%; scroll-padding-top: var(--header-h, 115px); }
 img, video, iframe { max-width: 100%; height: auto; }
 
 body {
@@ -1196,14 +1196,30 @@ h1, h2, h3, h4, h5 { font-family: var(--font-heading); }
    STICKY NAVBAR — SCROLL OFFSET & SUBPAGE NAV
    ============================================================ */
 
-/* Anchor-link offset: total fixed header = 36px top-bar + ~68px navbar = ~104px;
-   use 115px to add comfortable breathing room above each section heading */
+/* Anchor-link offset: JS sets --header-h dynamically; 115px is the static fallback */
 section[id] {
-  scroll-margin-top: 115px;
+  scroll-margin-top: var(--header-h, 115px);
 }
 /* Hero scrolls to the very top — no offset needed */
 #home {
   scroll-margin-top: 0;
+}
+
+/* Mobile: ensure hero content starts BELOW the fixed navbar instead of centering
+   behind it. padding-top pushes the flex content area down; align-items:center
+   then centers within the remaining (below-navbar) space. */
+@media (max-width: 991px) {
+  .hero-section {
+    padding-top: calc(var(--header-h, 116px) + 24px);
+    align-items: flex-start !important;
+  }
+}
+/* Landscape phones: allow the hero to shrink so it doesn't scroll-trap the user */
+@media (max-width: 991px) and (orientation: landscape) {
+  .hero-section {
+    min-height: auto;
+    padding-bottom: 48px;
+  }
 }
 
 /* Sub-page standalone navbar (#mainNav) has no top-bar so sits at top:0.
