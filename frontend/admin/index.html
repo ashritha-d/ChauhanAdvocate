@@ -252,6 +252,7 @@
       <div class="nav-section">Notifications</div>
       <div class="nav-item" onclick="showSection('jradvocates')"><i class="fas fa-user-tie"></i> Jr. Advocate Apps <span id="badge-jr" class="notif-badge" style="display:none">0</span></div>
       <div class="nav-item" onclick="showSection('bookorders')"><i class="fas fa-shopping-bag"></i> Book Orders <span id="badge-bo" class="notif-badge" style="display:none">0</span></div>
+      <div class="nav-item" onclick="showSection('payments')"><i class="fas fa-credit-card"></i> Payments <span id="badge-pay" class="notif-badge" style="display:none">0</span></div>
       <div class="nav-section">Settings</div>
       <div class="nav-item" onclick="showSection('contactdetails')"><i class="fas fa-map-marker-alt"></i> Contact Details</div>
       <div class="nav-item" onclick="showSection('settings')"><i class="fas fa-cog"></i> Site Settings</div>
@@ -426,6 +427,23 @@
         <div class="card">
           <div class="card-header"><h3>Book Enquiries / Orders</h3></div>
           <div class="card-body" id="bookorders-table"><div class="loading"><i class="fas fa-spinner fa-spin"></i></div></div>
+        </div>
+      </div>
+
+      <!-- PAYMENTS -->
+      <div id="sec-payments" class="section">
+        <div class="card">
+          <div class="card-header">
+            <h3>Payment Notifications</h3>
+            <select id="pay-status-filter" onchange="loadPayments()" style="padding:6px 12px;border-radius:6px;border:1px solid #ddd;font-size:13px">
+              <option value="">All Status</option>
+              <option value="pending_verification">Pending Verification</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          <div class="card-body" id="payments-table"><div class="loading"><i class="fas fa-spinner fa-spin"></i></div></div>
         </div>
       </div>
 
@@ -1189,6 +1207,7 @@
   }
 
   function openModal(type, data={}) {
+    document.getElementById('modal-save-btn').style.display = '';
     if (fileModalEndpoints[type]) { openFileModal(type, data); return; }
     modalType = type; editId = data._id || null;
     const titles = { service:'Service', blog:'Blog Post', testimonial:'Testimonial', faq:'FAQ', youtube:'YouTube Video' };
@@ -1271,7 +1290,7 @@
     if (sec) sec.classList.add('active');
     event && event.currentTarget && event.currentTarget.classList.add('active');
     currentSection = name;
-    const titles = { dashboard:'Dashboard', services:'Services', blogs:'Blogs', testimonials:'Testimonials', faqs:'FAQs', youtube:'YouTube Videos', appointments:'Appointments', contacts:'Contact Messages', settings:'Site Settings', facebook:'Facebook Posts', magazines:'Magazines', drafts:'Legal Drafts', books:'Books for Sale', joinwithus:'Join With Us', jradvocates:'Jr. Advocate Applications', bookorders:'Book Orders / Enquiries', contactdetails:'Contact Details' };
+    const titles = { dashboard:'Dashboard', services:'Services', blogs:'Blogs', testimonials:'Testimonials', faqs:'FAQs', youtube:'YouTube Videos', appointments:'Appointments', contacts:'Contact Messages', settings:'Site Settings', facebook:'Facebook Posts', magazines:'Magazines', drafts:'Legal Drafts', books:'Books for Sale', joinwithus:'Join With Us', jradvocates:'Jr. Advocate Applications', bookorders:'Book Orders / Enquiries', contactdetails:'Contact Details', payments:'Payment Notifications' };
     document.getElementById('section-title').textContent = titles[name] || name;
     const el = document.querySelector(`[onclick="showSection('${name}')"]`);
     if (el) el.classList.add('active');
@@ -1287,7 +1306,7 @@
       facebook: loadFacebook, magazines: loadMagazines, drafts: loadDrafts,
       books: loadBooks, joinwithus: loadJoinwithus,
       jradvocates: loadJradvocates, bookorders: loadBookorders,
-      contactdetails: loadContactdetails
+      contactdetails: loadContactdetails, payments: loadPayments
     };
     if (loaders[currentSection]) loaders[currentSection]();
   }
@@ -1304,6 +1323,12 @@
         const unread = (bo.value.data||bo.value.bookOrders||[]).filter(x=>!x.isRead).length;
         const b = document.getElementById('badge-bo'); b.textContent=unread; b.style.display=unread?'inline':'none';
       }
+      // payments badge
+      try {
+        const pay = await req('/api/payments?limit=100');
+        const unreadPay = (pay.data||[]).filter(x=>!x.isRead).length;
+        const bp = document.getElementById('badge-pay'); if (bp) { bp.textContent=unreadPay; bp.style.display=unreadPay?'inline':'none'; }
+      } catch(e2) {}
     } catch(e) {}
   }
 
@@ -1391,6 +1416,106 @@
         <table><thead><tr><th>Name</th><th>Service</th><th>Date</th><th>Status</th></tr></thead><tbody>
         ${apts.map(a => `<tr><td>${esc(a.name)}</td><td>${esc(a.service)}</td><td>${fmt(a.date)}</td><td><span class="badge badge-${a.status==='confirmed'?'green':a.status==='pending'?'gold':'red'}">${a.status||'pending'}</span></td></tr>`).join('')}
         </tbody></table>` : '<div class="empty">No appointments yet</div>';
+    } catch(e) { toast(e.message, 'error'); }
+  }
+
+  // --- PAYMENTS ---
+  const PAY_COLORS = { pending_verification:'gold', approved:'green', rejected:'red', completed:'blue' };
+  const PAY_LABELS = { pending_verification:'Pending', approved:'Approved', rejected:'Rejected', completed:'Completed' };
+
+  async function loadPayments() {
+    const status = document.getElementById('pay-status-filter')?.value || '';
+    try {
+      const d = await req('/api/payments' + (status ? '?status=' + status : '?limit=100'));
+      const items = d.data || [];
+      const unreadPay = items.filter(x=>!x.isRead).length;
+      const bp = document.getElementById('badge-pay'); if (bp) { bp.textContent=unreadPay; bp.style.display=unreadPay?'inline':'none'; }
+      document.getElementById('payments-table').innerHTML = items.length ? `
+        <table><thead><tr><th>Client</th><th>Type</th><th>Amount</th><th>UTR</th><th>Status</th><th>Received</th><th>Action</th></tr></thead><tbody>
+        ${items.map(p => `<tr style="${!p.isRead?'background:#fffbf0':''}">
+          <td><strong>${esc(p.clientName)}</strong>${!p.isRead?'<span class="badge badge-red" style="font-size:10px;margin-left:4px">NEW</span>':''}<br><small style="color:#888">${esc(p.clientPhone)}</small></td>
+          <td><span class="badge badge-blue">${p.type==='appointment'?'Appointment':'Book Order'}</span></td>
+          <td><strong style="color:#43a047">₹${esc(p.amount)}</strong></td>
+          <td><small style="color:#888">${esc(p.utrNumber||'—')}</small></td>
+          <td><span class="badge badge-${PAY_COLORS[p.status]||'gold'}">${PAY_LABELS[p.status]||p.status}</span></td>
+          <td><small>${fmt(p.createdAt)}</small></td>
+          <td class="actions">
+            <button class="btn btn-sm btn-navy" onclick='viewPayment("${p._id}")'><i class="fas fa-eye"></i></button>
+            <button class="btn btn-sm btn-red" onclick='deleteSimple("payments","${p._id}","loadPayments")'><i class="fas fa-trash"></i></button>
+          </td></tr>`).join('')}
+        </tbody></table>` : '<div class="empty">No payments found.</div>';
+    } catch(e) { document.getElementById('payments-table').innerHTML = `<div class="empty">Error: ${e.message}</div>`; }
+  }
+
+  async function viewPayment(id) {
+    try {
+      const r = await req('/api/payments/' + id);
+      const p = r.data || {};
+      const d = p.details || {};
+      const isAppt = p.type === 'appointment';
+      const BEND = 'https://chauhanadvocate.onrender.com';
+      const detailsHtml = isAppt ? `
+        <div class="form-row">
+          <div class="form-group"><label>Service</label><input readonly value="${esc(d.service||'')}" /></div>
+          <div class="form-group"><label>Date</label><input readonly value="${d.date?new Date(d.date).toLocaleDateString('en-IN'):'—'}" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Time</label><input readonly value="${esc(d.time||'—')}" /></div>
+          <div class="form-group"><label>Message</label><input readonly value="${esc(d.message||'—')}" /></div>
+        </div>` : `
+        <div class="form-row">
+          <div class="form-group"><label>Book</label><input readonly value="${esc(d.bookTitle||'')}" /></div>
+          <div class="form-group"><label>Qty</label><input readonly value="${d.quantity||1}" /></div>
+        </div>
+        <div class="form-group"><label>Address</label><input readonly value="${esc(d.address||'—')}" /></div>`;
+      const waPhone = (p.clientPhone||'').replace(/\D/g,'');
+      const waMsg = isAppt
+        ? `Hello ${p.clientName} 👋,\n\nYour appointment has been *CONFIRMED*! 🎉\n\n📋 Service: ${d.service}\n📅 Date: ${d.date?new Date(d.date).toLocaleDateString('en-IN'):'—'}\n🕐 Time: ${d.time}\n\n🧾 Receipt ID: ${p.receiptId||'—'}\n💰 Amount: ₹${p.amount}\n\n📍 Balu Law Chamber, Hasthinapuram\n📞 +91 93925 38226`
+        : `Hello ${p.clientName} 👋,\n\nYour book order has been *CONFIRMED*! 📦\n\n📋 Book: ${d.bookTitle}\n📦 Qty: ${d.quantity||1}\n\n🧾 Receipt ID: ${p.receiptId||'—'}\n💰 Amount: ₹${p.amount}\n\n📍 Balu Law Chamber\n📞 +91 93925 38226`;
+      const waUrl = waPhone ? `https://wa.me/91${waPhone}?text=${encodeURIComponent(waMsg)}` : '';
+      document.getElementById('modal-title').textContent = 'Payment Details';
+      document.getElementById('modal-body').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:2px">Client Name</label><div style="font-size:14px">${esc(p.clientName)}</div></div>
+          <div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:2px">Phone</label><div style="font-size:14px">${esc(p.clientPhone)}</div></div>
+          <div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:2px">Amount</label><div style="font-weight:700;color:#43a047;font-size:14px">₹${esc(p.amount)}</div></div>
+          <div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:2px">UTR / Ref</label><div style="font-size:14px">${esc(p.utrNumber||'—')}</div></div>
+          <div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:2px">Status</label><span class="badge badge-${PAY_COLORS[p.status]||'gold'}">${PAY_LABELS[p.status]||p.status}</span></div>
+          <div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:2px">Receipt ID</label><div style="font-size:14px">${esc(p.receiptId||'—')}</div></div>
+        </div>
+        <hr style="margin:10px 0"/>
+        <h4 style="font-size:13px;font-weight:700;color:#0a1628;margin-bottom:10px">${isAppt?'Appointment':'Order'} Details</h4>
+        ${detailsHtml}
+        ${p.screenshot ? `<div class="form-group" style="margin-top:10px"><label>Payment Screenshot</label><br><a href="${BEND}${p.screenshot}" target="_blank"><img src="${BEND}${p.screenshot}" style="max-height:180px;border-radius:8px;border:1px solid #ddd;margin-top:6px;cursor:pointer" onerror="this.style.display='none'" /></a></div>` : ''}
+        <div class="form-group" style="margin-top:10px">
+          <label>Admin Notes</label>
+          <textarea id="pay-notes" rows="2" style="width:100%;padding:8px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:13px">${esc(p.adminNotes||'')}</textarea>
+        </div>
+        ${p.status==='pending_verification' ? `<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn btn-green" onclick='approvePayment("${p._id}")'><i class="fas fa-check"></i> Approve</button>
+          <button class="btn btn-red" onclick='rejectPayment("${p._id}")'><i class="fas fa-times"></i> Reject</button>
+        </div>` : ''}
+        ${p.status==='approved' && waUrl ? `<div style="margin-top:12px"><a href="${waUrl}" target="_blank" class="btn btn-green"><i class="fab fa-whatsapp"></i> Send WhatsApp Confirmation</a></div>` : ''}
+      `;
+      document.getElementById('modal-save-btn').style.display = 'none';
+      document.getElementById('modal-overlay').classList.add('open');
+      if (!p.isRead) setTimeout(loadPayments, 500);
+    } catch(e) { toast(e.message, 'error'); }
+  }
+
+  async function approvePayment(id) {
+    const notes = document.getElementById('pay-notes')?.value || '';
+    try {
+      await req('/api/payments/' + id, { method:'PUT', body: JSON.stringify({ status:'approved', adminNotes: notes }) });
+      toast('Payment approved!'); closeModal(); loadPayments();
+    } catch(e) { toast(e.message, 'error'); }
+  }
+
+  async function rejectPayment(id) {
+    const notes = document.getElementById('pay-notes')?.value || '';
+    try {
+      await req('/api/payments/' + id, { method:'PUT', body: JSON.stringify({ status:'rejected', adminNotes: notes }) });
+      toast('Payment rejected.', 'error'); closeModal(); loadPayments();
     } catch(e) { toast(e.message, 'error'); }
   }
 
