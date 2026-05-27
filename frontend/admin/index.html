@@ -150,6 +150,54 @@
     .page-btn { padding: 5px 11px; border: 1.5px solid var(--border); background: var(--white); border-radius: 6px; cursor: pointer; font-size: 13px; }
     .page-btn.active { background: var(--gold); border-color: var(--gold); color: var(--navy); font-weight: 700; }
     .page-btn:disabled { opacity: .4; cursor: default; }
+
+    /* ── Mobile hamburger & overlay ── */
+    .hamburger { display: none; background: none; border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; cursor: pointer; color: var(--navy); flex-shrink: 0; }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 150; }
+    .sidebar-overlay.show { display: block; }
+
+    /* ── Tablet (769px – 1024px) ── */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      :root { --sidebar-w: 210px; }
+      .content { padding: 20px; }
+      .card-header { padding: 14px 18px; }
+      .card-body { padding: 16px; }
+    }
+
+    /* ── Mobile (≤ 768px) ── */
+    @media (max-width: 768px) {
+      .login-box { width: calc(100% - 32px); padding: 28px 20px; }
+      .sidebar { transform: translateX(-100%); transition: transform .3s; z-index: 200; }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .topbar { padding: 10px 14px; gap: 8px; flex-wrap: wrap; }
+      .topbar h1 { font-size: 15px; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .hamburger { display: inline-flex; align-items: center; }
+      .api-badge { display: none; }
+      #api-toggle-btn { font-size: 11px; padding: 4px 8px; }
+      .content { padding: 14px; }
+      .card-header { padding: 12px 14px; flex-wrap: wrap; gap: 8px; }
+      .card-header h3 { font-size: 14px; }
+      .card-body { padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      table { min-width: 480px; font-size: 12.5px; }
+      th, td { padding: 8px 10px; }
+      .form-row { grid-template-columns: 1fr; }
+      .settings-grid { grid-template-columns: 1fr; }
+      .settings-grid .form-group[style*="grid-column"] { grid-column: auto !important; }
+      .modal { width: calc(100% - 20px); }
+      .stat-card { padding: 14px; }
+      .stat-val { font-size: 22px; }
+      .stat-icon { width: 40px; height: 40px; font-size: 16px; }
+    }
+
+    /* ── Small phones (≤ 480px) ── */
+    @media (max-width: 480px) {
+      .content { padding: 10px; }
+      .card-header { padding: 10px 12px; }
+      .stat-val { font-size: 20px; }
+      .topbar h1 { font-size: 13px; }
+      .btn-sm { padding: 5px 9px; font-size: 11px; }
+    }
   </style>
 </head>
 <body>
@@ -217,15 +265,19 @@
     </div>
   </div>
 
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
   <div class="main">
     <div class="topbar">
-      <h1 id="section-title">Dashboard</h1>
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+        <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <h1 id="section-title" style="margin:0">Dashboard</h1>
+      </div>
       <div class="topbar-right">
         <span class="api-badge" id="api-badge">API: chauhanadvocate.onrender.com</span>
         <button class="btn btn-sm btn-navy" onclick="toggleApiMode()" id="api-toggle-btn">Use Local API</button>
       </div>
     </div>
-    <div class="content">
+    <div class="content" id="main-content">
 
       <!-- DASHBOARD -->
       <div id="sec-dashboard" class="section active">
@@ -1341,6 +1393,23 @@
         </tbody></table>` : '<div class="empty">No appointments yet</div>';
     } catch(e) { toast(e.message, 'error'); }
   }
+
+  // --- SIDEBAR TOGGLE (mobile) ---
+  function toggleSidebar() {
+    document.querySelector('.sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('show');
+  }
+  function closeSidebar() {
+    document.querySelector('.sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('show');
+  }
+
+  // Patch showSection to auto-close sidebar on mobile nav click
+  const _showSectionFinal = showSection;
+  showSection = function(name) {
+    _showSectionFinal(name);
+    if (window.innerWidth <= 768) closeSidebar();
+  };
 
   // INIT
   checkAuth();
