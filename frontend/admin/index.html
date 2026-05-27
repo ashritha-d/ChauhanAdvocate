@@ -457,6 +457,30 @@
 
       <!-- SETTINGS -->
       <div id="sec-settings" class="section">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header">
+            <h3><i class="fas fa-qrcode" style="color:var(--gold);margin-right:6px"></i> PhonePe / UPI QR Code</h3>
+          </div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Upload the QR code image that customers will scan to make payments.</p>
+            <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap">
+              <div>
+                <div id="qr-current-preview" style="width:130px;height:130px;border:2px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;background:#fafafa;overflow:hidden">
+                  <i class="fas fa-qrcode" style="font-size:36px;color:#ccc" id="qr-preview-icon"></i>
+                  <img id="qr-preview-img" src="" alt="QR Code" style="width:100%;height:100%;object-fit:contain;display:none;" />
+                </div>
+                <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center">Current QR</div>
+              </div>
+              <div style="flex:1;min-width:220px">
+                <div class="form-group">
+                  <label>Upload New QR Image</label>
+                  <input type="file" id="qr-upload-input" accept="image/*" onchange="previewQrImage(this)" style="margin-bottom:10px" />
+                  <button class="btn btn-gold btn-sm" onclick="uploadQrImage()"><i class="fas fa-upload"></i> Upload QR Code</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="card">
           <div class="card-header"><h3>Site Settings</h3><button class="btn btn-gold btn-sm" onclick="saveSettings()"><i class="fas fa-save"></i> Save</button></div>
           <div class="card-body" id="settings-form"><div class="loading"><i class="fas fa-spinner fa-spin"></i></div></div>
@@ -1534,6 +1558,54 @@
   showSection = function(name) {
     _showSectionFinal(name);
     if (window.innerWidth <= 768) closeSidebar();
+  };
+
+  // --- QR CODE UPLOAD ---
+  async function loadQrPreview() {
+    try {
+      const d = await req('/api/payments/qr');
+      if (d.qrUrl) {
+        const base = API.replace('/api', '');
+        const src = d.qrUrl.startsWith('http') ? d.qrUrl : base + d.qrUrl;
+        document.getElementById('qr-preview-img').src = src;
+        document.getElementById('qr-preview-img').style.display = 'block';
+        document.getElementById('qr-preview-icon').style.display = 'none';
+      }
+    } catch(e) {}
+  }
+
+  function previewQrImage(input) {
+    if (!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('qr-preview-img').src = e.target.result;
+      document.getElementById('qr-preview-img').style.display = 'block';
+      document.getElementById('qr-preview-icon').style.display = 'none';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  async function uploadQrImage() {
+    const input = document.getElementById('qr-upload-input');
+    if (!input.files || !input.files[0]) { toast('Please select a QR image file first.', 'error'); return; }
+    const fd = new FormData();
+    fd.append('qrImage', input.files[0]);
+    try {
+      const h = {};
+      if (token) h['Authorization'] = 'Bearer ' + token;
+      const r = await fetch(API + '/api/payments/qr', { method: 'POST', headers: h, body: fd });
+      const json = await r.json();
+      if (!r.ok) throw new Error(json.message || 'Upload failed');
+      toast('QR Code uploaded successfully!');
+      input.value = '';
+    } catch(e) { toast(e.message, 'error'); }
+  }
+
+  // patch loadCurrentSection to load QR preview when settings section opens
+  const _prevLoadCurrentSection = loadCurrentSection;
+  loadCurrentSection = function() {
+    _prevLoadCurrentSection();
+    if (currentSection === 'settings') loadQrPreview();
   };
 
   // INIT

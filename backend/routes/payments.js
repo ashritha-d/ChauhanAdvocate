@@ -5,7 +5,7 @@ const fs = require('fs');
 const { protect } = require('../middleware/auth');
 const {
   createPayment, getAllPayments, getPayment,
-  updatePayment, deletePayment, getStats, getQRCode
+  updatePayment, deletePayment, getStats, getQRCode, uploadQRCode
 } = require('../controllers/paymentController');
 
 // Payment screenshot upload — saved to uploads/payments/
@@ -29,6 +29,7 @@ const upload = multer({
 });
 
 router.get('/qr', getQRCode);                              // public — fetch QR image URL
+router.post('/qr', protect, upload.single('qrImage'), uploadQRCode); // admin — upload QR image
 router.post('/', upload.single('screenshot'), createPayment); // public — submit payment
 router.get('/', protect, getAllPayments);
 router.get('/stats', protect, getStats);

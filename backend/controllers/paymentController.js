@@ -204,3 +204,19 @@ exports.getQRCode = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// ADMIN: Upload QR image and save URL in site settings
+exports.uploadQRCode = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+    const qrUrl = '/uploads/payments/' + req.file.filename;
+    await SiteSettings.findOneAndUpdate(
+      { key: 'payment_qr_image' },
+      { key: 'payment_qr_image', value: qrUrl, group: 'payment' },
+      { upsert: true, new: true }
+    );
+    res.json({ success: true, qrUrl });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
