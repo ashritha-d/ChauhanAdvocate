@@ -47,9 +47,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Ensure gallery upload directory exists
+// Ensure upload directories exist
 const galleryDir = path.join(__dirname, 'uploads', 'gallery');
 if (!fs.existsSync(galleryDir)) fs.mkdirSync(galleryDir, { recursive: true });
+const paymentsUploadDir = path.join(__dirname, 'uploads', 'payments');
+if (!fs.existsSync(paymentsUploadDir)) fs.mkdirSync(paymentsUploadDir, { recursive: true });
 
 // MongoDB connection
 const mongoOptions = process.env.NODE_ENV === 'development' ? { tlsAllowInvalidCertificates: true } : {};
@@ -79,6 +81,7 @@ app.use('/api/drafts', require('./routes/drafts'));
 app.use('/api/books', require('./routes/books'));
 app.use('/api/join-with-us', require('./routes/joinWithUs'));
 app.use('/api/contact-details', require('./routes/contactDetails'));
+app.use('/api/payments', require('./routes/payments'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));

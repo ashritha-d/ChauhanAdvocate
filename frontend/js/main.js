@@ -576,8 +576,145 @@ function getFallbackFAQs() {
   ];
 }
 
+// ─── QR PAYMENT FLOW ─────────────────────────────────────────
+let _qrPendingData = null; // holds form data while QR modal is open
+let _qrModal = null;
+
+function selectApptPayment(method) {
+  document.getElementById('appt-pay-cash').checked = method === 'cash';
+  document.getElementById('appt-pay-qr').checked = method === 'qr_code';
+  document.getElementById('appt-pay-cash-card').classList.toggle('active', method === 'cash');
+  document.getElementById('appt-pay-qr-card').classList.toggle('active', method === 'qr_code');
+  document.getElementById('appt-qr-notice').style.display = method === 'qr_code' ? 'block' : 'none';
+}
+
+function selectBoPayment(method) {
+  document.getElementById('bo-pay-cash').checked = method === 'cash';
+  document.getElementById('bo-pay-qr').checked = method === 'qr_code';
+  document.getElementById('bo-pay-cash-card').classList.toggle('active', method === 'cash');
+  document.getElementById('bo-pay-qr-card').classList.toggle('active', method === 'qr_code');
+}
+
+async function openQrModal(pendingData) {
+  _qrPendingData = pendingData;
+  showQrStep1();
+  document.getElementById('qr-display-amount').textContent = pendingData.amountDisplay || '₹500';
+  document.getElementById('qr-display-label').textContent = pendingData.type === 'book_order' ? 'Book Order Amount' : 'Consultation Fee';
+  document.querySelectorAll('.qr-amount-inline').forEach(el => el.textContent = (pendingData.amountDisplay || '₹500').replace('₹',''));
+  document.getElementById('qr-utr').value = '';
+  document.getElementById('qr-screenshot').value = '';
+  document.getElementById('qrSubmitAlert').innerHTML = '';
+  if (!_qrModal) _qrModal = new bootstrap.Modal(document.getElementById('qrPaymentModal'));
+  _qrModal.show();
+  // Load QR image
+  loadQrCodeImage();
+}
+
+async function loadQrCodeImage() {
+  const img = document.getElementById('qrCodeImage');
+  const placeholder = document.getElementById('qrCodePlaceholder');
+  const loading = document.getElementById('qrCodeLoading');
+  loading.style.display = 'block'; img.style.display = 'none'; placeholder.style.display = 'none';
+  try {
+    const data = await apiFetch('/payments/qr');
+    loading.style.display = 'none';
+    if (data.success && data.qrUrl) {
+      const base = API_BASE.replace('/api', '');
+      img.src = data.qrUrl.startsWith('http') ? data.qrUrl : base + data.qrUrl;
+      img.style.display = 'block';
+    } else {
+      placeholder.style.display = 'block';
+    }
+  } catch {
+    loading.style.display = 'none';
+    placeholder.style.display = 'block';
+  }
+}
+
+function showQrStep1() {
+  document.getElementById('qr-step-1').style.display = 'block';
+  document.getElementById('qr-step-2').style.display = 'none';
+  document.getElementById('qr-step-3').style.display = 'none';
+}
+function showQrStep2() {
+  document.getElementById('qr-step-1').style.display = 'none';
+  document.getElementById('qr-step-2').style.display = 'block';
+  document.getElementById('qr-step-3').style.display = 'none';
+}
+
+async function submitQrPayment() {
+  const utr = document.getElementById('qr-utr').value.trim();
+  const screenshotFile = document.getElementById('qr-screenshot').files[0];
+  const alertEl = document.getElementById('qrSubmitAlert');
+  const btn = document.getElementById('qrConfirmBtn');
+
+  if (!utr) {
+    alertEl.innerHTML = '<div class="alert alert-danger py-2 small">Please enter your UTR / Transaction Reference Number.</div>';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+  alertEl.innerHTML = '';
+
+  try {
+    const formData = new FormData();
+    const d = _qrPendingData;
+    formData.append('type', d.type);
+    formData.append('paymentMethod', 'qr_code');
+    formData.append('amount', d.amount);
+    formData.append('utrNumber', utr);
+    Object.entries(d.fields).forEach(([k, v]) => { if (v !== undefined && v !== null) formData.append(k, v); });
+    if (screenshotFile) formData.append('screenshot', screenshotFile);
+
+    const res = await fetch(API_BASE + '/payments', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById('qr-step-2').style.display = 'none';
+      document.getElementById('qr-step-3').style.display = 'block';
+      const receiptHtml = `
+        <strong>Reference:</strong> #${data.data?.paymentId || 'Pending'}<br>
+        <strong>Status:</strong> <span class="text-warning fw-bold">Pending Verification</span><br>
+        <strong>Name:</strong> ${d.fields.name}<br>
+        <strong>Phone:</strong> ${d.fields.phone}<br>
+        <strong>Amount:</strong> ${d.amountDisplay}<br>
+        <strong>UTR:</strong> ${utr}<br>
+        <small class="text-muted">Our team will verify and confirm your ${d.type === 'book_order' ? 'order' : 'appointment'} within a few hours.</small>`;
+      document.getElementById('qr-receipt-box').innerHTML = receiptHtml;
+
+      // Reset the originating form
+      if (d.type === 'appointment') {
+        const f = document.getElementById('appointmentForm');
+        if (f) { f.reset(); f.classList.remove('was-validated'); }
+        showAlert(document.getElementById('apptAlert'), 'success',
+          '<i class="fas fa-clock me-2"></i>Appointment submitted! Payment is <strong>pending verification</strong>. We will confirm shortly.');
+        selectApptPayment('cash');
+      } else {
+        document.getElementById('bookOrderFormWrap').style.display = 'none';
+        document.getElementById('bookOrderSuccess').innerHTML = `
+          <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+          <p class="fw-bold fs-5">Order Submitted!</p>
+          <p class="text-muted">Payment is <strong>pending verification</strong>. We will confirm and arrange delivery after verifying your payment.</p>`;
+        document.getElementById('bookOrderSuccess').style.display = 'block';
+      }
+    } else {
+      alertEl.innerHTML = `<div class="alert alert-danger py-2 small">${data.message || 'Submission failed. Please try again.'}</div>`;
+    }
+  } catch (err) {
+    alertEl.innerHTML = '<div class="alert alert-danger py-2 small">Server error. Please try again or contact us directly.</div>';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Submit Payment Details';
+}
+
 // ─── FORMS ───────────────────────────────────────────────────
 function initForms() {
+  // Default active state for payment options
+  document.getElementById('appt-pay-cash-card')?.classList.add('active');
+  document.getElementById('bo-pay-cash-card')?.classList.add('active');
+
   // Appointment Form
   const apptForm = document.getElementById('appointmentForm');
   apptForm?.addEventListener('submit', async (e) => {
@@ -590,14 +727,31 @@ function initForms() {
       return;
     }
 
+    const payMethod = document.getElementById('appt-pay-qr')?.checked ? 'qr_code' : 'cash';
+
+    if (payMethod === 'qr_code') {
+      const fields = getFormData(apptForm);
+      const fee = (await apiFetch('/site-settings').catch(() => ({})))?.data?.consultation_fee || '500';
+      _qrPendingData = {
+        type: 'appointment',
+        fields,
+        amount: fee,
+        amountDisplay: `₹${fee}`
+      };
+      openQrModal(_qrPendingData);
+      return;
+    }
+
     setButtonLoading(btn, true, 'Booking...');
     try {
       const payload = getFormData(apptForm);
+      payload.paymentMethod = 'cash';
       const data = await apiFetch('/appointments', 'POST', payload);
       if (data.success) {
         showAlert(alert, 'success', '<i class="fas fa-check-circle me-2"></i>' + data.message);
         apptForm.reset();
         apptForm.classList.remove('was-validated');
+        selectApptPayment('cash');
         showToast('Appointment booked successfully!', 'success');
       } else {
         showAlert(alert, 'danger', data.message || 'Something went wrong.');
@@ -711,9 +865,28 @@ function initForms() {
       return;
     }
 
+    const payMethod = document.getElementById('bo-pay-qr')?.checked ? 'qr_code' : 'cash';
+
+    if (payMethod === 'qr_code') {
+      const fields = getFormData(bookOrderForm);
+      const qty = parseInt(fields.quantity) || 1;
+      const priceNum = parseFloat((fields.bookPrice || '0').replace(/[^0-9.]/g, '')) || 0;
+      const total = (priceNum * qty).toFixed(0);
+      _qrPendingData = {
+        type: 'book_order',
+        fields,
+        amount: total,
+        amountDisplay: `₹${total}`
+      };
+      bootstrap.Modal.getInstance(document.getElementById('bookOrderModal'))?.hide();
+      setTimeout(() => openQrModal(_qrPendingData), 400);
+      return;
+    }
+
     setButtonLoading(btn, true, 'Placing order...');
     try {
       const payload = getFormData(bookOrderForm);
+      payload.paymentMethod = 'cash';
       const data = await apiFetch('/book-orders', 'POST', payload);
       if (data.success) {
         document.getElementById('bookOrderFormWrap').style.display = 'none';

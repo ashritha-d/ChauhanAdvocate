@@ -19,6 +19,7 @@ const NAV = [
     { icon: 'fas fa-book', label: 'Book Orders', page: 'bookorders' },
     { icon: 'fas fa-user-tie', label: 'Jr. Advocates', page: 'jradvocates' },
     { icon: 'fas fa-envelope', label: 'Contacts', page: 'contacts' },
+    { icon: 'fas fa-credit-card', label: 'Payments', page: 'payments' },
   ]},
   { label: 'Account', items: [
     { icon: 'fas fa-user-circle', label: 'My Profile', page: 'profile' },

@@ -72,6 +72,13 @@ export const getBookOrders = (p = 1, l = 10, status = '') => api.get(`/book-orde
 export const updateBookOrder = (id, data) => api.put(`/book-orders/${id}`, data);
 export const deleteBookOrder = (id) => api.delete(`/book-orders/${id}`);
 
+// Payments
+export const getPayments = (p = 1, l = 100, status = '') => api.get(`/payments?page=${p}&limit=${l}${status ? `&status=${status}` : ''}`);
+export const getPayment = (id) => api.get(`/payments/${id}`);
+export const updatePayment = (id, data) => api.put(`/payments/${id}`, data);
+export const deletePayment = (id) => api.delete(`/payments/${id}`);
+export const getPaymentStats = () => api.get('/payments/stats');
+
 // Notifications
 export const getNotificationCounts = () => api.get('/notifications/counts');
 

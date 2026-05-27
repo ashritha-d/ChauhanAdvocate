@@ -17,8 +17,9 @@ import YouTubeVideos from './pages/YouTubeVideos';
 import Orders from './pages/Orders';
 import JrAdvocates from './pages/JrAdvocates';
 import BookOrders from './pages/BookOrders';
+import Payments from './pages/Payments';
 
-const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile, youtube: YouTubeVideos, orders: Orders, jradvocates: JrAdvocates, bookorders: BookOrders };
+const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile, youtube: YouTubeVideos, orders: Orders, jradvocates: JrAdvocates, bookorders: BookOrders, payments: Payments };
 
 function AdminApp() {
   const { admin, loading } = useAuth();

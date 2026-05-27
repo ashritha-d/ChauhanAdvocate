@@ -15,7 +15,10 @@ const bookOrderSchema = new mongoose.Schema({
     default: 'pending'
   },
   adminNotes: { type: String, default: '' },
-  isRead: { type: Boolean, default: false }
+  isRead: { type: Boolean, default: false },
+  paymentMethod: { type: String, enum: ['qr_code', 'cash', 'none'], default: 'none' },
+  paymentStatus: { type: String, enum: ['unpaid', 'pending_verification', 'paid', 'failed'], default: 'unpaid' },
+  paymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('BookOrder', bookOrderSchema);

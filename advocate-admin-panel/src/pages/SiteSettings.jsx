@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getSiteSettings, updateSiteSettings, seedSiteSettings } from '../api';
 import ImageUpload from '../components/ImageUpload';
 
-const TABS = ['General','Contact','Social','Stats','SEO'];
+const TABS = ['General','Contact','Social','Stats','SEO','Payment'];
 
 export default function SiteSettings() {
   const [form, setForm] = useState({});
@@ -75,6 +75,11 @@ export default function SiteSettings() {
       { key:'seo_title', label:'Page Title', type:'text' },
       { key:'seo_description', label:'Meta Description', type:'textarea' },
       { key:'seo_keywords', label:'Keywords (comma separated)', type:'text' },
+    ],
+    Payment: [
+      { key:'payment_qr_image', label:'PhonePe / UPI QR Code Image', type:'image' },
+      { key:'consultation_fee', label:'Consultation Fee (₹)', type:'text' },
+      { key:'payment_upi_id', label:'UPI ID (shown below QR)', type:'text' },
     ],
   };
 
