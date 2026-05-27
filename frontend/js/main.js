@@ -170,8 +170,7 @@ async function loadSiteSettings() {
     const wa = document.getElementById('whatsappBtn');
     if (wa && s.contact_whatsapp) {
       const waNum = s.contact_whatsapp.replace(/\D/g, '');
-      const waPhone = s.contact_phone || '+91 93925 38226';
-      const waMsg = `Hello 👋\nWelcome to BALU LAW CHAMBER.\n\nThank you for contacting us. Please share your legal query or appointment requirement.\n\n📍 Address:\nBALU LAW CHAMBER\nNew Venkatramana Colony,\nHasthinapuram, LB Nagar\n\n📞 Contact:\n${waPhone}\n\nWe will get back to you shortly.`;
+      const waMsg = `Hi Mr. Chauhan,\nCan I get more details regarding the appointment process, consultation, and available timings?`;
       wa.href = `https://wa.me/${waNum}?text=${encodeURIComponent(waMsg)}`;
     }
 
