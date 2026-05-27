@@ -1,5 +1,6 @@
 import Hero from '../components/Hero';
 import Services from '../components/Services';
+import LatestUpdates from '../components/LatestUpdates';
 import YouTubeSection from '../components/YouTubeSection';
 import FacebookSection from '../components/FacebookSection';
 import Books from '../components/Books';
@@ -17,6 +18,7 @@ export default function Home() {
     <>
       <Hero />
       <Services />
+      <LatestUpdates />
       <YouTubeSection />
       <FacebookSection />
       <Books />
