@@ -19,7 +19,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadServices(),
     loadTestimonials(),
     loadBlogs(),
-    loadFAQs()
+    loadFAQs(),
+    loadYouTubeVideos(),
+    loadFacebookPosts(),
+    loadBooks(),
+    loadDrafts(),
+    loadMagazines(),
+    loadLatestUpdates(),
   ]);
 
   initTestimonialSlider();
@@ -774,4 +780,268 @@ function showToast(message, type = 'success') {
 function formatDate(dateStr) {
   if (!dateStr) return '';
   return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+// ─── YOUTUBE VIDEOS ──────────────────────────────────────────
+const FALLBACK_YOUTUBE = [
+  { videoId: 'kH4PwBezGzU', title: 'Civil Litigation Basics' },
+  { videoId: 'zlVD_L9OEmY', title: 'Legal Rights & Awareness' },
+  { videoId: 'eUk-hRPpV3k', title: 'Family Law Essentials' },
+  { videoId: 'Yw6Ojzot9K0', title: 'Criminal Defense Strategies' },
+];
+
+async function loadYouTubeVideos() {
+  const track = document.getElementById('youtube-track');
+  if (!track) return;
+  try {
+    const data = await apiFetch('/youtube-videos');
+    const videos = (data.success && data.data.length) ? data.data : FALLBACK_YOUTUBE;
+    track.innerHTML = videos.map((v, i) => `
+      <a href="https://youtu.be/${v.videoId}" target="_blank" rel="noopener noreferrer" class="video-card" data-aos="fade-up" data-aos-delay="${i * 70}">
+        <div class="video-card-thumb">
+          <img src="https://img.youtube.com/vi/${v.videoId}/hqdefault.jpg" alt="${v.title}"
+               onerror="this.src='https://placehold.co/320x180/1a1a2e/c9a84c?text=Video'" />
+          <div class="video-play-overlay"><div class="video-play-btn">&#9654;</div></div>
+        </div>
+        <div class="video-card-title">${v.title}</div>
+      </a>
+    `).join('');
+  } catch { /* keep existing hardcoded content */ }
+}
+
+// ─── FACEBOOK POSTS ──────────────────────────────────────────
+const FALLBACK_FB = [
+  { facebookUrl: 'https://www.facebook.com/share/v/18zpWrGinF/', title: 'Civil Law Updates',   thumbnail: '' },
+  { facebookUrl: 'https://www.facebook.com/share/v/1Fv7UYc1if/', title: 'Criminal Law Basics', thumbnail: '' },
+  { facebookUrl: 'https://www.facebook.com/share/v/1JFJmEPkA7/', title: 'Family Law Tips',     thumbnail: '' },
+  { facebookUrl: 'https://www.facebook.com/share/v/1Fv7UYc1if/', title: 'Legal Updates',       thumbnail: '' },
+];
+const FB_THUMB = 'https://placehold.co/320x180/1877f2/ffffff?text=Facebook+Post';
+
+async function loadFacebookPosts() {
+  const track = document.getElementById('facebook-track');
+  if (!track) return;
+  const MEDIA_BASE = API_BASE.replace('/api', '');
+  try {
+    const data = await apiFetch('/facebook-posts');
+    const posts = (data.success && data.data.length) ? data.data : FALLBACK_FB;
+    track.innerHTML = posts.map((p, i) => {
+      const thumb = p.thumbnail ? MEDIA_BASE + p.thumbnail : FB_THUMB;
+      return `
+        <a href="${p.facebookUrl || '#'}" target="_blank" rel="noopener noreferrer" class="video-card" data-aos="fade-up" data-aos-delay="${i * 70}">
+          <div class="video-card-thumb">
+            <img src="${thumb}" alt="${p.title}" onerror="this.src='${FB_THUMB}'" />
+            <div class="video-play-overlay"><div class="video-play-btn">&#9654;</div></div>
+          </div>
+          <div class="video-card-title">${p.title}</div>
+        </a>
+      `;
+    }).join('');
+  } catch { /* keep existing hardcoded content */ }
+}
+
+// ─── BOOKS ───────────────────────────────────────────────────
+async function loadBooks() {
+  const track = document.getElementById('books-track');
+  if (!track) return;
+  const MEDIA_BASE = API_BASE.replace('/api', '');
+  try {
+    const data = await apiFetch('/books');
+    if (!data.success || !data.data.length) return;
+    track.innerHTML = data.data.map((b, i) => {
+      const img = b.image
+        ? MEDIA_BASE + b.image
+        : `https://placehold.co/280x160/1a1a2e/c9a84c?text=${encodeURIComponent(b.name)}`;
+      const price = `&#8377;${b.price}`;
+      const outOfStock = b.stockStatus === 'out_of_stock';
+      return `
+        <div class="book-card" data-aos="fade-up" data-aos-delay="${Math.min(i * 60, 300)}">
+          <div class="book-card-img">
+            <img src="${img}" alt="${b.name}" onerror="this.src='https://placehold.co/280x160/1a1a2e/c9a84c?text=Book'" />
+          </div>
+          <div class="book-card-body">
+            <div class="book-title">${b.name}</div>
+            ${b.author ? `<div class="book-author">by ${b.author}</div>` : ''}
+            <p class="book-desc">${b.description || ''}</p>
+            <div class="book-price">${price}</div>
+            ${outOfStock
+              ? `<button class="btn btn-secondary btn-sm mt-auto" disabled>Out of Stock</button>`
+              : `<button class="btn btn-gold btn-sm mt-auto" onclick="openBookOrder('${b.name.replace(/'/g, "\\'")}','${price}')">Order Now</button>`}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch {}
+}
+
+// ─── DRAFTS ──────────────────────────────────────────────────
+async function loadDrafts() {
+  const track = document.getElementById('drafts-track');
+  if (!track) return;
+  const MEDIA_BASE = API_BASE.replace('/api', '');
+  try {
+    const data = await apiFetch('/drafts');
+    if (!data.success || !data.data.length) return;
+    track.innerHTML = data.data.map((d, i) => `
+      <div class="book-card" data-aos="fade-up" data-aos-delay="${Math.min(i * 60, 300)}">
+        <div class="book-card-img">
+          <img src="https://placehold.co/280x160/1a1a2e/c9a84c?text=Legal+Draft" alt="${d.title}" />
+        </div>
+        <div class="book-card-body">
+          <div class="book-title">${d.title}</div>
+          ${d.category ? `<div class="book-author">${d.category}</div>` : ''}
+          <p class="book-desc">${d.description || ''}</p>
+          ${d.file
+            ? `<a href="${MEDIA_BASE + d.file}" target="_blank" rel="noopener noreferrer" class="btn btn-gold btn-sm mt-auto">Download PDF</a>`
+            : `<span class="btn btn-outline-secondary btn-sm mt-auto disabled">No File</span>`}
+        </div>
+      </div>
+    `).join('');
+  } catch {}
+}
+
+// ─── MAGAZINES ───────────────────────────────────────────────
+async function loadMagazines() {
+  const track = document.getElementById('magazines-track');
+  if (!track) return;
+  const MEDIA_BASE = API_BASE.replace('/api', '');
+  try {
+    const data = await apiFetch('/magazines');
+    if (!data.success || !data.data.length) return;
+    track.innerHTML = data.data.map((m, i) => {
+      const img = m.coverImage
+        ? MEDIA_BASE + m.coverImage
+        : 'https://placehold.co/280x160/1a1a2e/c9a84c?text=Magazine';
+      const pdf = m.pdfFile ? MEDIA_BASE + m.pdfFile : '#';
+      return `
+        <div class="book-card" data-aos="fade-up" data-aos-delay="${Math.min(i * 60, 300)}">
+          <div class="book-card-img">
+            <img src="${img}" alt="${m.title}" onerror="this.src='https://placehold.co/280x160/1a1a2e/c9a84c?text=Magazine'" />
+          </div>
+          <div class="book-card-body">
+            <div class="book-title">${m.title}</div>
+            <p class="book-desc">${m.description || ''}</p>
+            <a href="${pdf}" target="_blank" rel="noopener noreferrer" class="btn btn-gold btn-sm mt-auto">View PDF</a>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch {}
+}
+
+// ─── LATEST UPDATES ──────────────────────────────────────────
+const TYPE_CONFIG = {
+  youtube:  { label: 'YouTube',  color: '#ff0000', btnText: 'Watch',    icon: 'fab fa-youtube' },
+  facebook: { label: 'Facebook', color: '#1877f2', btnText: 'View Post', icon: 'fab fa-facebook' },
+  magazine: { label: 'Magazine', color: '#8B0000', btnText: 'View PDF',  icon: 'fas fa-book-open' },
+  draft:    { label: 'Draft',    color: '#2c5f2e', btnText: 'Download',  icon: 'fas fa-file-alt' },
+  book:     { label: 'Book',     color: '#a8893a', btnText: 'Order Now', icon: 'fas fa-book' },
+};
+
+async function loadLatestUpdates() {
+  const track   = document.getElementById('latest-track');
+  const spinner = document.getElementById('latestLoadingSpinner');
+  const outer   = document.getElementById('latestSliderOuter');
+  const section = document.getElementById('latest-updates');
+  if (!track) return;
+
+  const MEDIA_BASE = API_BASE.replace('/api', '');
+
+  try {
+    const [yt, fb, mag, dr, bk] = await Promise.allSettled([
+      apiFetch('/youtube-videos'),
+      apiFetch('/facebook-posts'),
+      apiFetch('/magazines'),
+      apiFetch('/drafts'),
+      apiFetch('/books'),
+    ]);
+
+    const all = [];
+
+    if (yt.status === 'fulfilled' && yt.value?.success)
+      yt.value.data.slice(0, 6).forEach(v => all.push({
+        type: 'youtube', title: v.title,
+        thumb: `https://img.youtube.com/vi/${v.videoId}/hqdefault.jpg`,
+        href: `https://youtu.be/${v.videoId}`,
+        date: v.createdAt,
+      }));
+
+    if (fb.status === 'fulfilled' && fb.value?.success)
+      fb.value.data.slice(0, 6).forEach(p => all.push({
+        type: 'facebook', title: p.title,
+        thumb: p.thumbnail ? MEDIA_BASE + p.thumbnail : 'https://placehold.co/300x170/1877f2/ffffff?text=Facebook',
+        href: p.facebookUrl || '#',
+        date: p.date || p.createdAt,
+      }));
+
+    if (mag.status === 'fulfilled' && mag.value?.success)
+      mag.value.data.slice(0, 6).forEach(m => all.push({
+        type: 'magazine', title: m.title,
+        thumb: m.coverImage ? MEDIA_BASE + m.coverImage : 'https://placehold.co/300x170/1a1a2e/c9a84c?text=Magazine',
+        href: m.pdfFile ? MEDIA_BASE + m.pdfFile : '#',
+        date: m.publishedDate || m.createdAt,
+      }));
+
+    if (dr.status === 'fulfilled' && dr.value?.success)
+      dr.value.data.slice(0, 6).forEach(d => all.push({
+        type: 'draft', title: d.title,
+        thumb: 'https://placehold.co/300x170/1a1a2e/c9a84c?text=Legal+Draft',
+        href: d.file ? MEDIA_BASE + d.file : '#',
+        date: d.date || d.createdAt,
+        sub: d.category,
+      }));
+
+    if (bk.status === 'fulfilled' && bk.value?.success)
+      bk.value.data.slice(0, 6).forEach(b => all.push({
+        type: 'book', title: b.name,
+        thumb: b.image ? MEDIA_BASE + b.image : 'https://placehold.co/300x170/1a1a2e/c9a84c?text=Book',
+        href: '#books',
+        date: b.createdAt,
+        price: `&#8377;${b.price}`,
+        sub: b.author,
+      }));
+
+    all.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (spinner) spinner.style.display = 'none';
+
+    if (!all.length) {
+      if (section) section.style.display = 'none';
+      return;
+    }
+
+    track.innerHTML = all.map((item, i) => {
+      const cfg = TYPE_CONFIG[item.type];
+      const isVideo = item.type === 'youtube' || item.type === 'facebook';
+      return `
+        <div class="latest-card" data-aos="fade-up" data-aos-delay="${Math.min(i * 40, 200)}">
+          <div class="latest-card-img">
+            <img src="${item.thumb}" alt="${item.title}"
+                 onerror="this.src='https://placehold.co/300x170/1a1a2e/c9a84c?text=${encodeURIComponent(cfg.label)}'" />
+            <span class="latest-type-pill" style="background:${cfg.color}">
+              <i class="${cfg.icon} me-1"></i>${cfg.label}
+            </span>
+            ${isVideo ? '<div class="video-play-overlay"><div class="video-play-btn">&#9654;</div></div>' : ''}
+          </div>
+          <div class="latest-card-body">
+            <div class="latest-card-title" title="${item.title}">${item.title}</div>
+            ${item.sub   ? `<div class="latest-card-meta">${item.sub}</div>` : ''}
+            ${item.price ? `<div class="latest-card-price">${item.price}</div>` : ''}
+            <div class="latest-card-date"><i class="fas fa-calendar-alt me-1"></i>${formatDate(item.date)}</div>
+            <a href="${item.href}"
+               ${item.type !== 'book' ? 'target="_blank" rel="noopener noreferrer"' : ''}
+               class="btn btn-gold btn-sm w-100 mt-auto">
+              ${cfg.btnText} <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (outer) outer.style.display = 'flex';
+
+  } catch {
+    if (spinner) spinner.style.display = 'none';
+    if (section) section.style.display = 'none';
+  }
 }

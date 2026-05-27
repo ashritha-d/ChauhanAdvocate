@@ -178,6 +178,27 @@
   </section>
 
 
+  <!-- ========== LATEST UPDATES SECTION ========== -->
+  <section id="latest-updates" class="section-padding bg-white">
+    <div class="container-fluid px-3 px-md-4">
+      <div class="latest-header mb-4" data-aos="fade-right">
+        <span class="latest-badge">LATEST</span>
+        <h2 class="section-title d-inline ms-3 mb-0">Latest <span class="text-gold">Updates</span></h2>
+        <p class="section-subtitle mt-2 ms-1 mb-0">Freshly added content across all categories</p>
+      </div>
+      <div class="latest-slider-outer" id="latestSliderOuter" style="display:none;">
+        <button class="slider-scroll-btn" onclick="document.getElementById('latest-track').scrollBy({left:-320,behavior:'smooth'})" aria-label="Scroll left">&#8249;</button>
+        <div class="slider-track latest-scroll" id="latest-track">
+          <!-- Populated dynamically by JS -->
+        </div>
+        <button class="slider-scroll-btn" onclick="document.getElementById('latest-track').scrollBy({left:320,behavior:'smooth'})" aria-label="Scroll right">&#8250;</button>
+      </div>
+      <div id="latestLoadingSpinner" class="text-center py-3">
+        <div class="spinner-border text-gold" role="status"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- ========== YOUTUBE SECTION ========== -->
   <section id="youtube" class="section-padding bg-white">
     <div class="container">
