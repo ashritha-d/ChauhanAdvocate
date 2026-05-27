@@ -20,14 +20,24 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' ? allowedOrigins : true,
-  credentials: true
 }));
 
 // Rate limiting
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200 });
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 app.use('/api/', limiter);
 
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 50 });
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 app.use('/api/auth/', authLimiter);
 
 // Body parsers
