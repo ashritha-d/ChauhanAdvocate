@@ -83,7 +83,7 @@ export default function ForgotPassword() {
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-logo">
-            <img src="/logo.jpeg" alt="Advocate Chauhan" />
+            <img src={`${import.meta.env.BASE_URL}logo.jpeg`} alt="Advocate Chauhan" />
           </div>
 
           {/* Steps indicator */}

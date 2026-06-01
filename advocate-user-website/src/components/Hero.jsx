@@ -51,10 +51,10 @@ export default function Hero() {
                 <span>Scales of Justice</span>
               </div>
               <img
-                src={mediaUrl(s.advocate_photo) || '/placeholder-lawyer.svg'}
+                src={mediaUrl(s.advocate_photo) || `${import.meta.env.BASE_URL}advcate.jpeg`}
                 alt={s.advocate_name || 'Advocate'}
                 className="hero-img"
-                onError={e => { e.target.src = 'https://via.placeholder.com/320x400/1a1a2e/c9a84c?text=Advocate'; }}
+                onError={e => { e.target.src = `${import.meta.env.BASE_URL}placeholder-lawyer.svg`; }}
               />
             </div>
           </div>

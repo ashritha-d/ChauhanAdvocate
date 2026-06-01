@@ -59,7 +59,7 @@ export default function Navbar() {
         {/* Logo */}
         <a className="navbar-brand navbar-logo d-flex align-items-center" href="#home">
           <img
-            src="/logo.jpeg"
+            src={`${import.meta.env.BASE_URL}logo.jpeg`}
             alt="Advocate Chauhan Logo"
             style={{ height: '44px', objectFit: 'contain' }}
           />
