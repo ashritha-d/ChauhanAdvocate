@@ -2,9 +2,23 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 
+const NAV_LINKS = [
+  { id: 'home',    label: 'Home' },
+  { id: 'services', label: 'Services' },
+  { id: 'gallery', label: 'Gallery' },
+  { id: 'blog',    label: 'Blog' },
+  { id: 'faq',     label: 'FAQ' },
+  { id: 'contact', label: 'Contact' },
+];
+
+function formatDate(d) {
+  if (!d) return '';
+  return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled]     = useState(false);
+  const [menuOpen, setMenuOpen]     = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const navRef = useRef(null);
   const { user, logout, unreadCount } = useUserAuth();
@@ -35,7 +49,32 @@ export default function Navbar() {
     navigate('/');
   };
 
-  const links = ['home', 'services', 'gallery', 'blog', 'faq', 'contact'];
+  // Works from ANY page — home: smooth scroll; elsewhere: full nav to hash
+  const handleSection = (id) => (e) => {
+    e.preventDefault();
+    close();
+    const base = import.meta.env.BASE_URL; // '/ChauhanAdvocate/'
+    const currentPath = window.location.pathname.replace(/\/$/, '');
+    const basePath    = base.replace(/\/$/, '');
+    if (currentPath === basePath || currentPath === '') {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.location.href = `${base}#${id}`;
+    }
+  };
+
+  const handleAppointment = (e) => {
+    e.preventDefault();
+    close();
+    const base = import.meta.env.BASE_URL;
+    const currentPath = window.location.pathname.replace(/\/$/, '');
+    const basePath    = base.replace(/\/$/, '');
+    if (currentPath === basePath || currentPath === '') {
+      document.getElementById('appointment')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.location.href = `${base}#appointment`;
+    }
+  };
 
   return (
     <nav
@@ -44,6 +83,7 @@ export default function Navbar() {
       id="mainNavbar"
     >
       <div className="container">
+
         {/* Hamburger — mobile only */}
         <button
           className={`hamburger d-lg-none ${menuOpen ? 'active' : ''}`}
@@ -51,13 +91,15 @@ export default function Navbar() {
           aria-label="Toggle navigation"
           type="button"
         >
-          <span></span>
-          <span></span>
-          <span></span>
+          <span></span><span></span><span></span>
         </button>
 
-        {/* Logo */}
-        <a className="navbar-brand navbar-logo d-flex align-items-center" href="#home">
+        {/* Logo — always links back to home */}
+        <a
+          className="navbar-brand navbar-logo d-flex align-items-center"
+          href={import.meta.env.BASE_URL}
+          onClick={handleSection('home')}
+        >
           <img
             src={`${import.meta.env.BASE_URL}logo.jpeg`}
             alt="Advocate Chauhan Logo"
@@ -65,7 +107,7 @@ export default function Navbar() {
           />
         </a>
 
-        {/* Book button + notification — mobile only */}
+        {/* Mobile: notification bell + Book button */}
         <div className="d-lg-none d-flex align-items-center gap-2">
           {user && (
             <Link to="/profile?tab=notifications" className="navbar-notif-btn" onClick={close}>
@@ -73,7 +115,7 @@ export default function Navbar() {
               {unreadCount > 0 && <span className="navbar-notif-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
             </Link>
           )}
-          <a href="#appointment" className="btn btn-gold mobile-appt-btn book-appointment-btn" onClick={close}>
+          <a href="#appointment" className="btn btn-gold mobile-appt-btn book-appointment-btn" onClick={handleAppointment}>
             <i className="fas fa-calendar-check"></i>
             <span className="mobile-appt-label"> Book</span>
           </a>
@@ -81,22 +123,19 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="d-none d-lg-flex ms-auto align-items-center gap-1">
-          {links.map(l => (
-            <a key={l} className="nav-link" href={`#${l}`}>
-              {l.charAt(0).toUpperCase() + l.slice(1)}
+          {NAV_LINKS.map(({ id, label }) => (
+            <a key={id} className="nav-link" href={`#${id}`} onClick={handleSection(id)}>
+              {label}
             </a>
           ))}
-          <a href="#appointment" className="btn btn-gold ms-2">
+          <a href="#appointment" className="btn btn-gold ms-2" onClick={handleAppointment}>
             Book Appointment
           </a>
 
-          {/* Auth buttons — desktop */}
+          {/* Auth — desktop */}
           {user ? (
             <div className="nav-user-menu ms-2">
-              <button
-                className="nav-user-btn"
-                onClick={() => setUserMenuOpen(o => !o)}
-              >
+              <button className="nav-user-btn" onClick={() => setUserMenuOpen(o => !o)}>
                 {user.profilePhoto
                   ? <img src={user.profilePhoto} alt={user.name} className="nav-user-avatar" />
                   : <div className="nav-user-initial">{user.name.charAt(0).toUpperCase()}</div>
@@ -107,22 +146,39 @@ export default function Navbar() {
               </button>
 
               {userMenuOpen && (
-                <div className="nav-user-dropdown">
-                  <Link to="/profile" className="nav-user-dd-item" onClick={close}>
-                    <i className="fas fa-user-circle"></i> My Profile
-                  </Link>
-                  <Link to="/profile?tab=appointments" className="nav-user-dd-item" onClick={close}>
-                    <i className="fas fa-calendar-alt"></i> My Appointments
-                  </Link>
-                  <Link to="/profile?tab=orders" className="nav-user-dd-item" onClick={close}>
-                    <i className="fas fa-book"></i> My Orders
+                <div className="nav-user-dropdown nav-profile-dropdown">
+                  {/* Profile card */}
+                  <div className="nav-profile-card">
+                    <div className="nav-profile-avatar-wrap">
+                      {user.profilePhoto
+                        ? <img src={user.profilePhoto} alt={user.name} className="nav-profile-avatar-img" />
+                        : <div className="nav-profile-avatar-initial">{user.name.charAt(0).toUpperCase()}</div>
+                      }
+                    </div>
+                    <div className="nav-profile-name">{user.name}</div>
+                    <div className="nav-profile-detail"><i className="fas fa-envelope"></i>{user.email}</div>
+                    <div className="nav-profile-detail"><i className="fas fa-phone"></i>{user.phone}</div>
+                    <div className="nav-profile-meta">
+                      <span className={`badge ${user.isActive ? 'bg-success' : 'bg-secondary'}`}>
+                        {user.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                      <small>Member since {formatDate(user.createdAt)}</small>
+                    </div>
+                  </div>
+
+                  <div className="nav-user-dd-divider"></div>
+
+                  <Link to="/profile?tab=settings" className="nav-user-dd-item" onClick={close}>
+                    <i className="fas fa-user-cog"></i> Profile Settings
                   </Link>
                   <Link to="/profile?tab=notifications" className="nav-user-dd-item" onClick={close}>
                     <i className="fas fa-bell"></i> Notifications
                     {unreadCount > 0 && <span className="ms-auto badge bg-danger">{unreadCount}</span>}
                   </Link>
+
                   <div className="nav-user-dd-divider"></div>
-                  <button className="nav-user-dd-item text-danger" onClick={handleLogout}>
+
+                  <button className="nav-user-dd-item" style={{ color: '#ff6b6b' }} onClick={handleLogout}>
                     <i className="fas fa-sign-out-alt"></i> Logout
                   </button>
                 </div>
@@ -140,14 +196,19 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile dropdown */}
+        {/* Mobile dropdown menu */}
         <div className={`nav-links d-lg-none ${menuOpen ? 'active' : ''}`}>
-          {links.map(l => (
-            <a key={l} className="nav-link" href={`#${l}`} onClick={close}>
-              {l.charAt(0).toUpperCase() + l.slice(1)}
+          {NAV_LINKS.map(({ id, label }) => (
+            <a key={id} className="nav-link" href={`#${id}`} onClick={handleSection(id)}>
+              {label}
             </a>
           ))}
+          <a className="nav-link" href="#appointment" onClick={handleAppointment}>
+            <i className="fas fa-calendar-check me-2"></i>Book Appointment
+          </a>
+
           <div className="nav-links-divider"></div>
+
           {user ? (
             <>
               <Link to="/profile" className="nav-link" onClick={close}>
@@ -163,7 +224,11 @@ export default function Navbar() {
                 <i className="fas fa-bell me-2"></i>Notifications
                 {unreadCount > 0 && <span className="badge bg-danger ms-2">{unreadCount}</span>}
               </Link>
-              <button className="nav-link text-start w-100" style={{ color: '#ff6b6b !important', background: 'none', border: 'none', cursor: 'pointer' }} onClick={handleLogout}>
+              <button
+                className="nav-link text-start w-100"
+                style={{ color: '#ff6b6b', background: 'none', border: 'none', cursor: 'pointer' }}
+                onClick={handleLogout}
+              >
                 <i className="fas fa-sign-out-alt me-2"></i>Logout
               </button>
             </>
@@ -178,6 +243,7 @@ export default function Navbar() {
             </>
           )}
         </div>
+
       </div>
     </nav>
   );

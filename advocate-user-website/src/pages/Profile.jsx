@@ -198,33 +198,41 @@ export default function Profile() {
 
   if (!user) return null;
 
+  // Navigate to home section from profile page
+  const goTo = (section) => { window.location.href = `${import.meta.env.BASE_URL}#${section}`; };
+
   return (
     <div className="profile-page">
-      <div className="profile-hero">
+      {/* Hidden file input for photo upload (used in Settings tab) */}
+      <input ref={fileInputRef} type="file" accept="image/*" className="d-none" onChange={handlePhotoChange} />
+
+      {/* Slim top bar — replaces the old hero banner */}
+      <div className="profile-top-bar">
         <div className="container">
-          <div className="profile-hero-inner">
-            <div className="profile-avatar-wrap" onClick={handlePhotoClick} title="Click to change photo">
-              {user.profilePhoto
-                ? <img src={user.profilePhoto} alt={user.name} className="profile-avatar-img" />
-                : <div className="profile-avatar-placeholder">{user.name.charAt(0).toUpperCase()}</div>
-              }
-              <div className="profile-avatar-overlay"><i className="fas fa-camera"></i></div>
-            </div>
-            <input ref={fileInputRef} type="file" accept="image/*" className="d-none" onChange={handlePhotoChange} />
-            <div className="profile-hero-info">
-              <h2 className="profile-hero-name">{user.name}</h2>
-              <p className="profile-hero-email"><i className="fas fa-envelope me-2"></i>{user.email}</p>
-              <p className="profile-hero-phone"><i className="fas fa-phone me-2"></i>{user.phone}</p>
-              <div className="d-flex align-items-center gap-2 mt-2">
-                <span className={`badge ${user.isActive ? 'bg-success' : 'bg-danger'}`}>
-                  {user.isActive ? 'Active' : 'Inactive'}
-                </span>
-                <small className="text-muted">Member since {formatDate(user.createdAt)}</small>
+          <div className="profile-top-bar-inner">
+            <div className="profile-top-bar-left">
+              <div className="profile-top-avatar">
+                {user.profilePhoto
+                  ? <img src={user.profilePhoto} alt={user.name} />
+                  : <span>{user.name.charAt(0).toUpperCase()}</span>
+                }
+              </div>
+              <div>
+                <div className="profile-top-name">Welcome, {user.name.split(' ')[0]}</div>
+                <div className="profile-top-sub">{user.email}</div>
               </div>
             </div>
-            <button className="btn btn-outline-light btn-sm" onClick={() => { logout(); navigate('/'); }}>
-              <i className="fas fa-sign-out-alt me-1"></i> Logout
-            </button>
+            <div className="profile-top-bar-right">
+              <button className="btn btn-sm btn-outline-secondary" onClick={() => goTo('appointment')}>
+                <i className="fas fa-calendar-check me-1"></i>
+                <span className="d-none d-sm-inline">Book Appointment</span>
+                <span className="d-sm-none">Book</span>
+              </button>
+              <button className="btn btn-sm btn-outline-danger" onClick={() => { logout(); navigate('/'); }}>
+                <i className="fas fa-sign-out-alt me-1"></i>
+                <span className="d-none d-sm-inline">Logout</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -304,7 +312,7 @@ export default function Profile() {
                           <i className="fas fa-calendar-check text-gold me-2"></i>Recent Appointments
                         </div>
                         {appointments.length === 0 && apptStats.total === 0
-                          ? <div className="profile-empty"><i className="fas fa-calendar-times"></i><p>No appointments yet</p><a href="#appointment" className="btn btn-gold btn-sm">Book Now</a></div>
+                          ? <div className="profile-empty"><i className="fas fa-calendar-times"></i><p>No appointments yet</p><a onClick={() => goTo('appointment')} className="btn btn-gold btn-sm">Book Now</a></div>
                           : appointments.slice(0, 3).map(a => (
                             <div key={a._id} className="profile-list-item">
                               <div>
@@ -348,12 +356,12 @@ export default function Profile() {
                 <div>
                   <div className="d-flex align-items-center justify-content-between mb-4">
                     <h4 className="profile-section-title mb-0">My Appointments</h4>
-                    <a href="#appointment" className="btn btn-gold btn-sm"><i className="fas fa-plus me-1"></i>Book New</a>
+                    <button className="btn btn-gold btn-sm" onClick={() => goTo('appointment')}><i className="fas fa-plus me-1"></i>Book New</button>
                   </div>
                   {dataLoading
                     ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
                     : appointments.length === 0
-                    ? <div className="profile-empty"><i className="fas fa-calendar-times"></i><p>No appointments found</p><a href="#appointment" className="btn btn-gold btn-sm">Book Appointment</a></div>
+                    ? <div className="profile-empty"><i className="fas fa-calendar-times"></i><p>No appointments found</p><button className="btn btn-gold btn-sm" onClick={() => goTo('appointment')}>Book Appointment</button></div>
                     : (
                       <div className="profile-table-wrap">
                         <table className="profile-table">
@@ -440,12 +448,12 @@ export default function Profile() {
                 <div>
                   <div className="d-flex align-items-center justify-content-between mb-4">
                     <h4 className="profile-section-title mb-0">My Applications</h4>
-                    <a href="#join" className="btn btn-gold btn-sm"><i className="fas fa-plus me-1"></i>Apply Now</a>
+                    <button className="btn btn-gold btn-sm" onClick={() => goTo('join')}><i className="fas fa-plus me-1"></i>Apply Now</button>
                   </div>
                   {dataLoading
                     ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
                     : applications.length === 0
-                    ? <div className="profile-empty"><i className="fas fa-user-tie"></i><p>No applications found</p><a href="#join" className="btn btn-gold btn-sm">Apply as Jr. Advocate</a></div>
+                    ? <div className="profile-empty"><i className="fas fa-user-tie"></i><p>No applications found</p><button className="btn btn-gold btn-sm" onClick={() => goTo('join')}>Apply as Jr. Advocate</button></div>
                     : (
                       <div className="profile-table-wrap">
                         <table className="profile-table">
