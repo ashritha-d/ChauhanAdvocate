@@ -114,11 +114,12 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   display: block;
 }
 
-/* badge stays INSIDE the image on all screens */
+/* badge — bottom-left of image, never covers face */
 .hero-card-float {
   position: absolute;
-  top: 20px;
-  left: 12px;            /* inside the image, never negative */
+  bottom: 20px;
+  left: 12px;
+  top: auto;             /* always bottom, never top */
   background: rgba(201,168,76,0.95);
   color: #fff;
   padding: 10px 14px;
@@ -474,7 +475,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   /* Hero image */
   .hero-img { width: 100%; max-width: 260px; height: 300px; }
   .hero-image-wrap { display: block; margin: 0 auto; text-align: center; }
-  .hero-card-float { top: 16px; left: 10px; font-size: 0.75rem; padding: 9px 12px; }
+  .hero-card-float { bottom: 16px; left: 10px; top: auto; font-size: 0.75rem; padding: 9px 12px; }
   .hero-card-float i { font-size: 1.15rem; }
 
   .about-badge-box { right: 0; }
@@ -528,7 +529,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .hero-title { font-size: 1.85rem !important; }
   .hero-subtitle { font-size: 0.95rem !important; }
   .hero-img { width: 100%; max-width: 240px; height: 280px; }
-  .hero-card-float { top: 14px; left: 8px; font-size: 0.72rem; padding: 7px 10px; }
+  .hero-card-float { bottom: 14px; left: 8px; top: auto; font-size: 0.72rem; padding: 7px 10px; }
   .hero-card-float i { font-size: 1rem; }
 
   /* Hero buttons: stacked */
@@ -583,7 +584,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 @media (max-width: 390px) {
   .hero-title { font-size: 1.7rem !important; }
   .hero-img { max-width: 210px; height: 250px; }
-  .hero-card-float { top: 12px; left: 8px; font-size: 0.7rem; padding: 6px 9px; }
+  .hero-card-float { bottom: 12px; left: 8px; top: auto; font-size: 0.7rem; padding: 6px 9px; }
   .hero-card-float i { font-size: 0.95rem; }
   .section-title { font-size: 1.4rem; }
   .appointment-form-card { padding: 18px 14px; }
@@ -601,7 +602,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 /* ── ≤360px: Samsung Galaxy S21, Moto G ── */
 @media (max-width: 360px) {
   .hero-img { max-width: 190px; height: 230px; }
-  .hero-card-float { font-size: 0.68rem; padding: 6px 8px; }
+  .hero-card-float { bottom: 10px; left: 8px; top: auto; font-size: 0.68rem; padding: 6px 8px; }
   .book-card { min-width: 185px; max-width: 185px; }
   .section-padding { padding: 44px 0; }
   .section-title { font-size: 1.35rem; }

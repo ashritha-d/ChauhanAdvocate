@@ -48,26 +48,6 @@ export default function Register() {
     setLoading(false);
   };
 
-  const InputField = ({ icon, label, name, type = 'text', placeholder, children, autoComplete }) => (
-    <div className="mb-3">
-      <label className="auth-label">{label}</label>
-      <div className="auth-input-wrap">
-        <i className={`fas ${icon} auth-input-icon`}></i>
-        {children || (
-          <input
-            type={type}
-            className={`auth-input ${fieldErrors[name] ? 'is-invalid' : ''}`}
-            value={form[name]}
-            onChange={set(name)}
-            placeholder={placeholder}
-            autoComplete={autoComplete}
-          />
-        )}
-      </div>
-      {fieldErrors[name] && <div className="auth-field-error"><i className="fas fa-exclamation-circle me-1"></i>{fieldErrors[name]}</div>}
-    </div>
-  );
-
   return (
     <div className="auth-page">
       <div className="auth-container">
@@ -85,12 +65,58 @@ export default function Register() {
           )}
 
           <form onSubmit={handleSubmit} noValidate>
-            <InputField icon="fa-user" label="Full Name *" name="name" placeholder="Your full name" autoComplete="name" />
+            {/* Full Name */}
+            <div className="mb-3">
+              <label className="auth-label">Full Name *</label>
+              <div className="auth-input-wrap">
+                <i className="fas fa-user auth-input-icon"></i>
+                <input
+                  type="text"
+                  className={`auth-input ${fieldErrors.name ? 'is-invalid' : ''}`}
+                  value={form.name}
+                  onChange={set('name')}
+                  placeholder="Your full name"
+                  autoComplete="name"
+                />
+              </div>
+              {fieldErrors.name && <div className="auth-field-error"><i className="fas fa-exclamation-circle me-1"></i>{fieldErrors.name}</div>}
+            </div>
 
-            <InputField icon="fa-envelope" label="Email Address *" name="email" type="email" placeholder="your@email.com" autoComplete="email" />
+            {/* Email */}
+            <div className="mb-3">
+              <label className="auth-label">Email Address *</label>
+              <div className="auth-input-wrap">
+                <i className="fas fa-envelope auth-input-icon"></i>
+                <input
+                  type="email"
+                  className={`auth-input ${fieldErrors.email ? 'is-invalid' : ''}`}
+                  value={form.email}
+                  onChange={set('email')}
+                  placeholder="your@email.com"
+                  autoComplete="email"
+                />
+              </div>
+              {fieldErrors.email && <div className="auth-field-error"><i className="fas fa-exclamation-circle me-1"></i>{fieldErrors.email}</div>}
+            </div>
 
-            <InputField icon="fa-mobile-alt" label="Mobile Number *" name="phone" type="tel" placeholder="10-digit mobile number" autoComplete="tel" />
+            {/* Mobile */}
+            <div className="mb-3">
+              <label className="auth-label">Mobile Number *</label>
+              <div className="auth-input-wrap">
+                <i className="fas fa-mobile-alt auth-input-icon"></i>
+                <input
+                  type="tel"
+                  className={`auth-input ${fieldErrors.phone ? 'is-invalid' : ''}`}
+                  value={form.phone}
+                  onChange={set('phone')}
+                  placeholder="10-digit mobile number"
+                  autoComplete="tel"
+                />
+              </div>
+              {fieldErrors.phone && <div className="auth-field-error"><i className="fas fa-exclamation-circle me-1"></i>{fieldErrors.phone}</div>}
+            </div>
 
+            {/* Password */}
             <div className="mb-3">
               <label className="auth-label">Password *</label>
               <div className="auth-input-wrap">
@@ -110,6 +136,7 @@ export default function Register() {
               {fieldErrors.password && <div className="auth-field-error"><i className="fas fa-exclamation-circle me-1"></i>{fieldErrors.password}</div>}
             </div>
 
+            {/* Confirm Password */}
             <div className="mb-4">
               <label className="auth-label">Confirm Password *</label>
               <div className="auth-input-wrap">
