@@ -32,7 +32,7 @@ api.interceptors.response.use(
     if (status === 401) {
       safeStorage('remove', 'adminToken');
       safeStorage('remove', 'adminUser');
-      window.location.href = '/';
+      window.location.href = window.location.pathname.includes('/admin') ? '/ChauhanAdvocate/admin/' : '/';
     }
     return Promise.reject(err);
   }

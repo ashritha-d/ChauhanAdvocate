@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import api from '../api/axios';
+import api, { safeStorage } from '../api/axios';
 
 function formatDate(d) {
   if (!d) return '—';
@@ -26,7 +26,7 @@ export default function Users() {
   const [notifyForm, setNotifyForm] = useState({ title: '', message: '', type: 'general' });
   const [notifying, setNotifying] = useState(false);
 
-  const token = localStorage.getItem('adminToken');
+  const token = safeStorage('get', 'adminToken');
   const authHeader = { Authorization: `Bearer ${token}` };
 
   const showAlert = (type, msg) => {

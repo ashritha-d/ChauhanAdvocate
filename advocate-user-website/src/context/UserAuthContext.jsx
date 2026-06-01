@@ -3,13 +3,22 @@ import api from '../api/axios';
 
 const UserAuthContext = createContext({});
 
+function safeStorage(action, key, value) {
+  try {
+    if (action === 'get')    return localStorage.getItem(key);
+    if (action === 'set')    return localStorage.setItem(key, value);
+    if (action === 'remove') return localStorage.removeItem(key);
+  } catch { /* blocked by tracking prevention — fail silently */ }
+  return null;
+}
+
 export function UserAuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const fetchUnreadCount = useCallback(async () => {
-    const token = localStorage.getItem('userToken');
+    const token = safeStorage('get', 'userToken');
     if (!token) return;
     try {
       const r = await api.get('/users/notifications', {
@@ -20,25 +29,25 @@ export function UserAuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('userToken');
+    const token = safeStorage('get', 'userToken');
     if (!token) { setLoading(false); return; }
     api.get('/users/profile', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => {
         if (r.data.success) { setUser(r.data.user); fetchUnreadCount(); }
-        else { localStorage.removeItem('userToken'); }
+        else { safeStorage('remove', 'userToken'); }
       })
-      .catch(() => localStorage.removeItem('userToken'))
+      .catch(() => safeStorage('remove', 'userToken'))
       .finally(() => setLoading(false));
   }, [fetchUnreadCount]);
 
   const login = (token, userData) => {
-    localStorage.setItem('userToken', token);
+    safeStorage('set', 'userToken', token);
     setUser(userData);
     fetchUnreadCount();
   };
 
   const logout = () => {
-    localStorage.removeItem('userToken');
+    safeStorage('remove', 'userToken');
     setUser(null);
     setUnreadCount(0);
   };
@@ -46,7 +55,7 @@ export function UserAuthProvider({ children }) {
   const updateUser = (userData) => setUser(userData);
 
   const authHeader = () => {
-    const token = localStorage.getItem('userToken');
+    const token = safeStorage('get', 'userToken');
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 

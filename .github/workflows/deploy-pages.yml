@@ -29,16 +29,26 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: advocate-user-website/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Build user website
+        run: |
+          npm ci
+          npm run build
         working-directory: advocate-user-website
 
-      - name: Build
-        run: npm run build
-        working-directory: advocate-user-website
+      - name: Build admin panel
+        run: |
+          npm ci
+          npm run build
+        working-directory: advocate-admin-panel
+
+      - name: Merge builds
+        run: |
+          mkdir -p deploy
+          cp -r advocate-user-website/dist/. deploy/
+          mkdir -p deploy/admin
+          cp -r advocate-admin-panel/dist/. deploy/admin/
+          cp advocate-user-website/public/404.html deploy/404.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -46,7 +56,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './advocate-user-website/dist'
+          path: './deploy'
 
       - name: Deploy to GitHub Pages
         id: deployment
