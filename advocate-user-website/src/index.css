@@ -8,10 +8,19 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+html {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   color: #333;
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  position: relative;
 }
 
 h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
@@ -80,26 +89,62 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 /* ── Hero ── */
 .hero-section { min-height: 100vh; background: linear-gradient(135deg, var(--darker) 0%, #16213e 50%, #0f3460 100%); position: relative; overflow: hidden; align-items: center; }
 .hero-overlay { position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a84c' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
-.hero-badge { display: inline-flex; align-items: center; background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.3); color: var(--gold); padding: 8px 20px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; }
+.hero-badge { display: inline-flex; align-items: center; background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.3); color: var(--gold); padding: 8px 20px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; max-width: 100%; }
 .hero-title { color: #fff; text-shadow: 0 2px 20px rgba(0,0,0,0.3); }
 .hero-subtitle { color: rgba(255,255,255,0.75); }
 .hero-stats { margin-top: 40px; }
 .stat-item { text-align: center; padding: 16px 24px; background: rgba(255,255,255,0.05); border: 1px solid rgba(201,168,76,0.2); border-radius: 12px; }
 .stat-number { display: block; font-size: 1.8rem; font-weight: 800; color: var(--gold); font-family: 'Playfair Display', serif; }
 .stat-label { font-size: 0.75rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
-.hero-image-wrap { position: relative; display: inline-block; }
-.hero-img { width: 320px; height: 400px; object-fit: cover; border-radius: 20px; border: 3px solid rgba(201,168,76,0.4); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-.hero-card-float { position: absolute; top: 30px; left: -30px; background: rgba(201,168,76,0.95); color: #fff; padding: 12px 16px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 8px 25px rgba(201,168,76,0.4); animation: float 3s ease-in-out infinite; }
-.hero-card-float i { font-size: 1.4rem; }
+
+/* hero image — fully responsive, no fixed widths */
+.hero-image-wrap {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+.hero-img {
+  width: 320px;
+  max-width: 100%;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 20px;
+  border: 3px solid rgba(201,168,76,0.4);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  display: block;
+}
+
+/* badge stays INSIDE the image on all screens */
+.hero-card-float {
+  position: absolute;
+  top: 20px;
+  left: 12px;            /* inside the image, never negative */
+  background: rgba(201,168,76,0.95);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 8px 25px rgba(201,168,76,0.4);
+  animation: float 3s ease-in-out infinite;
+  z-index: 2;
+  max-width: calc(100% - 24px);
+}
+.hero-card-float i { font-size: 1.3rem; }
+
 .hero-scroll-indicator { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); animation: bounce 2s infinite; }
 .hero-scroll-indicator a { color: rgba(255,255,255,0.5); font-size: 1.4rem; }
-@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
 @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
 
 /* ── About ── */
-.about-image-wrap { position: relative; }
-.about-img { width: 100%; max-height: 450px; object-fit: cover; }
-.about-badge-box { position: absolute; bottom: -20px; right: -20px; }
+.about-image-wrap { position: relative; overflow: visible; }
+.about-img { width: 100%; max-width: 100%; max-height: 450px; object-fit: cover; display: block; }
+.about-badge-box { position: absolute; bottom: -20px; right: 10px; }
 .about-badge { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: #fff; padding: 20px; border-radius: 16px; text-align: center; box-shadow: 0 10px 30px rgba(201,168,76,0.4); }
 .badge-num { display: block; font-size: 2rem; font-weight: 800; font-family: 'Playfair Display', serif; }
 .badge-text { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
@@ -254,12 +299,12 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .spinner-gold { color: var(--gold); }
 
 /* ── Content Slider (Books / Drafts / Magazines / JoinUs) ── */
-.slider-outer { display: flex; align-items: center; gap: 10px; }
-.slider-track { display: flex; gap: 24px; overflow-x: hidden; flex: 1; padding: 12px 4px 20px; }
+.slider-outer { display: flex; align-items: center; gap: 10px; max-width: 100%; overflow: hidden; }
+.slider-track { display: flex; gap: 24px; overflow-x: hidden; flex: 1; min-width: 0; padding: 12px 4px 20px; }
 .slider-scroll-btn { flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--gold); background: transparent; color: var(--gold); font-size: 1.5rem; line-height: 1; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
 .slider-scroll-btn:hover { background: var(--gold); color: #fff; }
 
-.book-card { min-width: 260px; max-width: 260px; background: #fff; border-radius: 16px; border: 1px solid #eee; overflow: hidden; display: flex; flex-direction: column; transition: all 0.3s; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+.book-card { min-width: 260px; max-width: 260px; background: #fff; border-radius: 16px; border: 1px solid #eee; overflow: hidden; display: flex; flex-direction: column; transition: all 0.3s; box-shadow: 0 2px 12px rgba(0,0,0,0.05); flex-shrink: 0; }
 .book-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.12); border-color: var(--gold); }
 .book-card-img { width: 100%; height: 175px; overflow: hidden; background: #f0f0f0; }
 .book-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
@@ -396,37 +441,52 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 
 /* ════════════════════════════════════════════════
    RESPONSIVE MOBILE FIXES
+   Breakpoints tested: 320 / 360 / 375 / 390 / 414 / 768 / 991
    ════════════════════════════════════════════════ */
 
-/* ── ≤991px: tablet & mobile ── */
+/* ── ≤1199px ── */
+@media (max-width: 1199px) {
+  .hero-img { width: 280px; height: 360px; }
+}
+
+/* ── ≤991px: tablet ── */
 @media (max-width: 991px) {
-  /* Hero: flex-start so content clears the fixed header */
   .hero-section {
     align-items: flex-start;
     padding-top: 150px;
     padding-bottom: 60px;
+    overflow: hidden;
   }
+  .hero-img { width: 100%; max-width: 300px; height: 360px; }
+  .about-badge-box { right: 0; bottom: -10px; }
 }
 
 /* ── ≤768px: tablets & phones ── */
 @media (max-width: 768px) {
-  /* Show hamburger, enforce navbar item order */
+  /* Hamburger & navbar order */
   .hamburger { display: flex !important; }
   .navbar-logo { order: 2 !important; flex: 1 !important; padding: 8px 12px !important; }
   .book-appointment-btn { order: 3 !important; flex: 0 0 auto !important; margin-left: auto !important; white-space: nowrap !important; }
 
   .section-padding { padding: 60px 0; }
   .section-title { font-size: 1.7rem; }
-  .hero-img { width: 260px; height: 320px; }
+
+  /* Hero image */
+  .hero-img { width: 100%; max-width: 260px; height: 300px; }
+  .hero-image-wrap { display: block; margin: 0 auto; text-align: center; }
+  .hero-card-float { top: 16px; left: 10px; font-size: 0.75rem; padding: 9px 12px; }
+  .hero-card-float i { font-size: 1.15rem; }
+
   .about-badge-box { right: 0; }
   .appointment-form-card { padding: 24px; }
   .contact-form-card { padding: 24px; }
   .book-card { min-width: 220px; max-width: 220px; }
 
-  /* Hero buttons: centered on tablet */
+  /* Hero buttons: centered */
   .hero-section .d-flex.flex-wrap { justify-content: center; }
 
-  /* Sliders: hide arrow buttons, enable native touch scroll */
+  /* Sliders: touch-scroll on mobile */
+  .slider-outer { overflow: hidden; }
   .slider-scroll-btn { display: none; }
   .slider-track {
     overflow-x: auto;
@@ -441,6 +501,10 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .service-card-slide,
   .book-card,
   .video-card { scroll-snap-align: start; }
+
+  /* Ensure no section overflows */
+  section { overflow: hidden; }
+  .appointment-section, .hero-section { overflow: hidden; }
 }
 
 /* ── ≤576px: phones ── */
@@ -448,25 +512,26 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .section-padding { padding: 50px 0; }
   .section-title { font-size: 1.5rem; }
 
-  /* Top bar: compact + ensure all 4 social icons visible */
+  /* Prevent any element from exceeding viewport */
+  img, video, canvas, svg { max-width: 100%; height: auto; }
+
+  /* Top bar: compact */
   .top-bar { padding: 0 10px; }
   .top-bar-item { font-size: 0.68rem; }
   .top-bar-social { width: 26px; height: 26px; }
   .top-bar-social svg { width: 13px; height: 13px; }
 
-  /* Navbar logo: slightly smaller on phones */
-  #mainNavbar .navbar-brand img {
-    height: 40px !important;
-    max-width: 130px;
-  }
+  /* Navbar logo */
+  #mainNavbar .navbar-brand img { height: 40px !important; max-width: 130px; }
 
-  /* Hero title & subtitle */
-  .hero-title { font-size: 1.9rem !important; }
+  /* Hero */
+  .hero-title { font-size: 1.85rem !important; }
   .hero-subtitle { font-size: 0.95rem !important; }
-  .hero-img { width: 100%; max-width: 260px; height: 260px; }
-  .hero-card-float { left: 0; font-size: 0.75rem; padding: 8px 12px; }
+  .hero-img { width: 100%; max-width: 240px; height: 280px; }
+  .hero-card-float { top: 14px; left: 8px; font-size: 0.72rem; padding: 7px 10px; }
+  .hero-card-float i { font-size: 1rem; }
 
-  /* Hero buttons: full-width stacked column */
+  /* Hero buttons: stacked */
   .hero-section .d-flex.flex-wrap {
     flex-direction: column;
     align-items: stretch;
@@ -480,23 +545,20 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   }
 
   /* Hero stats: 2×2 grid */
-  .hero-stats {
-    flex-wrap: wrap !important;
-    margin-top: 24px !important;
-  }
-  .hero-stats .col-auto {
-    flex: 0 0 50% !important;
-    max-width: 50% !important;
-  }
-  .stat-item { padding: 12px 14px; }
-  .stat-number { font-size: 1.5rem; }
+  .hero-stats { flex-wrap: wrap !important; margin-top: 24px !important; }
+  .hero-stats .col-auto { flex: 0 0 50% !important; max-width: 50% !important; }
+  .stat-item { padding: 12px 10px; }
+  .stat-number { font-size: 1.4rem; }
+
+  /* About section — keep badge inside container */
+  .about-badge-box { right: 0; bottom: 0; }
 
   /* Forms */
   .appointment-form-card { padding: 20px 16px; }
   .contact-form-card { padding: 20px 16px; }
   .contact-info-card { padding: 24px 18px; }
 
-  /* Floating buttons: visible, properly stacked from bottom */
+  /* Floating buttons */
   .phone-float    { width: 50px; height: 50px; font-size: 1.2rem; bottom: 20px;  right: 16px; }
   .whatsapp-float { width: 50px; height: 50px; font-size: 1.4rem; bottom: 84px;  right: 16px; }
   .back-to-top    { width: 40px; height: 40px; font-size: 0.9rem; bottom: 148px; right: 18px; }
@@ -505,40 +567,90 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .footer-top { padding: 40px 0 24px; }
   .footer-bottom .d-flex { flex-direction: column; gap: 6px; text-align: center; }
 
-  /* Service cards: slightly narrower */
+  /* Slider cards: slightly narrower */
   .service-card-slide { min-width: 240px; max-width: 240px; }
+  .book-card { min-width: 210px; max-width: 210px; }
 }
 
-/* ── ≤380px: very small phones (iPhone SE, Galaxy A) ── */
-@media (max-width: 380px) {
-  /* Navbar: icon-only Book button + tighter logo */
-  .mobile-appt-label { display: none; }
-  .mobile-appt-btn { padding: 6px 9px; margin-right: 4px; }
-  #mainNavbar .navbar-brand img { max-width: 110px !important; }
+/* ── ≤414px: large phones (iPhone 12/13/14 Plus) ── */
+@media (max-width: 414px) {
+  .hero-img { max-width: 220px; height: 260px; }
+  .book-card { min-width: 200px; max-width: 200px; }
+  .latest-card { min-width: 250px; max-width: 250px; }
+}
 
-  /* TopBar: tightest layout — all 4 icons must still fit */
+/* ── ≤390px: iPhone 14 Pro, Pixel 7 ── */
+@media (max-width: 390px) {
+  .hero-title { font-size: 1.7rem !important; }
+  .hero-img { max-width: 210px; height: 250px; }
+  .hero-card-float { top: 12px; left: 8px; font-size: 0.7rem; padding: 6px 9px; }
+  .hero-card-float i { font-size: 0.95rem; }
+  .section-title { font-size: 1.4rem; }
+  .appointment-form-card { padding: 18px 14px; }
+  .contact-form-card { padding: 18px 14px; }
+}
+
+/* ── ≤375px: iPhone SE 3rd / 6/7/8, Galaxy S22 ── */
+@media (max-width: 375px) {
+  .hero-title { font-size: 1.6rem !important; }
+  .hero-img { max-width: 200px; height: 240px; }
+  .book-card { min-width: 195px; max-width: 195px; }
+  .latest-card { min-width: 235px; max-width: 235px; }
+}
+
+/* ── ≤360px: Samsung Galaxy S21, Moto G ── */
+@media (max-width: 360px) {
+  .hero-img { max-width: 190px; height: 230px; }
+  .hero-card-float { font-size: 0.68rem; padding: 6px 8px; }
+  .book-card { min-width: 185px; max-width: 185px; }
+  .section-padding { padding: 44px 0; }
+  .section-title { font-size: 1.35rem; }
   .top-bar { padding: 0 8px; }
-  .top-bar-social { width: 24px; height: 24px; gap: 2px; }
+  .appointment-form-card { padding: 16px 12px; }
+  .contact-form-card { padding: 16px 12px; }
+  .contact-info-card { padding: 18px 12px; }
+}
+
+/* ── ≤320px: very small phones (iPhone SE 1st/2nd) ── */
+@media (max-width: 320px) {
+  /* Navbar */
+  .mobile-appt-label { display: none; }
+  .mobile-appt-btn { padding: 6px 8px; margin-right: 2px; }
+  #mainNavbar .navbar-brand img { max-width: 100px !important; height: 36px !important; }
+  .top-bar { padding: 0 6px; }
+  .top-bar-social { width: 24px; height: 24px; }
   .top-bar-social svg { width: 12px; height: 12px; }
 
   /* Hero */
   .hero-section { padding-top: 140px; }
-  .hero-title { font-size: 1.65rem !important; }
-  .hero-img { max-width: 230px; height: 230px; }
+  .hero-title { font-size: 1.5rem !important; }
+  .hero-subtitle { font-size: 0.88rem !important; }
+  .hero-img { max-width: 180px; height: 215px; }
   .hero-card-float { display: none; }
+  .hero-stats .col-auto { flex: 0 0 50% !important; max-width: 50% !important; }
+  .stat-item { padding: 10px 8px; }
+  .stat-number { font-size: 1.25rem; }
+  .stat-label { font-size: 0.65rem; letter-spacing: 0.5px; }
 
   .section-padding { padding: 40px 0; }
-  .section-title { font-size: 1.35rem; }
+  .section-title { font-size: 1.25rem; }
+
+  /* Sliders */
+  .book-card { min-width: 175px; max-width: 175px; }
+  .service-card-slide { min-width: 220px; max-width: 220px; }
+  .latest-card { min-width: 220px; max-width: 220px; }
+  .book-card-img { height: 140px; }
 
   /* Forms */
-  .appointment-form-card { padding: 16px 12px; }
-  .contact-form-card { padding: 16px 12px; }
-  .contact-info-card { padding: 18px 12px; }
+  .appointment-form-card { padding: 14px 10px; }
+  .contact-form-card { padding: 14px 10px; }
+  .contact-info-card { padding: 14px 10px; }
 
   /* Floating buttons */
-  .phone-float    { width: 46px; height: 46px; font-size: 1.1rem;  bottom: 16px;  right: 14px; }
-  .whatsapp-float { width: 46px; height: 46px; font-size: 1.25rem; bottom: 74px;  right: 14px; }
-  .back-to-top    { width: 38px; height: 38px; font-size: 0.85rem; bottom: 134px; right: 16px; }
+  .phone-float    { width: 44px; height: 44px; font-size: 1rem;  bottom: 14px; right: 12px; }
+  .whatsapp-float { width: 44px; height: 44px; font-size: 1.2rem; bottom: 70px; right: 12px; }
+  .back-to-top    { width: 36px; height: 36px; font-size: 0.8rem; bottom: 128px; right: 14px; }
 
-  .jr-modal { padding: 24px 18px; }
+  .jr-modal { padding: 20px 14px; }
+  .footer-top { padding: 32px 0 20px; }
 }
