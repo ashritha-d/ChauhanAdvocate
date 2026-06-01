@@ -35,7 +35,7 @@ export default function Navbar() {
     navigate('/');
   };
 
-  const links = ['home', 'services', 'testimonials', 'blog', 'faq', 'contact'];
+  const links = ['home', 'services', 'gallery', 'blog', 'faq', 'contact'];
 
   return (
     <nav
