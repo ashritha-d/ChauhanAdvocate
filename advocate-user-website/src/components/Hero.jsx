@@ -22,7 +22,7 @@ export default function Hero() {
             </p>
             <div className="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
               <a href="#appointment" className="btn btn-gold btn-lg px-5">
-                <i className="fas fa-calendar-check me-2"></i> Book Free Consultation
+                <i className="fas fa-calendar-check me-2"></i> Book a Consultation
               </a>
               <a href="#services" className="btn btn-outline-light btn-lg px-5">
                 <i className="fas fa-briefcase me-2"></i> Our Services
@@ -51,7 +51,7 @@ export default function Hero() {
                 <span>Scales of Justice</span>
               </div>
               <img
-                src={mediaUrl(s.advocate_photo) || `${import.meta.env.BASE_URL}advcate.jpeg`}
+                src={mediaUrl(s.advocate_photo) || `${import.meta.env.BASE_URL}advocate.jpeg`}
                 alt={s.advocate_name || 'Advocate'}
                 className="hero-img"
                 onError={e => { e.target.src = `${import.meta.env.BASE_URL}placeholder-lawyer.svg`; }}
