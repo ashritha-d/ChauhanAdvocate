@@ -192,3 +192,59 @@
   .profile-table th, .profile-table td { padding: 10px 10px; }
   .notif-item { padding: 12px; gap: 10px; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   ORDER MODAL
+═══════════════════════════════════════════════════════════ */
+.order-modal {
+  background: #fff; border-radius: 20px; padding: 32px 28px;
+  width: 100%; max-width: 560px; position: relative;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;
+}
+.order-receipt { text-align: left; }
+.receipt-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.receipt-header img { height: 48px; object-fit: contain; border-radius: 8px; }
+.receipt-divider { height: 1px; background: #eee; margin: 12px 0; }
+.receipt-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; padding: 5px 0; font-size: 0.88rem; }
+.receipt-row span:first-child { color: #888; flex-shrink: 0; }
+.receipt-status { text-align: center; margin: 12px 0 4px; }
+.receipt-note { font-size: 0.8rem; color: #888; text-align: center; margin-top: 8px; }
+@media print {
+  .no-print { display: none !important; }
+  body > *:not(.modal-backdrop) { display: none !important; }
+  .modal-backdrop { position: static !important; background: none !important; padding: 0 !important; }
+  .order-modal { box-shadow: none !important; max-height: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   JR ADVOCATE FORM (expanded)
+═══════════════════════════════════════════════════════════ */
+.jr-modal-lg { max-width: 680px !important; max-height: 90vh; overflow-y: auto; }
+.jr-label { font-size: 0.8rem; font-weight: 600; color: #555; margin-bottom: 4px; display: block; }
+.jr-field-error { color: #dc3545; font-size: 0.75rem; margin-top: 3px; }
+
+/* Steps */
+.jr-steps { display: flex; align-items: center; }
+.jr-step { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; position: relative; }
+.jr-step:not(:last-child)::after { content: ''; position: absolute; top: 14px; left: 50%; width: 100%; height: 2px; background: #dee2e6; z-index: 0; }
+.jr-step.active:not(:last-child)::after, .jr-step.done:not(:last-child)::after { background: var(--gold); }
+.jr-step-dot { width: 28px; height: 28px; border-radius: 50%; background: #e9ecef; border: 2px solid #dee2e6; color: #aaa; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; transition: all 0.3s; }
+.jr-step.active .jr-step-dot, .jr-step.done .jr-step-dot { background: var(--gold); border-color: var(--gold); color: #fff; }
+.jr-step span { font-size: 0.7rem; color: #aaa; }
+.jr-step.active span, .jr-step.done span { color: var(--gold); }
+
+/* Upload zone */
+.jr-upload-zone {
+  border: 2px dashed #dee2e6; border-radius: 10px; padding: 18px 16px;
+  display: flex; align-items: center; gap: 10px; cursor: pointer;
+  color: #888; font-size: 0.87rem; transition: all 0.2s;
+}
+.jr-upload-zone:hover { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.04); }
+.jr-upload-zone.has-file { border-color: #198754; color: #198754; background: rgba(25,135,84,0.05); }
+.jr-upload-zone.invalid { border-color: #dc3545; }
+.jr-upload-clear { background: none; border: none; color: #dc3545; margin-left: auto; cursor: pointer; font-size: 1rem; padding: 0 4px; }
+
+@media (max-width: 576px) {
+  .order-modal { padding: 24px 18px; }
+  .jr-modal-lg { max-width: 100% !important; border-radius: 16px; }
+}

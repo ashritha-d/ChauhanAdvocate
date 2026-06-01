@@ -2,8 +2,9 @@ const JrAdvocate = require('../models/JrAdvocate');
 
 exports.createJrAdvocate = async (req, res) => {
   try {
-    const resume = req.file ? `/uploads/${req.file.filename}` : '';
-    const jrAdvocate = await JrAdvocate.create({ ...req.body, resume });
+    const resume = req.files?.resume?.[0] ? `/uploads/${req.files.resume[0].filename}` : '';
+    const passportPhoto = req.files?.passportPhoto?.[0] ? `/uploads/${req.files.passportPhoto[0].filename}` : '';
+    const jrAdvocate = await JrAdvocate.create({ ...req.body, resume, passportPhoto });
     res.status(201).json({ success: true, message: 'Application submitted successfully!', data: jrAdvocate });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -71,6 +72,16 @@ exports.getStats = async (req, res) => {
     const total = await JrAdvocate.countDocuments();
     const unread = await JrAdvocate.countDocuments({ isRead: false });
     res.json({ success: true, stats, total, unread });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get applications by userId (for user dashboard)
+exports.getMyApplications = async (req, res) => {
+  try {
+    const applications = await JrAdvocate.find({ userId: req.user._id }).sort({ createdAt: -1 });
+    res.json({ success: true, data: applications });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

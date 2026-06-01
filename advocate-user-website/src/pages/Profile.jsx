@@ -4,13 +4,14 @@ import { useUserAuth } from '../context/UserAuthContext';
 import {
   getUserProfile, updateUserProfile, changeUserPassword, uploadUserPhoto,
   getMyAppointments, getMyOrders, getNotifications,
-  markNotificationRead, markAllNotificationsRead,
+  markNotificationRead, markAllNotificationsRead, getMyApplications,
 } from '../api';
 
 const TABS = [
   { id: 'dashboard', icon: 'fa-tachometer-alt', label: 'Dashboard' },
   { id: 'appointments', icon: 'fa-calendar-alt', label: 'My Appointments' },
   { id: 'orders', icon: 'fa-book', label: 'My Orders' },
+  { id: 'applications', icon: 'fa-user-tie', label: 'My Applications' },
   { id: 'notifications', icon: 'fa-bell', label: 'Notifications' },
   { id: 'settings', icon: 'fa-user-cog', label: 'Profile Settings' },
 ];
@@ -41,6 +42,7 @@ export default function Profile() {
   const [tab, setTab] = useState(searchParams.get('tab') || 'dashboard');
   const [appointments, setAppointments] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [applications, setApplications] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -65,6 +67,7 @@ export default function Profile() {
     if (!user) return;
     if (tab === 'appointments') loadAppointments();
     if (tab === 'orders') loadOrders();
+    if (tab === 'applications') loadApplications();
     if (tab === 'notifications') loadNotifications();
   }, [tab, user]);
 
@@ -87,6 +90,15 @@ export default function Profile() {
     try {
       const r = await getMyOrders(authHeader());
       if (r.data.success) setOrders(r.data.data);
+    } catch { /* silent */ }
+    setDataLoading(false);
+  };
+
+  const loadApplications = async () => {
+    setDataLoading(true);
+    try {
+      const r = await getMyApplications(authHeader());
+      if (r.data.success) setApplications(r.data.data);
     } catch { /* silent */ }
     setDataLoading(false);
   };
@@ -415,6 +427,49 @@ export default function Profile() {
                                 )}
                               </tr>
                             ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
+                  }
+                </div>
+              )}
+
+              {/* ── My Applications ── */}
+              {tab === 'applications' && (
+                <div>
+                  <div className="d-flex align-items-center justify-content-between mb-4">
+                    <h4 className="profile-section-title mb-0">My Applications</h4>
+                    <a href="#join" className="btn btn-gold btn-sm"><i className="fas fa-plus me-1"></i>Apply Now</a>
+                  </div>
+                  {dataLoading
+                    ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
+                    : applications.length === 0
+                    ? <div className="profile-empty"><i className="fas fa-user-tie"></i><p>No applications found</p><a href="#join" className="btn btn-gold btn-sm">Apply as Jr. Advocate</a></div>
+                    : (
+                      <div className="profile-table-wrap">
+                        <table className="profile-table">
+                          <thead>
+                            <tr><th>#</th><th>Applied For</th><th>Qualification</th><th>Applied On</th><th>Status</th></tr>
+                          </thead>
+                          <tbody>
+                            {applications.map((a, i) => {
+                              const statusColor = { pending: 'warning', reviewed: 'info', selected: 'success', rejected: 'danger' };
+                              return (
+                                <tr key={a._id}>
+                                  <td><small className="text-muted">{i + 1}</small></td>
+                                  <td><strong>Jr. Advocate</strong><small className="d-block text-muted">{a.college || '—'}</small></td>
+                                  <td>{a.qualification}</td>
+                                  <td><small>{formatDate(a.createdAt)}</small></td>
+                                  <td>
+                                    <span className={`badge bg-${statusColor[a.status] || 'secondary'}`}>
+                                      {a.status.charAt(0).toUpperCase() + a.status.slice(1)}
+                                    </span>
+                                    {a.adminNotes && <small className="d-block text-muted mt-1">{a.adminNotes}</small>}
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>

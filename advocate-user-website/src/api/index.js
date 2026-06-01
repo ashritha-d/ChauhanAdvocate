@@ -33,3 +33,7 @@ export const getMyOrders = (headers) => api.get('/users/my-orders', { headers })
 export const getNotifications = (headers) => api.get('/users/notifications', { headers });
 export const markNotificationRead = (id, headers) => api.put(`/users/notifications/${id}/read`, {}, { headers });
 export const markAllNotificationsRead = (headers) => api.put('/users/notifications/mark-all-read', {}, { headers });
+
+// ── Jr Advocate Applications ──────────────────────────────────────────────────
+export const submitJrAdvocateApplication = (formData) => api.post('/jr-advocates', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const getMyApplications = (headers) => api.get('/jr-advocates/my-applications', { headers });
