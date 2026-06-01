@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { getServices, bookAppointment } from '../api';
 import { useSite } from '../context/SiteContext';
+import { useUserAuth } from '../context/UserAuthContext';
 
 const TIMES = ['09:00 AM','10:00 AM','11:00 AM','12:00 PM','02:00 PM','03:00 PM','04:00 PM','05:00 PM','06:00 PM'];
 
 export default function Appointment() {
   const { settings: s } = useSite();
+  const { user, authHeader } = useUserAuth();
   const [services, setServices] = useState([]);
   const [form, setForm] = useState({ name:'', email:'', phone:'', service:'', date:'', time:'', message:'' });
   const [submitting, setSubmitting] = useState(false);
@@ -15,7 +17,8 @@ export default function Appointment() {
     const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
     document.getElementById('appt-date-input')?.setAttribute('min', tomorrow.toISOString().split('T')[0]);
     getServices().then(r => { if (r.data.success) setServices(r.data.data); }).catch(() => {});
-  }, []);
+    if (user) setForm(f => ({ ...f, name: user.name || f.name, email: user.email || f.email, phone: user.phone || f.phone }));
+  }, [user]);
 
   const showAlert = (type, msg) => {
     setAlert({ type, msg });
@@ -27,10 +30,11 @@ export default function Appointment() {
     if (!e.target.checkValidity()) { e.target.classList.add('was-validated'); return; }
     setSubmitting(true);
     try {
-      const r = await bookAppointment(form);
+      const payload = user ? { ...form, userId: user._id } : form;
+      const r = await bookAppointment(payload, user ? authHeader() : {});
       if (r.data.success) {
-        showAlert('success', r.data.message || 'Appointment booked successfully!');
-        setForm({ name:'', email:'', phone:'', service:'', date:'', time:'', message:'' });
+        showAlert('success', (r.data.message || 'Appointment booked successfully!') + (user ? ' <a href="/ChauhanAdvocate/profile?tab=appointments" class="alert-link ms-1">View in dashboard →</a>' : ''));
+        setForm({ name: user?.name || '', email: user?.email || '', phone: user?.phone || '', service:'', date:'', time:'', message:'' });
         e.target.classList.remove('was-validated');
       } else { showAlert('danger', r.data.message || 'Something went wrong.'); }
     } catch { showAlert('danger', 'Server error. Please try again later or call us directly.'); }

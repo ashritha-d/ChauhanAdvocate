@@ -1,8 +1,21 @@
 const Appointment = require('../models/Appointment');
+const UserNotification = require('../models/UserNotification');
 
 exports.createAppointment = async (req, res) => {
   try {
     const appointment = await Appointment.create(req.body);
+
+    if (appointment.userId) {
+      await UserNotification.create({
+        userId: appointment.userId,
+        title: 'Appointment Booked',
+        message: `Your appointment for "${appointment.service}" on ${new Date(appointment.date).toLocaleDateString('en-IN')} at ${appointment.time} has been received and is pending confirmation.`,
+        type: 'appointment',
+        referenceId: appointment._id,
+        referenceType: 'Appointment',
+      });
+    }
+
     res.status(201).json({ success: true, message: 'Appointment booked successfully!', data: appointment });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -42,10 +55,32 @@ exports.getAppointment = async (req, res) => {
   }
 };
 
+const STATUS_MESSAGES = {
+  confirmed: 'Your appointment has been confirmed.',
+  cancelled: 'Your appointment has been cancelled.',
+  completed: 'Your appointment has been marked as completed. Thank you for choosing Advocate Chauhan!',
+  'in progress': 'Your appointment consultation is currently in progress.',
+};
+
 exports.updateAppointment = async (req, res) => {
   try {
+    const existing = await Appointment.findById(req.params.id);
+    if (!existing) return res.status(404).json({ success: false, message: 'Appointment not found' });
+
     const appointment = await Appointment.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
+
+    if (existing.userId && req.body.status && req.body.status !== existing.status) {
+      const statusLabel = req.body.status.charAt(0).toUpperCase() + req.body.status.slice(1);
+      await UserNotification.create({
+        userId: existing.userId,
+        title: `Appointment ${statusLabel}`,
+        message: STATUS_MESSAGES[req.body.status] || `Your appointment status has been updated to "${statusLabel}".`,
+        type: 'appointment',
+        referenceId: existing._id,
+        referenceType: 'Appointment',
+      });
+    }
+
     res.json({ success: true, data: appointment });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

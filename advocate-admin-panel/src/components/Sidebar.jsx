@@ -21,6 +21,9 @@ const NAV = [
     { icon: 'fas fa-envelope', label: 'Contacts', page: 'contacts' },
     { icon: 'fas fa-credit-card', label: 'Payments', page: 'payments' },
   ]},
+  { label: 'Users', items: [
+    { icon: 'fas fa-users', label: 'Registered Users', page: 'users' },
+  ]},
   { label: 'Account', items: [
     { icon: 'fas fa-user-circle', label: 'My Profile', page: 'profile' },
   ]},

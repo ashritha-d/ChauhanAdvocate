@@ -13,6 +13,7 @@ const appointmentSchema = new mongoose.Schema({
     enum: ['pending', 'confirmed', 'cancelled', 'completed'],
     default: 'pending'
   },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   adminNotes: { type: String, default: '' },
   isRead: { type: Boolean, default: false },
   paymentMethod: { type: String, enum: ['qr_code', 'cash', 'none'], default: 'none' },

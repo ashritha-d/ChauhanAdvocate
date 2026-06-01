@@ -14,6 +14,7 @@ const bookOrderSchema = new mongoose.Schema({
     enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
     default: 'pending'
   },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   adminNotes: { type: String, default: '' },
   isRead: { type: Boolean, default: false },
   paymentMethod: { type: String, enum: ['qr_code', 'cash', 'none'], default: 'none' },
