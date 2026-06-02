@@ -485,3 +485,170 @@
   .form-success-title { font-size: 1.05rem; }
   .form-success-icon { width: 60px; height: 60px; font-size: 1.6rem; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   APPOINTMENT SUCCESS CARD
+═══════════════════════════════════════════════════════════ */
+.appt-success-wrap {
+  display: flex; justify-content: center; align-items: flex-start;
+  animation: apptSuccessSlideUp 0.45s cubic-bezier(0.22,1,0.36,1) both;
+}
+.appt-success-inline {
+  width: 100%;
+}
+@keyframes apptSuccessSlideUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.appt-success-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.13);
+  width: 100%; max-width: 600px;
+  overflow: hidden;
+}
+
+/* Header */
+.appt-success-header {
+  background: linear-gradient(135deg, #064e3b, #065f46);
+  padding: 36px 28px 28px;
+  text-align: center;
+}
+.appt-success-icon-wrap {
+  position: relative; width: 80px; height: 80px;
+  margin: 0 auto 16px;
+}
+.appt-success-icon {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff; font-size: 2.2rem;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; z-index: 1;
+  animation: successPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+  box-shadow: 0 8px 24px rgba(34,197,94,0.4);
+}
+.appt-success-ripple {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 3px solid rgba(34,197,94,0.4);
+  animation: ripple 1.5s ease-out 0.5s infinite;
+}
+@keyframes ripple {
+  from { transform: scale(1); opacity: 0.7; }
+  to   { transform: scale(1.6); opacity: 0; }
+}
+.appt-success-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.35rem; font-weight: 700;
+  color: #fff; margin-bottom: 10px;
+}
+.appt-success-subtitle {
+  color: rgba(255,255,255,0.85);
+  font-size: 0.9rem; line-height: 1.6; margin: 0;
+}
+
+/* Booking Details */
+.appt-success-details {
+  padding: 24px 28px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.appt-success-details-title {
+  font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: #6b7280;
+  margin-bottom: 14px;
+}
+.appt-success-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; border-bottom: 1px dashed #f3f4f6;
+  gap: 12px;
+}
+.appt-success-row:last-child { border-bottom: none; }
+.appt-success-id-row {
+  background: #f0fdf4; border-radius: 10px; padding: 10px 14px;
+  border: 1.5px solid #bbf7d0; margin-bottom: 8px;
+  border-bottom: 1.5px solid #bbf7d0 !important;
+}
+.appt-success-label {
+  font-size: 0.85rem; color: #6b7280; font-weight: 500;
+  display: flex; align-items: center;
+}
+.appt-success-value {
+  font-size: 0.88rem; color: #1f2937; font-weight: 600;
+  text-align: right;
+}
+.appt-success-id {
+  font-family: monospace; font-size: 1rem; font-weight: 700;
+  color: #15803d; letter-spacing: 0.05em;
+}
+.appt-success-badge {
+  display: inline-flex; align-items: center;
+  background: #fef9c3; color: #854d0e;
+  border: 1px solid #fde047; border-radius: 20px;
+  padding: 3px 12px; font-size: 0.78rem; font-weight: 600;
+}
+
+/* Notifications */
+.appt-success-notifs {
+  padding: 14px 28px;
+  background: #f8fafc;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.appt-success-notif {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 0.83rem; color: #374151;
+}
+.appt-success-notif .fab.fa-whatsapp { color: #25d366; font-size: 1rem; margin-top: 1px; flex-shrink: 0; }
+.appt-success-notif .fas.fa-envelope  { color: #3b82f6; font-size: 0.9rem; margin-top: 2px; flex-shrink: 0; }
+
+/* Action Buttons */
+.appt-success-actions {
+  padding: 20px 28px 24px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.appt-success-btn-primary {
+  background: linear-gradient(135deg, var(--gold, #c9a84c), #a8893a);
+  color: #fff !important; border: none; border-radius: 10px;
+  padding: 12px 20px; font-weight: 600; font-size: 0.9rem;
+  text-align: center; transition: opacity 0.2s;
+}
+.appt-success-btn-primary:hover { opacity: 0.9; color: #fff !important; }
+.appt-success-btn-secondary {
+  background: #f0fdf4; color: #15803d !important;
+  border: 1.5px solid #86efac; border-radius: 10px;
+  padding: 12px 20px; font-weight: 600; font-size: 0.9rem;
+  text-align: center; transition: all 0.2s;
+}
+.appt-success-btn-secondary:hover { background: #dcfce7; }
+.appt-success-btn-outline {
+  background: transparent; color: #6b7280 !important;
+  border: 1.5px solid #e5e7eb; border-radius: 10px;
+  padding: 12px 20px; font-weight: 500; font-size: 0.88rem;
+  text-align: center; transition: all 0.2s;
+}
+.appt-success-btn-outline:hover { border-color: #c9a84c; color: #c9a84c !important; }
+
+/* Error Card */
+.appt-error-card {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: #fef2f2; border: 1.5px solid #fca5a5;
+  border-radius: 10px; padding: 14px 16px;
+  color: #b91c1c; font-size: 0.88rem;
+}
+.appt-error-card i { flex-shrink: 0; margin-top: 2px; }
+
+/* Modal success mode — wider */
+.appt-modal-success { max-width: 600px !important; }
+
+/* Responsive */
+@media (max-width: 576px) {
+  .appt-success-header { padding: 28px 18px 22px; }
+  .appt-success-details,
+  .appt-success-notifs,
+  .appt-success-actions { padding-left: 16px; padding-right: 16px; }
+  .appt-success-title { font-size: 1.1rem; }
+  .appt-success-icon { width: 64px; height: 64px; font-size: 1.8rem; }
+  .appt-success-icon-wrap { width: 64px; height: 64px; }
+  .appt-success-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .appt-success-value { text-align: left; }
+}

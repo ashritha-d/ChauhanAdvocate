@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getServices, bookAppointment, getAvailableSlots } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
+import AppointmentSuccessCard from './AppointmentSuccessCard';
 
 const todayStr = () => new Date().toISOString().split('T')[0];
 
@@ -15,7 +16,7 @@ export default function AppointmentModal({ onClose, onSuccess }) {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [booked, setBooked] = useState(null); // { appointmentId, service, date, time }
+  const [booked, setBooked] = useState(null);
 
   useEffect(() => {
     getServices().then(r => { if (r.data.success) setServices(r.data.data); }).catch(() => {});
@@ -48,13 +49,13 @@ export default function AppointmentModal({ onClose, onSuccess }) {
       const payload = user ? { ...form, userId: user._id } : form;
       const r = await bookAppointment(payload, user ? authHeader() : {});
       if (r.data.success) {
-        const apptId = r.data.data?.appointmentId || '';
         setBooked({
-          appointmentId: apptId,
+          appointmentId: r.data.data?.appointmentId || '',
+          name: form.name,
+          email: form.email,
           service: form.service,
           date: form.date,
           time: form.time,
-          name: form.name,
         });
         onSuccess?.();
       } else {
@@ -67,42 +68,24 @@ export default function AppointmentModal({ onClose, onSuccess }) {
     setSubmitting(false);
   };
 
+  const handleBookAnother = () => {
+    setBooked(null);
+    setForm({ name: user?.name || '', email: user?.email || '', phone: user?.phone || '', service: '', date: '', time: '', message: '' });
+    setSlots([]);
+  };
+
   return (
     <div className="modal-backdrop" onClick={!booked ? onClose : undefined}>
-      <div className="appt-modal" onClick={e => e.stopPropagation()}>
+      <div className={`appt-modal ${booked ? 'appt-modal-success' : ''}`} onClick={e => e.stopPropagation()}>
         <button className="jr-modal-close" onClick={onClose}>&times;</button>
 
         {booked ? (
-          /* ── Success Screen ── */
-          <div className="form-success-screen">
-            <div className="form-success-icon">
-              <i className="fas fa-check-circle"></i>
-            </div>
-            <h5 className="form-success-title">Appointment Booked Successfully!</h5>
-            <p className="form-success-msg">
-              Your appointment request has been submitted successfully. We will contact you shortly to confirm.
-            </p>
-            {booked.appointmentId && (
-              <div className="form-success-ref">
-                <span className="form-success-ref-label">Appointment ID</span>
-                <span className="form-success-ref-value">{booked.appointmentId}</span>
-              </div>
-            )}
-            <div className="form-success-details">
-              {booked.service && <div><i className="fas fa-briefcase me-2 text-gold"></i><strong>Service:</strong> {booked.service}</div>}
-              {booked.date && <div><i className="fas fa-calendar me-2 text-gold"></i><strong>Date:</strong> {new Date(booked.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</div>}
-              {booked.time && <div><i className="fas fa-clock me-2 text-gold"></i><strong>Time:</strong> {booked.time}</div>}
-            </div>
-            <p className="form-success-note">
-              <i className="fab fa-whatsapp me-1 text-success"></i>
-              A WhatsApp confirmation has been sent to your registered number.
-            </p>
-            <button className="btn btn-gold mt-3 px-5" onClick={onClose}>
-              <i className="fas fa-times me-2"></i>Close
-            </button>
-          </div>
+          <AppointmentSuccessCard
+            booked={booked}
+            onBookAnother={handleBookAnother}
+            onClose={onClose}
+          />
         ) : (
-          /* ── Form ── */
           <>
             <h5 className="mb-1" style={{ fontFamily: "'Playfair Display',serif" }}>
               <i className="fas fa-calendar-alt text-gold me-2"></i>Book an Appointment
@@ -110,8 +93,12 @@ export default function AppointmentModal({ onClose, onSuccess }) {
             <p className="text-muted small mb-3">Fill in the details below to schedule your consultation</p>
 
             {error && (
-              <div className="alert alert-danger py-2 small mb-3">
-                <i className="fas fa-exclamation-circle me-1"></i>{error}
+              <div className="appt-error-card">
+                <i className="fas fa-exclamation-circle me-2"></i>
+                <div>
+                  <strong>Booking Failed</strong>
+                  <p className="mb-0 mt-1 small">{error}</p>
+                </div>
               </div>
             )}
 
