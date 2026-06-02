@@ -1,20 +1,25 @@
 /**
- * WhatsApp notification service — UltraMsg
- * https://ultramsg.com
+ * WhatsApp notification service — Meta WhatsApp Cloud API (FREE)
+ * https://developers.facebook.com/docs/whatsapp/cloud-api
+ *
+ * Free tier: 1000 conversations/month — sufficient for a law firm.
+ * No client opt-in required. Messages go to any WhatsApp number.
  *
  * Required .env vars:
- *   ULTRAMSG_INSTANCE_ID  — e.g. "instance12345"
- *   ULTRAMSG_TOKEN        — your UltraMsg token
- *   ADMIN_WHATSAPP        — admin phone, digits only, e.g. "918523035920"
+ *   META_WHATSAPP_TOKEN      — Access token from Meta Developer Console
+ *   META_PHONE_NUMBER_ID     — Phone Number ID from Meta Developer Console
+ *   ADMIN_WHATSAPP           — Admin phone with country code e.g. "918523035920"
  *
- * If credentials are missing, messages are logged to console instead.
- * No opt-in required from clients — messages go to any WhatsApp number.
+ * Setup:
+ *   1. Go to developers.facebook.com → Create App → Business
+ *   2. Add WhatsApp product → API Setup
+ *   3. Copy Phone Number ID and Access Token
+ *   4. Add them to .env and Render environment variables
  */
 
 const https = require('https');
-const querystring = require('querystring');
 
-function toE164Digits(number) {
+function toE164(number) {
   if (!number) return null;
   const digits = String(number).replace(/\D/g, '');
   if (digits.startsWith('91') && digits.length === 12) return digits;
@@ -22,25 +27,31 @@ function toE164Digits(number) {
   return digits;
 }
 
-function sendUltraMsg(to, body) {
+function sendMeta(to, body) {
   return new Promise((resolve) => {
-    const instance = process.env.ULTRAMSG_INSTANCE_ID;
-    const token   = process.env.ULTRAMSG_TOKEN;
+    const token      = process.env.META_WHATSAPP_TOKEN;
+    const phoneNumId = process.env.META_PHONE_NUMBER_ID;
 
-    if (!instance || !token) {
+    if (!token || !phoneNumId) {
       console.log('[WhatsApp LOG] To:', to, '\nMessage:', body);
       return resolve({ logged: true });
     }
 
-    const postData = querystring.stringify({ token, to, body });
+    const payload = JSON.stringify({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'text',
+      text: { body },
+    });
 
     const options = {
-      hostname: 'api.ultramsg.com',
-      path: `/${instance}/messages/chat`,
+      hostname: 'graph.facebook.com',
+      path: `/v19.0/${phoneNumId}/messages`,
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': Buffer.byteLength(postData),
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload),
       },
     };
 
@@ -50,7 +61,7 @@ function sendUltraMsg(to, body) {
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
-          if (!json.sent && !json.id) console.error('[WhatsApp ERROR]', data);
+          if (json.error) console.error('[WhatsApp META ERROR]', json.error.message);
           resolve(json);
         } catch {
           resolve({ raw: data });
@@ -63,22 +74,22 @@ function sendUltraMsg(to, body) {
       resolve({ error: true });
     });
 
-    req.write(postData);
+    req.write(payload);
     req.end();
   });
 }
 
 async function sendWhatsApp(number, message) {
-  const digits = toE164Digits(number);
+  const digits = toE164(number);
   if (!digits) return;
   try {
-    await sendUltraMsg(digits, message);
+    await sendMeta(digits, message);
   } catch (e) {
     console.error('[WhatsApp] Failed:', e.message);
   }
 }
 
-const adminNumber = () => toE164Digits(process.env.ADMIN_WHATSAPP || '');
+const adminNumber = () => toE164(process.env.ADMIN_WHATSAPP || '');
 
 // ─── Appointment Notifications ────────────────────────────────────────────────
 
@@ -114,7 +125,6 @@ ID: ${appointmentId}`;
 
 exports.appointmentConfirmed = async ({ name, phone, appointmentId, date, time }) => {
   const fmtDate = new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
-
   await sendWhatsApp(phone,
 `Dear ${name},
 
@@ -175,7 +185,7 @@ exports.appointmentCompleted = async ({ name, phone, appointmentId }) => {
 
 Your appointment (ID: ${appointmentId}) has been completed.
 
-Thank you for choosing Balu Law Chamber. We hope we were able to assist you.`);
+Thank you for choosing Balu Law Chamber.`);
 };
 
 // ─── Order Notifications ──────────────────────────────────────────────────────
@@ -189,7 +199,7 @@ Your order has been received.
 Order ID: ${orderId}
 Book: ${bookTitle}
 
-We will confirm your order within 24 hours.
+We will confirm within 24 hours.
 Balu Law Chamber`;
 
   const adminMsg =
@@ -214,7 +224,7 @@ Your order has been confirmed.
 
 Order ID: ${orderId}
 
-Thank you for your purchase.
+Thank you!
 Balu Law Chamber`);
 };
 
