@@ -8,54 +8,11 @@ function generateOrderId() {
   return `ORD-${ts}-${rand}`;
 }
 
-function Receipt({ order, onClose }) {
-  const handlePrint = () => window.print();
-  return (
-    <div className="order-receipt">
-      <div className="receipt-header">
-        <div className="receipt-logo">
-          <img src={`${import.meta.env.BASE_URL}logo.jpeg`} alt="Advocate Chauhan" />
-        </div>
-        <div>
-          <h5 className="mb-1">Advocate Chauhan</h5>
-          <small className="text-muted">Book Order Receipt</small>
-        </div>
-      </div>
-      <div className="receipt-divider"></div>
-      <div className="receipt-row"><span>Order ID</span><strong>{order.orderId}</strong></div>
-      <div className="receipt-row"><span>Date</span><span>{new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span></div>
-      <div className="receipt-divider"></div>
-      <div className="receipt-row"><span>Customer</span><span>{order.name}</span></div>
-      <div className="receipt-row"><span>Mobile</span><span>{order.phone}</span></div>
-      <div className="receipt-row"><span>Email</span><span>{order.email || '—'}</span></div>
-      <div className="receipt-row"><span>WhatsApp</span><span>{order.whatsapp || '—'}</span></div>
-      <div className="receipt-row"><span>Address</span><span style={{ maxWidth: 180, textAlign: 'right' }}>{order.address}</span></div>
-      <div className="receipt-divider"></div>
-      <div className="receipt-row"><span>Book</span><strong>{order.bookTitle}</strong></div>
-      <div className="receipt-row"><span>Quantity</span><span>{order.quantity}</span></div>
-      {order.bookPrice && <div className="receipt-row"><span>Price</span><span>{order.bookPrice}</span></div>}
-      <div className="receipt-divider"></div>
-      <div className="receipt-status">
-        <div className="text-success fw-bold mb-2" style={{ fontSize: '1.05rem' }}>
-          <i className="fas fa-check-circle me-2"></i>Your order has been successfully placed!
-        </div>
-        <span className="badge bg-warning text-dark">Pending Confirmation</span>
-      </div>
-      <p className="receipt-note">We will contact you within 24 hours to confirm your order and payment details.</p>
-      <div className="d-flex gap-2 justify-content-center mt-3 no-print">
-        <button className="btn btn-gold btn-sm" onClick={handlePrint}><i className="fas fa-download me-1"></i>Download Receipt</button>
-        <button className="btn btn-outline-secondary btn-sm" onClick={onClose}>Close</button>
-      </div>
-    </div>
-  );
-}
-
 export default function OrderModal({ book, onClose, onSuccess }) {
   const { user } = useUserAuth();
-  const [step, setStep] = useState('form'); // form | success
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [completedOrder, setCompletedOrder] = useState(null);
+  const [placed, setPlaced] = useState(null); // { orderId, bookTitle, quantity, name }
 
   const [form, setForm] = useState({
     name: user?.name || '',
@@ -72,7 +29,7 @@ export default function OrderModal({ book, onClose, onSuccess }) {
   const validate = () => {
     if (!form.name.trim()) return 'Full name is required';
     if (!/^\d{10}$/.test(form.phone.replace(/\D/g, ''))) return 'Enter a valid 10-digit mobile number';
-    if (!form.address.trim()) return 'Address is required';
+    if (!form.address.trim()) return 'Delivery address is required';
     if (form.quantity < 1) return 'Quantity must be at least 1';
     return null;
   };
@@ -96,11 +53,10 @@ export default function OrderModal({ book, onClose, onSuccess }) {
     try {
       const r = await api.post('/book-orders', payload);
       if (r.data.success) {
-        setCompletedOrder({ ...payload, orderId });
-        setStep('success');
+        setPlaced({ orderId, bookTitle: book.title, quantity: form.quantity, name: form.name });
         onSuccess?.();
       } else {
-        setError(r.data.message || 'Failed to place order');
+        setError(r.data.message || 'Failed to place order. Please try again.');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Server error. Please try again.');
@@ -109,11 +65,38 @@ export default function OrderModal({ book, onClose, onSuccess }) {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop" onClick={!placed ? onClose : undefined}>
       <div className="order-modal" onClick={e => e.stopPropagation()}>
         <button className="jr-modal-close" onClick={onClose}>&times;</button>
 
-        {step === 'form' && (
+        {placed ? (
+          /* ── Success Screen ── */
+          <div className="form-success-screen">
+            <div className="form-success-icon">
+              <i className="fas fa-check-circle"></i>
+            </div>
+            <h5 className="form-success-title">Order Placed Successfully!</h5>
+            <p className="form-success-msg">
+              Your order has been placed successfully. Order details have been sent to your registered contact.
+            </p>
+            <div className="form-success-ref">
+              <span className="form-success-ref-label">Order ID</span>
+              <span className="form-success-ref-value">{placed.orderId}</span>
+            </div>
+            <div className="form-success-details">
+              <div><i className="fas fa-book me-2 text-gold"></i><strong>Book:</strong> {placed.bookTitle}</div>
+              <div><i className="fas fa-hashtag me-2 text-gold"></i><strong>Quantity:</strong> {placed.quantity}</div>
+            </div>
+            <p className="form-success-note">
+              <i className="fab fa-whatsapp me-1 text-success"></i>
+              A WhatsApp confirmation has been sent to your registered number. We will contact you within 24 hours.
+            </p>
+            <button className="btn btn-gold mt-3 px-5" onClick={onClose}>
+              <i className="fas fa-times me-2"></i>Close
+            </button>
+          </div>
+        ) : (
+          /* ── Form ── */
           <>
             <h5 className="mb-1" style={{ fontFamily: "'Playfair Display',serif" }}>
               <i className="fas fa-shopping-cart text-gold me-2"></i>Order Book
@@ -158,10 +141,6 @@ export default function OrderModal({ book, onClose, onSuccess }) {
               </button>
             </form>
           </>
-        )}
-
-        {step === 'success' && completedOrder && (
-          <Receipt order={completedOrder} onClose={onClose} />
         )}
       </div>
     </div>

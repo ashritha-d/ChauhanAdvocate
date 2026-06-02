@@ -84,14 +84,26 @@ export default function JrAdvocateModal({ onClose, onSuccess }) {
         <button className="jr-modal-close" onClick={onClose}>&times;</button>
 
         {submitted ? (
-          <div className="text-center py-4">
-            <i className="fas fa-check-circle fa-3x mb-3 text-success"></i>
-            <h5 style={{ fontFamily: "'Playfair Display',serif" }} className="text-success">
-              Your application has been successfully submitted!
-            </h5>
-            <p className="text-muted mt-2">We will review your application and contact you within 3–5 business days.</p>
-            {user && <p className="small text-muted">Track your application status in <strong>My Profile → My Applications</strong>.</p>}
-            <button className="btn btn-gold mt-3" onClick={onClose}>Close</button>
+          <div className="form-success-screen">
+            <div className="form-success-icon">
+              <i className="fas fa-check-circle"></i>
+            </div>
+            <h5 className="form-success-title">Application Submitted Successfully!</h5>
+            <p className="form-success-msg">
+              Your application has been submitted successfully. Our team will review your profile and contact you if shortlisted.
+            </p>
+            <div className="form-success-details">
+              <div><i className="fas fa-user me-2 text-gold"></i><strong>Name:</strong> {form.name}</div>
+              {form.qualification && <div><i className="fas fa-graduation-cap me-2 text-gold"></i><strong>Qualification:</strong> {form.qualification}</div>}
+            </div>
+            <p className="form-success-note">
+              <i className="fab fa-whatsapp me-1 text-success"></i>
+              Expected review time: 3–5 business days.
+              {user && <> Track status in <strong>My Profile → My Applications</strong>.</>}
+            </p>
+            <button className="btn btn-gold mt-3 px-5" onClick={onClose}>
+              <i className="fas fa-times me-2"></i>Close
+            </button>
           </div>
         ) : (
           <>

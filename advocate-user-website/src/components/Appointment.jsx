@@ -15,6 +15,7 @@ export default function Appointment() {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState(null);
+  const [booked, setBooked] = useState(null); // { appointmentId, service, date, time }
 
   // Today's date string for min attribute
   const todayStr = new Date().toISOString().split('T')[0];
@@ -40,7 +41,10 @@ export default function Appointment() {
     loadSlots(date);
   };
 
-  const showAlert = (type, msg) => { setAlert({ type, msg }); setTimeout(() => setAlert(null), 6000); };
+  const showAlert = (type, msg) => {
+    setAlert({ type, msg });
+    if (type !== 'success') setTimeout(() => setAlert(null), 6000);
+  };
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -51,13 +55,12 @@ export default function Appointment() {
       const r = await bookAppointment(payload, authHeader());
       if (r.data.success) {
         const apptId = r.data.data?.appointmentId || '';
-        showAlert('success', `✅ Your appointment has been successfully booked!${apptId ? ` (ID: <strong>${apptId}</strong>)` : ''} <a href="/ChauhanAdvocate/profile?tab=appointments" class="alert-link ms-1">View in dashboard →</a>`);
+        setBooked({ appointmentId: apptId, service: form.service, date: form.date, time: form.time });
         setForm({ name: user.name || '', email: user.email || '', phone: user.phone || '', service:'', date:'', time:'', message:'' });
         setSlots([]);
         e.target.classList.remove('was-validated');
       } else {
         showAlert('danger', r.data.message || 'Something went wrong.');
-        // Refresh slots if conflict
         if (form.date) loadSlots(form.date);
       }
     } catch { showAlert('danger', 'Server error. Please try again later or call us directly.'); }
@@ -99,7 +102,41 @@ export default function Appointment() {
             {user ? (
               <div className="appointment-form-card">
                 <h4 className="mb-4"><i className="fas fa-calendar-alt text-gold me-2"></i>Book an Appointment</h4>
-                <form onSubmit={handleSubmit} noValidate>
+
+                {booked && (
+                  <div className="form-success-screen form-success-inline">
+                    <div className="form-success-icon"><i className="fas fa-check-circle"></i></div>
+                    <h5 className="form-success-title">Appointment Booked Successfully!</h5>
+                    <p className="form-success-msg">
+                      Your appointment request has been submitted successfully. We will contact you shortly to confirm.
+                    </p>
+                    {booked.appointmentId && (
+                      <div className="form-success-ref">
+                        <span className="form-success-ref-label">Appointment ID</span>
+                        <span className="form-success-ref-value">{booked.appointmentId}</span>
+                      </div>
+                    )}
+                    <div className="form-success-details">
+                      {booked.service && <div><i className="fas fa-briefcase me-2 text-gold"></i><strong>Service:</strong> {booked.service}</div>}
+                      {booked.date && <div><i className="fas fa-calendar me-2 text-gold"></i><strong>Date:</strong> {new Date(booked.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</div>}
+                      {booked.time && <div><i className="fas fa-clock me-2 text-gold"></i><strong>Time:</strong> {booked.time}</div>}
+                    </div>
+                    <p className="form-success-note">
+                      <i className="fab fa-whatsapp me-1 text-success"></i>
+                      A WhatsApp confirmation has been sent to your registered number.
+                    </p>
+                    <div className="d-flex gap-2 justify-content-center flex-wrap mt-3">
+                      <button className="btn btn-gold px-4" onClick={() => setBooked(null)}>
+                        <i className="fas fa-plus me-2"></i>Book Another
+                      </button>
+                      <a href="/ChauhanAdvocate/profile?tab=appointments" className="btn btn-outline-light px-4">
+                        <i className="fas fa-calendar-alt me-2"></i>View Dashboard
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {!booked && <form onSubmit={handleSubmit} noValidate>
                   <div className="row g-3">
                     <div className="col-md-6">
                       <label className="form-label">Full Name *</label>
@@ -159,8 +196,12 @@ export default function Appointment() {
                       </button>
                     </div>
                   </div>
-                </form>
-                {alert && <div className={`alert alert-${alert.type} mt-3`} dangerouslySetInnerHTML={{ __html: alert.msg }}></div>}
+                </form>}
+                {alert && <div className={`alert alert-${alert.type} mt-3 d-flex align-items-start gap-2`}>
+                  <i className="fas fa-exclamation-circle mt-1 flex-shrink-0"></i>
+                  <span dangerouslySetInnerHTML={{ __html: alert.msg }}></span>
+                  <button type="button" className="btn-close ms-auto flex-shrink-0" onClick={() => setAlert(null)}></button>
+                </div>}
               </div>
             ) : (
               <div className="appt-gate-card">

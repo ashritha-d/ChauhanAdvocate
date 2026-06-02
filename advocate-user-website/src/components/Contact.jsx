@@ -15,8 +15,12 @@ export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState(null);
+  const [sent, setSent] = useState(false);
 
-  const showAlert = (type, msg) => { setAlert({ type, msg }); setTimeout(() => setAlert(null), 5000); };
+  const showAlert = (type, msg) => {
+    setAlert({ type, msg });
+    if (type !== 'success') setTimeout(() => setAlert(null), 6000);
+  };
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -25,7 +29,7 @@ export default function Contact() {
     try {
       const r = await sendContact(form);
       if (r.data.success) {
-        showAlert('success', r.data.message || 'Message sent successfully!');
+        setSent(true);
         setForm({ name: '', email: '', phone: '', subject: '', message: '' });
         e.target.classList.remove('was-validated');
       } else { showAlert('danger', r.data.message || 'Something went wrong.'); }
@@ -170,42 +174,63 @@ export default function Contact() {
               </div>
 
               <div className="contact-panel-body contact-form-body">
-                <form onSubmit={handleSubmit} noValidate className="d-flex flex-column h-100">
-                  <div className="row g-3 flex-grow-1">
-                    <div className="col-12">
-                      <input type="text" className="form-control" value={form.name} onChange={set('name')} placeholder="Your Full Name *" required />
-                    </div>
-                    <div className="col-12">
-                      <input type="email" className="form-control" value={form.email} onChange={set('email')} placeholder="Email Address *" required />
-                    </div>
-                    <div className="col-12">
-                      <input type="tel" className="form-control" value={form.phone} onChange={set('phone')} placeholder="Phone Number" />
-                    </div>
-                    <div className="col-12">
-                      <input type="text" className="form-control" value={form.subject} onChange={set('subject')} placeholder="Subject *" required />
-                    </div>
-                    <div className="col-12 d-flex flex-column flex-grow-1">
-                      <textarea
-                        className="form-control contact-msg-area"
-                        value={form.message}
-                        onChange={set('message')}
-                        placeholder="Your Message *"
-                        required
-                      ></textarea>
-                    </div>
-                  </div>
-
-                  <div className="mt-3">
-                    <button type="submit" className="btn btn-gold w-100 py-3" disabled={submitting}>
-                      {submitting
-                        ? <><i className="fas fa-spinner fa-spin me-2"></i>Sending...</>
-                        : <><i className="fas fa-paper-plane me-2"></i>Send Message</>
-                      }
+                {sent ? (
+                  <div className="form-success-screen form-success-inline">
+                    <div className="form-success-icon"><i className="fas fa-check-circle"></i></div>
+                    <h5 className="form-success-title">Message Sent Successfully!</h5>
+                    <p className="form-success-msg">
+                      Thank you for reaching out. We have received your message and will get back to you as soon as possible.
+                    </p>
+                    <p className="form-success-note">
+                      <i className="fas fa-clock me-1 text-gold"></i>
+                      Expected response time: within 24 hours during business days.
+                    </p>
+                    <button className="btn btn-gold mt-3 px-4" onClick={() => setSent(false)}>
+                      <i className="fas fa-envelope me-2"></i>Send Another Message
                     </button>
                   </div>
-
-                  {alert && <div className={`alert alert-${alert.type} mt-3 mb-0`}>{alert.msg}</div>}
-                </form>
+                ) : (
+                  <form onSubmit={handleSubmit} noValidate className="d-flex flex-column h-100">
+                    <div className="row g-3 flex-grow-1">
+                      <div className="col-12">
+                        <input type="text" className="form-control" value={form.name} onChange={set('name')} placeholder="Your Full Name *" required />
+                      </div>
+                      <div className="col-12">
+                        <input type="email" className="form-control" value={form.email} onChange={set('email')} placeholder="Email Address *" required />
+                      </div>
+                      <div className="col-12">
+                        <input type="tel" className="form-control" value={form.phone} onChange={set('phone')} placeholder="Phone Number" />
+                      </div>
+                      <div className="col-12">
+                        <input type="text" className="form-control" value={form.subject} onChange={set('subject')} placeholder="Subject *" required />
+                      </div>
+                      <div className="col-12 d-flex flex-column flex-grow-1">
+                        <textarea
+                          className="form-control contact-msg-area"
+                          value={form.message}
+                          onChange={set('message')}
+                          placeholder="Your Message *"
+                          required
+                        ></textarea>
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <button type="submit" className="btn btn-gold w-100 py-3" disabled={submitting}>
+                        {submitting
+                          ? <><i className="fas fa-spinner fa-spin me-2"></i>Sending...</>
+                          : <><i className="fas fa-paper-plane me-2"></i>Send Message</>
+                        }
+                      </button>
+                    </div>
+                    {alert && (
+                      <div className={`alert alert-${alert.type} mt-3 mb-0 d-flex align-items-start gap-2`}>
+                        <i className="fas fa-exclamation-circle mt-1 flex-shrink-0"></i>
+                        <span>{alert.msg}</span>
+                        <button type="button" className="btn-close ms-auto flex-shrink-0" onClick={() => setAlert(null)}></button>
+                      </div>
+                    )}
+                  </form>
+                )}
               </div>
             </div>
           </div>
