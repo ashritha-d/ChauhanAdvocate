@@ -86,17 +86,7 @@ export default function Navbar() {
     >
       <div className="container">
 
-        {/* Hamburger — mobile only */}
-        <button
-          className={`hamburger d-lg-none ${menuOpen ? 'active' : ''}`}
-          onClick={() => setMenuOpen(o => !o)}
-          aria-label="Toggle navigation"
-          type="button"
-        >
-          <span></span><span></span><span></span>
-        </button>
-
-        {/* Logo — always links back to home */}
+        {/* Logo — left on mobile */}
         <a
           className="navbar-brand navbar-logo d-flex align-items-center"
           href={import.meta.env.BASE_URL}
@@ -109,19 +99,28 @@ export default function Navbar() {
           />
         </a>
 
-        {/* Mobile: notification bell + Book button */}
-        <div className="d-lg-none d-flex align-items-center gap-2">
+        {/* Mobile: Book button centered + optional notification bell */}
+        <div className="d-lg-none mobile-nav-center">
           {user && (
-            <Link to="/profile?tab=notifications" className="navbar-notif-btn" onClick={close}>
+            <Link to="/profile?tab=notifications" className="navbar-notif-btn me-1" onClick={close}>
               <i className="fas fa-bell"></i>
               {unreadCount > 0 && <span className="navbar-notif-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
             </Link>
           )}
-          <a href="#appointment" className="btn btn-gold mobile-appt-btn book-appointment-btn" onClick={handleAppointment}>
-            <i className="fas fa-calendar-check"></i>
-            <span className="mobile-appt-label"> Book</span>
+          <a href="#appointment" className="btn btn-gold mobile-appt-btn" onClick={handleAppointment}>
+            Book an Appointment
           </a>
         </div>
+
+        {/* Hamburger — right on mobile */}
+        <button
+          className={`hamburger d-lg-none ${menuOpen ? 'active' : ''}`}
+          onClick={() => setMenuOpen(o => !o)}
+          aria-label="Toggle navigation"
+          type="button"
+        >
+          <span></span><span></span><span></span>
+        </button>
 
         {/* Desktop nav */}
         <div className="d-none d-lg-flex ms-auto align-items-center gap-1">

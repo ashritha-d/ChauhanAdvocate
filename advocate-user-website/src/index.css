@@ -550,15 +550,22 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .jr-modal-close { position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 1.6rem; color: #888; cursor: pointer; line-height: 1; }
 .jr-modal-close:hover { color: var(--dark); }
 
-/* ── Mobile Navbar Book Appointment Button ── */
+/* ── Mobile Navbar Button ── */
 .mobile-appt-btn {
-  padding: 6px 12px;
-  font-size: 0.8rem;
+  padding: 7px 11px;
+  font-size: 0.75rem;
   border-radius: 8px;
   white-space: nowrap;
   flex-shrink: 0;
-  margin-right: 6px;
-  line-height: 1.5;
+  line-height: 1.4;
+  letter-spacing: 0.2px;
+}
+
+/* ── Mobile Navbar Center Slot ── */
+.mobile-nav-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ════════════════════════════════════════════════
@@ -585,10 +592,11 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 
 /* ── ≤768px: tablets & phones ── */
 @media (max-width: 768px) {
-  /* Hamburger & navbar order */
-  .hamburger { display: flex !important; }
-  .navbar-logo { order: 2 !important; flex: 1 !important; padding: 8px 12px !important; }
-  .book-appointment-btn { order: 3 !important; flex: 0 0 auto !important; margin-left: auto !important; white-space: nowrap !important; }
+  /* Mobile navbar: Logo LEFT — Button CENTER — Hamburger RIGHT */
+  .navbar > .container { display: flex !important; flex-wrap: nowrap !important; align-items: center !important; padding-left: 12px !important; padding-right: 4px !important; gap: 0 !important; }
+  .navbar-logo { order: 1 !important; flex: 0 0 auto !important; padding: 0 !important; margin: 0 !important; }
+  .mobile-nav-center { order: 2 !important; flex: 1 1 auto !important; justify-content: center !important; padding: 0 6px !important; min-width: 0 !important; }
+  .hamburger { display: flex !important; order: 3 !important; flex: 0 0 auto !important; padding: 10px 8px !important; margin: 0 !important; }
 
   .section-padding { padding: 60px 0; }
   .section-title { font-size: 1.7rem; }
@@ -740,9 +748,8 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 /* ── ≤320px: very small phones (iPhone SE 1st/2nd) ── */
 @media (max-width: 320px) {
   /* Navbar */
-  .mobile-appt-label { display: none; }
-  .mobile-appt-btn { padding: 6px 8px; margin-right: 2px; }
-  #mainNavbar .navbar-brand img { max-width: 100px !important; height: 36px !important; }
+  .mobile-appt-btn { padding: 5px 6px !important; font-size: 0.65rem !important; }
+  #mainNavbar .navbar-brand img { max-width: 90px !important; height: 36px !important; }
   .top-bar { padding: 0 6px; }
   .top-bar-social { width: 24px; height: 24px; }
   .top-bar-social svg { width: 12px; height: 12px; }
