@@ -1,45 +1,44 @@
 /**
- * WhatsApp notification service using Twilio's WhatsApp API.
+ * WhatsApp notification service — UltraMsg
+ * https://ultramsg.com
  *
  * Required .env vars:
- *   TWILIO_ACCOUNT_SID   — Twilio Account SID
- *   TWILIO_AUTH_TOKEN    — Twilio Auth Token
- *   TWILIO_WHATSAPP_FROM — e.g. "whatsapp:+14155238886" (sandbox) or approved number
- *   ADMIN_WHATSAPP       — Admin's number e.g. "whatsapp:+919392538226"
+ *   ULTRAMSG_INSTANCE_ID  — e.g. "instance12345"
+ *   ULTRAMSG_TOKEN        — your UltraMsg token
+ *   ADMIN_WHATSAPP        — admin phone, digits only, e.g. "918523035920"
  *
- * If credentials are missing, messages are logged to console instead of sent.
+ * If credentials are missing, messages are logged to console instead.
+ * No opt-in required from clients — messages go to any WhatsApp number.
  */
 
 const https = require('https');
 const querystring = require('querystring');
 
-function formatTo(number) {
+function toE164Digits(number) {
   if (!number) return null;
-  const digits = number.replace(/\D/g, '');
-  const e164 = digits.startsWith('91') ? `+${digits}` : digits.length === 10 ? `+91${digits}` : `+${digits}`;
-  return `whatsapp:${e164}`;
+  const digits = String(number).replace(/\D/g, '');
+  if (digits.startsWith('91') && digits.length === 12) return digits;
+  if (digits.length === 10) return `91${digits}`;
+  return digits;
 }
 
-function sendTwilio(to, body) {
-  return new Promise((resolve, reject) => {
-    const sid = process.env.TWILIO_ACCOUNT_SID;
-    const token = process.env.TWILIO_AUTH_TOKEN;
-    const from = process.env.TWILIO_WHATSAPP_FROM;
+function sendUltraMsg(to, body) {
+  return new Promise((resolve) => {
+    const instance = process.env.ULTRAMSG_INSTANCE_ID;
+    const token   = process.env.ULTRAMSG_TOKEN;
 
-    if (!sid || !token || !from) {
+    if (!instance || !token) {
       console.log('[WhatsApp LOG] To:', to, '\nMessage:', body);
       return resolve({ logged: true });
     }
 
-    const postData = querystring.stringify({ From: from, To: to, Body: body });
-    const auth = Buffer.from(`${sid}:${token}`).toString('base64');
+    const postData = querystring.stringify({ token, to, body });
 
     const options = {
-      hostname: 'api.twilio.com',
-      path: `/2010-04-01/Accounts/${sid}/Messages.json`,
+      hostname: 'api.ultramsg.com',
+      path: `/${instance}/messages/chat`,
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${auth}`,
         'Content-Type': 'application/x-www-form-urlencoded',
         'Content-Length': Buffer.byteLength(postData),
       },
@@ -49,18 +48,19 @@ function sendTwilio(to, body) {
       let data = '';
       res.on('data', chunk => { data += chunk; });
       res.on('end', () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(JSON.parse(data));
-        } else {
-          console.error('[WhatsApp ERROR]', res.statusCode, data);
-          resolve({ error: true, status: res.statusCode });
+        try {
+          const json = JSON.parse(data);
+          if (!json.sent && !json.id) console.error('[WhatsApp ERROR]', data);
+          resolve(json);
+        } catch {
+          resolve({ raw: data });
         }
       });
     });
 
     req.on('error', (e) => {
       console.error('[WhatsApp REQUEST ERROR]', e.message);
-      resolve({ error: true, message: e.message });
+      resolve({ error: true });
     });
 
     req.write(postData);
@@ -68,110 +68,193 @@ function sendTwilio(to, body) {
   });
 }
 
-const adminTo = () => {
-  const raw = process.env.ADMIN_WHATSAPP || '';
-  if (raw.startsWith('whatsapp:')) return raw;
-  return formatTo(raw);
-};
-
-async function sendWhatsApp(to, message) {
-  const formattedTo = to.startsWith('whatsapp:') ? to : formatTo(to);
-  if (!formattedTo) return;
+async function sendWhatsApp(number, message) {
+  const digits = toE164Digits(number);
+  if (!digits) return;
   try {
-    await sendTwilio(formattedTo, message);
+    await sendUltraMsg(digits, message);
   } catch (e) {
-    console.error('[WhatsApp] Failed to send:', e.message);
+    console.error('[WhatsApp] Failed:', e.message);
   }
 }
 
-// ─── Appointment Notifications ───────────────────────────────────────────────
+const adminNumber = () => toE164Digits(process.env.ADMIN_WHATSAPP || '');
+
+// ─── Appointment Notifications ────────────────────────────────────────────────
 
 exports.appointmentBooked = async ({ name, phone, appointmentId, date, time }) => {
   const fmtDate = new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
 
-  const clientMsg = `Dear ${name},\n\nYour appointment has been successfully booked.\n\nAppointment ID: ${appointmentId}\nDate: ${fmtDate}\nTime: ${time}\n\nThank you.\nBalu Law Chamber`;
+  const clientMsg =
+`Dear ${name},
 
-  const adminMsg = `New appointment booked.\n\nClient: ${name}\nPhone: ${phone}\nDate: ${fmtDate}\nTime: ${time}\nID: ${appointmentId}`;
+Your appointment has been successfully booked.
+
+Appointment ID: ${appointmentId}
+Date: ${fmtDate}
+Time: ${time}
+
+Thank you.
+Balu Law Chamber`;
+
+  const adminMsg =
+`New appointment booked.
+
+Client: ${name}
+Phone: ${phone}
+Date: ${fmtDate}
+Time: ${time}
+ID: ${appointmentId}`;
 
   await Promise.all([
     sendWhatsApp(phone, clientMsg),
-    adminTo() ? sendWhatsApp(adminTo(), adminMsg) : Promise.resolve(),
+    adminNumber() ? sendWhatsApp(adminNumber(), adminMsg) : Promise.resolve(),
   ]);
 };
 
 exports.appointmentConfirmed = async ({ name, phone, appointmentId, date, time }) => {
   const fmtDate = new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
 
-  const clientMsg = `Dear ${name},\n\nYour appointment has been confirmed.\n\nAppointment ID: ${appointmentId}\nDate: ${fmtDate}\nTime: ${time}\n\nWe look forward to meeting you.\nBalu Law Chamber`;
+  await sendWhatsApp(phone,
+`Dear ${name},
 
-  await sendWhatsApp(phone, clientMsg);
+Your appointment has been confirmed.
+
+Appointment ID: ${appointmentId}
+Date: ${fmtDate}
+Time: ${time}
+
+We look forward to meeting you.
+Balu Law Chamber`);
 };
 
 exports.appointmentRescheduled = async ({ name, phone, appointmentId, newDate, newTime }) => {
   const fmtDate = new Date(newDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
 
-  const clientMsg = `Dear ${name},\n\nYour appointment has been rescheduled.\n\nAppointment ID: ${appointmentId}\nNew Date: ${fmtDate}\nNew Time: ${newTime}\n\nPlease note the updated schedule.\nBalu Law Chamber`;
+  const clientMsg =
+`Dear ${name},
 
-  const adminMsg = `Appointment rescheduled.\n\nClient: ${name}\nPhone: ${phone}\nID: ${appointmentId}\nNew Date: ${fmtDate}\nNew Time: ${newTime}`;
+Your appointment has been rescheduled.
+
+Appointment ID: ${appointmentId}
+New Date: ${fmtDate}
+New Time: ${newTime}
+
+Please note the updated schedule.
+Balu Law Chamber`;
+
+  const adminMsg =
+`Appointment rescheduled.
+
+Client: ${name}
+Phone: ${phone}
+ID: ${appointmentId}
+New Date: ${fmtDate}
+New Time: ${newTime}`;
 
   await Promise.all([
     sendWhatsApp(phone, clientMsg),
-    adminTo() ? sendWhatsApp(adminTo(), adminMsg) : Promise.resolve(),
+    adminNumber() ? sendWhatsApp(adminNumber(), adminMsg) : Promise.resolve(),
   ]);
 };
 
 exports.appointmentCancelled = async ({ name, phone, appointmentId }) => {
-  const clientMsg = `Dear ${name},\n\nYour appointment (ID: ${appointmentId}) has been cancelled.\n\nPlease contact us to choose another slot.\n\nBalu Law Chamber`;
+  await sendWhatsApp(phone,
+`Dear ${name},
 
-  await sendWhatsApp(phone, clientMsg);
+Your appointment (ID: ${appointmentId}) has been cancelled.
+
+Please contact us to choose another slot.
+
+Balu Law Chamber`);
 };
 
 exports.appointmentCompleted = async ({ name, phone, appointmentId }) => {
-  const clientMsg = `Dear ${name},\n\nYour appointment (ID: ${appointmentId}) has been marked as completed.\n\nThank you for choosing Balu Law Chamber. We hope we were able to assist you.`;
+  await sendWhatsApp(phone,
+`Dear ${name},
 
-  await sendWhatsApp(phone, clientMsg);
+Your appointment (ID: ${appointmentId}) has been completed.
+
+Thank you for choosing Balu Law Chamber. We hope we were able to assist you.`);
 };
 
 // ─── Order Notifications ──────────────────────────────────────────────────────
 
 exports.orderPlaced = async ({ name, phone, orderId, bookTitle }) => {
-  const clientMsg = `Dear ${name},\n\nYour order has been received.\n\nOrder ID: ${orderId}\nBook: ${bookTitle}\n\nWe will confirm your order within 24 hours.\nBalu Law Chamber`;
+  const clientMsg =
+`Dear ${name},
 
-  const adminMsg = `New book order placed.\n\nCustomer: ${name}\nPhone: ${phone}\nOrder ID: ${orderId}\nBook: ${bookTitle}`;
+Your order has been received.
+
+Order ID: ${orderId}
+Book: ${bookTitle}
+
+We will confirm your order within 24 hours.
+Balu Law Chamber`;
+
+  const adminMsg =
+`New book order placed.
+
+Customer: ${name}
+Phone: ${phone}
+Order ID: ${orderId}
+Book: ${bookTitle}`;
 
   await Promise.all([
     sendWhatsApp(phone, clientMsg),
-    adminTo() ? sendWhatsApp(adminTo(), adminMsg) : Promise.resolve(),
+    adminNumber() ? sendWhatsApp(adminNumber(), adminMsg) : Promise.resolve(),
   ]);
 };
 
 exports.orderConfirmed = async ({ name, phone, orderId }) => {
-  const clientMsg = `Dear ${name},\n\nYour order has been confirmed.\n\nOrder ID: ${orderId}\n\nThank you for your purchase.\nBalu Law Chamber`;
+  await sendWhatsApp(phone,
+`Dear ${name},
 
-  await sendWhatsApp(phone, clientMsg);
+Your order has been confirmed.
+
+Order ID: ${orderId}
+
+Thank you for your purchase.
+Balu Law Chamber`);
 };
 
 exports.orderProcessing = async ({ name, phone, orderId }) => {
-  const clientMsg = `Dear ${name},\n\nYour order (ID: ${orderId}) is now being processed and will be shipped soon.\n\nBalu Law Chamber`;
+  await sendWhatsApp(phone,
+`Dear ${name},
 
-  await sendWhatsApp(phone, clientMsg);
+Your order (ID: ${orderId}) is being processed and will be shipped soon.
+
+Balu Law Chamber`);
 };
 
 exports.orderShipped = async ({ name, phone, orderId, trackingNumber }) => {
   const trackInfo = trackingNumber ? `\nTracking Number: ${trackingNumber}` : '';
-  const clientMsg = `Dear ${name},\n\nYour order has been shipped.${trackInfo}\n\nOrder ID: ${orderId}\n\nBalu Law Chamber`;
+  await sendWhatsApp(phone,
+`Dear ${name},
 
-  await sendWhatsApp(phone, clientMsg);
+Your order has been shipped.${trackInfo}
+
+Order ID: ${orderId}
+
+Balu Law Chamber`);
 };
 
 exports.orderDelivered = async ({ name, phone, orderId }) => {
-  const clientMsg = `Dear ${name},\n\nYour order (ID: ${orderId}) has been delivered successfully.\n\nThank you!\nBalu Law Chamber`;
+  await sendWhatsApp(phone,
+`Dear ${name},
 
-  await sendWhatsApp(phone, clientMsg);
+Your order (ID: ${orderId}) has been delivered successfully.
+
+Thank you!
+Balu Law Chamber`);
 };
 
 exports.orderCancelled = async ({ name, phone, orderId }) => {
-  const clientMsg = `Dear ${name},\n\nYour order (ID: ${orderId}) has been cancelled.\n\nFor assistance, please contact us.\nBalu Law Chamber`;
+  await sendWhatsApp(phone,
+`Dear ${name},
 
-  await sendWhatsApp(phone, clientMsg);
+Your order (ID: ${orderId}) has been cancelled.
+
+For assistance, please contact us.
+Balu Law Chamber`);
 };
