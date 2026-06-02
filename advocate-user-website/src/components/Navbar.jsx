@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
+import { savePendingAction } from '../utils/pendingAction';
 
 // Gallery has a dedicated page; all others are home-page anchors
 const NAV_LINKS = [
@@ -22,7 +23,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen]     = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const navRef = useRef(null);
-  const { user, logout, unreadCount } = useUserAuth();
+  const { user, logout, unreadCount, openModal } = useUserAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -68,13 +69,13 @@ export default function Navbar() {
   const handleAppointment = (e) => {
     e.preventDefault();
     close();
-    const base = import.meta.env.BASE_URL;
-    const currentPath = window.location.pathname.replace(/\/$/, '');
-    const basePath    = base.replace(/\/$/, '');
-    if (currentPath === basePath || currentPath === '') {
-      document.getElementById('appointment')?.scrollIntoView({ behavior: 'smooth' });
+    if (user) {
+      // Logged in: open modal directly
+      openModal('appointment');
     } else {
-      window.location.href = `${base}#appointment`;
+      // Guest: save intent, navigate to login
+      savePendingAction('appointment');
+      navigate('/login');
     }
   };
 

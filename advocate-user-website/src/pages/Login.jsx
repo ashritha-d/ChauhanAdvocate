@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { userLogin } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
-import { consumeAuthRedirect } from '../components/AuthGateModal';
 
 export default function Login() {
   const { login } = useUserAuth();
@@ -23,12 +22,7 @@ export default function Login() {
       const r = await userLogin(form);
       if (r.data.success) {
         login(r.data.token, r.data.user);
-        const redirect = consumeAuthRedirect();
-        if (redirect) {
-          window.location.href = redirect;
-        } else {
-          navigate('/profile');
-        }
+        navigate('/');
       } else {
         setError(r.data.message || 'Login failed');
       }

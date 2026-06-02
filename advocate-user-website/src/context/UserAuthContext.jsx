@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import api from '../api/axios';
+import { getPendingAction, getPendingActionData } from '../utils/pendingAction';
 
 const UserAuthContext = createContext({});
 
@@ -17,6 +18,20 @@ export function UserAuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // Global modal trigger — 'appointment' | 'order' | 'jr_advocate' | null
+  const [activeModal, setActiveModal] = useState(null);
+  const [modalData, setModalData] = useState(null);   // e.g. { title, price } for order
+
+  const openModal = (type, data = null) => {
+    setActiveModal(type);
+    setModalData(data);
+  };
+
+  const closeModal = () => {
+    setActiveModal(null);
+    setModalData(null);
+  };
+
   const fetchUnreadCount = useCallback(async () => {
     const token = safeStorage('get', 'userToken');
     if (!token) return;
@@ -33,8 +48,15 @@ export function UserAuthProvider({ children }) {
     if (!token) { setLoading(false); return; }
     api.get('/users/profile', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => {
-        if (r.data.success) { setUser(r.data.user); fetchUnreadCount(); }
-        else { safeStorage('remove', 'userToken'); }
+        if (r.data.success) {
+          setUser(r.data.user);
+          fetchUnreadCount();
+          // Restore pending action after page refresh (user already logged in)
+          const pending = getPendingAction();
+          if (pending) openModal(pending, getPendingActionData());
+        } else {
+          safeStorage('remove', 'userToken');
+        }
       })
       .catch(() => safeStorage('remove', 'userToken'))
       .finally(() => setLoading(false));
@@ -44,12 +66,16 @@ export function UserAuthProvider({ children }) {
     safeStorage('set', 'userToken', token);
     setUser(userData);
     fetchUnreadCount();
+    // Fire any pending modal intent
+    const pending = getPendingAction();
+    if (pending) openModal(pending, getPendingActionData());
   };
 
   const logout = () => {
     safeStorage('remove', 'userToken');
     setUser(null);
     setUnreadCount(0);
+    closeModal();
   };
 
   const updateUser = (userData) => setUser(userData);
@@ -60,7 +86,11 @@ export function UserAuthProvider({ children }) {
   };
 
   return (
-    <UserAuthContext.Provider value={{ user, loading, unreadCount, login, logout, updateUser, fetchUnreadCount, authHeader }}>
+    <UserAuthContext.Provider value={{
+      user, loading, unreadCount,
+      login, logout, updateUser, fetchUnreadCount, authHeader,
+      activeModal, modalData, openModal, closeModal,
+    }}>
       {children}
     </UserAuthContext.Provider>
   );

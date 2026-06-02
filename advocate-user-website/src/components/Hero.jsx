@@ -1,8 +1,23 @@
 import { useSite } from '../context/SiteContext';
+import { useUserAuth } from '../context/UserAuthContext';
+import { useNavigate } from 'react-router-dom';
 import { mediaUrl } from '../utils/helpers';
+import { savePendingAction } from '../utils/pendingAction';
 
 export default function Hero() {
   const { settings: s } = useSite();
+  const { user, openModal } = useUserAuth();
+  const navigate = useNavigate();
+
+  const handleBook = (e) => {
+    e.preventDefault();
+    if (user) {
+      openModal('appointment');
+    } else {
+      savePendingAction('appointment');
+      navigate('/login');
+    }
+  };
 
   return (
     <section id="home" className="hero-section d-flex">
@@ -21,9 +36,9 @@ export default function Hero() {
               {s.hero_subtitle || 'Expert legal representation across criminal, civil, family & corporate law. Your rights, our commitment.'}
             </p>
             <div className="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
-              <a href="#appointment" className="btn btn-gold btn-lg px-5">
+              <button className="btn btn-gold btn-lg px-5" onClick={handleBook}>
                 <i className="fas fa-calendar-check me-2"></i> Book a Consultation
-              </a>
+              </button>
               <a href="#services" className="btn btn-outline-light btn-lg px-5">
                 <i className="fas fa-briefcase me-2"></i> Our Services
               </a>
@@ -46,7 +61,6 @@ export default function Hero() {
           </div>
           <div className="col-lg-5 text-center mt-5 mt-lg-0" data-aos="fade-left" data-aos-duration="1000">
             <div className="hero-image-wrap">
-
               <img
                 src={mediaUrl(s.advocate_photo) || `${import.meta.env.BASE_URL}advocate.jpeg`}
                 alt={s.advocate_name || 'Advocate'}

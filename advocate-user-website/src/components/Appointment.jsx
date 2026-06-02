@@ -1,15 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getServices, bookAppointment, getAvailableSlots } from '../api';
 import { useSite } from '../context/SiteContext';
 import { useUserAuth } from '../context/UserAuthContext';
-import { saveAuthRedirect } from './AuthGateModal';
-
-const BASE = import.meta.env.BASE_URL;
+import { savePendingAction } from '../utils/pendingAction';
 
 export default function Appointment() {
   const { settings: s } = useSite();
   const { user, authHeader } = useUserAuth();
+  const navigate = useNavigate();
   const [services, setServices] = useState([]);
   const [form, setForm] = useState({ name:'', email:'', phone:'', service:'', date:'', time:'', message:'' });
   const [slots, setSlots] = useState([]);
@@ -184,23 +183,27 @@ export default function Appointment() {
                   ))}
                 </div>
                 <div className="d-flex gap-3 flex-wrap justify-content-center mt-4">
-                  <Link
-                    to="/login"
+                  <button
                     className="btn btn-gold px-5 py-3"
-                    onClick={() => saveAuthRedirect(`${BASE}#appointment`)}
+                    onClick={() => { savePendingAction('appointment'); navigate('/login'); }}
                   >
                     <i className="fas fa-sign-in-alt me-2"></i>Login to Book
-                  </Link>
-                  <Link
-                    to="/register"
+                  </button>
+                  <button
                     className="btn btn-outline-light px-5 py-3"
-                    onClick={() => saveAuthRedirect(`${BASE}#appointment`)}
+                    onClick={() => { savePendingAction('appointment'); navigate('/register'); }}
                   >
                     <i className="fas fa-user-plus me-2"></i>Create Account
-                  </Link>
+                  </button>
                 </div>
                 <p className="appt-gate-note mt-3">
-                  Already have an account? <Link to="/login" className="text-gold fw-semibold" onClick={() => saveAuthRedirect(`${BASE}#appointment`)}>Sign in</Link>
+                  Already have an account?{' '}
+                  <button
+                    className="btn btn-link text-gold fw-semibold p-0"
+                    onClick={() => { savePendingAction('appointment'); navigate('/login'); }}
+                  >
+                    Sign in
+                  </button>
                 </p>
               </div>
             )}

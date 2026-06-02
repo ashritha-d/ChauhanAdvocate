@@ -3,8 +3,10 @@ import { getBooks } from '../api';
 import { mediaUrl } from '../utils/helpers';
 import SliderSection from './SliderSection';
 import OrderModal from './OrderModal';
-import AuthGateModal, { saveAuthRedirect } from './AuthGateModal';
+import AuthGateModal from './AuthGateModal';
 import { useUserAuth } from '../context/UserAuthContext';
+import { savePendingAction } from '../utils/pendingAction';
+import { useNavigate } from 'react-router-dom';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -16,9 +18,10 @@ const FALLBACK = [
 
 export default function Books() {
   const { user } = useUserAuth();
+  const navigate = useNavigate();
   const [books, setBooks] = useState([]);
   const [selectedBook, setSelectedBook] = useState(null);
-  const [gateBook, setGateBook] = useState(null); // auth gate pending book
+  const [gateBook, setGateBook] = useState(null);
 
   useEffect(() => {
     getBooks()
@@ -30,8 +33,8 @@ export default function Books() {
     if (user) {
       setSelectedBook(book);
     } else {
-      saveAuthRedirect(`${BASE}#books`);
-      setGateBook(book);
+      savePendingAction('order', book);
+      navigate('/login');
     }
   };
 
@@ -60,7 +63,16 @@ export default function Books() {
         bg="bg-white"
       />
 
-      {/* Auth gate — shows when guest clicks Order Now */}
+      {/* Order form — only for logged-in users, opened directly here */}
+      {selectedBook && (
+        <OrderModal
+          book={selectedBook}
+          onClose={() => setSelectedBook(null)}
+          onSuccess={() => setSelectedBook(null)}
+        />
+      )}
+
+      {/* Fallback auth gate (legacy — now handled by navigate to login) */}
       {gateBook && (
         <AuthGateModal
           action={`Order "${gateBook.title}"`}
@@ -68,9 +80,6 @@ export default function Books() {
           onClose={() => setGateBook(null)}
         />
       )}
-
-      {/* Order form — only for logged-in users */}
-      {selectedBook && <OrderModal book={selectedBook} onClose={() => setSelectedBook(null)} />}
     </>
   );
 }

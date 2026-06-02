@@ -4,7 +4,7 @@ import { useUserAuth } from '../context/UserAuthContext';
 
 const todayStr = () => new Date().toISOString().split('T')[0];
 
-export default function AppointmentModal({ onClose }) {
+export default function AppointmentModal({ onClose, onSuccess }) {
   const { user, authHeader } = useUserAuth();
   const [services, setServices] = useState([]);
   const [form, setForm] = useState({
@@ -52,6 +52,7 @@ export default function AppointmentModal({ onClose }) {
         setForm(f => ({ ...f, service: '', date: '', time: '', message: '' }));
         setSlots([]);
         e.target.classList.remove('was-validated');
+        onSuccess?.();
         setTimeout(onClose, 2500);
       } else {
         setAlert({ type: 'danger', msg: r.data.message || 'Something went wrong.' });

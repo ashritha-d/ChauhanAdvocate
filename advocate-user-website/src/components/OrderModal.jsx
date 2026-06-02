@@ -47,7 +47,7 @@ function Receipt({ order, onClose }) {
   );
 }
 
-export default function OrderModal({ book, onClose }) {
+export default function OrderModal({ book, onClose, onSuccess }) {
   const { user } = useUserAuth();
   const [step, setStep] = useState('form'); // form | success
   const [submitting, setSubmitting] = useState(false);
@@ -95,6 +95,7 @@ export default function OrderModal({ book, onClose }) {
       if (r.data.success) {
         setCompletedOrder({ ...payload, orderId });
         setStep('success');
+        onSuccess?.();
       } else {
         setError(r.data.message || 'Failed to place order');
       }
