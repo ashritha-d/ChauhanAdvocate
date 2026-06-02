@@ -379,33 +379,18 @@
     backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
     // ── Gallery ──
-    const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? 'http://localhost:5000/api'
-      : 'https://chauhanadvocate.onrender.com/api';
+    const galleryImages = [
+      'g1.jpeg','g2.jpeg','g3.jpeg','g4.jpeg',
+      'g6.jpeg','g7.jpeg','g8.jpeg','g9.jpeg','g10.jpeg'
+    ].map(f => ({ filename: f, url: `assets/gallery/${f}` }));
 
-    let galleryImages = [];
     let currentIndex = 0;
 
-    async function loadGallery() {
+    function loadGallery() {
       const spinner = document.getElementById('gallerySpinner');
       const grid    = document.getElementById('galleryGrid');
-      const empty   = document.getElementById('galleryEmpty');
-
-      try {
-        const res  = await fetch(`${API_BASE}/gallery`);
-        const data = await res.json();
-        galleryImages = data.success ? data.data : [];
-      } catch {
-        galleryImages = [];
-      }
 
       spinner.style.display = 'none';
-
-      if (!galleryImages.length) {
-        empty.style.display = 'block';
-        return;
-      }
-
       grid.style.display = 'grid';
       grid.innerHTML = galleryImages.map((img, i) => `
         <div class="gallery-item" data-index="${i}" tabindex="0" role="button" aria-label="View image ${i + 1}">
