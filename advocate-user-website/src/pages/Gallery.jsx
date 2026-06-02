@@ -9,7 +9,16 @@ export default function Gallery() {
   useEffect(() => {
     window.scrollTo(0, 0);
     api.get('/gallery')
-      .then(r => { if (r.data.success) setImages(r.data.data); })
+      .then(r => {
+        if (r.data.success) {
+          // Upgrade http → https to avoid mixed-content blocks
+          const isHttps = window.location.protocol === 'https:';
+          setImages(r.data.data.map(img => ({
+            ...img,
+            url: isHttps ? img.url.replace(/^http:\/\//, 'https://') : img.url,
+          })));
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);

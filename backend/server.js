@@ -12,6 +12,9 @@ require('dotenv').config();
 
 const app = express();
 
+// Trust Render/Heroku reverse proxy so req.protocol returns 'https'
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 const allowedOrigins = process.env.ALLOWED_ORIGINS
@@ -96,7 +99,9 @@ app.get('/api/gallery', (req, res) => {
     const files = fs.existsSync(galleryDir)
       ? fs.readdirSync(galleryDir).filter(f => imageExts.has(path.extname(f).toLowerCase()))
       : [];
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    // Use x-forwarded-proto so HTTPS is preserved behind Render's reverse proxy
+    const proto = req.headers['x-forwarded-proto'] || req.protocol;
+    const baseUrl = `${proto}://${req.get('host')}`;
     res.json({ success: true, data: files.map(f => ({ filename: f, url: `${baseUrl}/uploads/gallery/${f}` })) });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
