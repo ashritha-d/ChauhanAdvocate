@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
+import { useSite } from '../context/SiteContext';
 import {
   getUserProfile, updateUserProfile, changeUserPassword, uploadUserPhoto,
   getMyAppointments, getMyOrders, getNotifications,
@@ -20,9 +21,11 @@ const TABS = [
 const STATUS_BADGE = {
   pending: 'warning',
   confirmed: 'info',
+  rescheduled: 'primary',
   'in progress': 'primary',
   completed: 'success',
   cancelled: 'danger',
+  processing: 'info',
   shipped: 'info',
   delivered: 'success',
   unpaid: 'secondary',
@@ -38,6 +41,7 @@ function formatDate(d) {
 
 export default function Profile() {
   const { user, loading: authLoading, logout, updateUser, fetchUnreadCount, authHeader, unreadCount } = useUserAuth();
+  const { settings: s } = useSite();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState(searchParams.get('tab') || 'dashboard');
@@ -369,23 +373,56 @@ export default function Profile() {
                         <table className="profile-table">
                           <thead>
                             <tr>
-                              <th>#</th>
+                              <th>ID</th>
                               <th>Service</th>
                               <th>Date & Time</th>
                               <th>Payment</th>
                               <th>Status</th>
                               <th>Booked On</th>
+                              <th></th>
                             </tr>
                           </thead>
                           <tbody>
-                            {appointments.map((a, i) => (
+                            {appointments.map((a) => (
                               <tr key={a._id}>
-                                <td><small className="text-muted">{i + 1}</small></td>
-                                <td><strong>{a.service}</strong>{a.message && <small className="d-block text-muted">{a.message.slice(0, 50)}{a.message.length > 50 ? '…' : ''}</small>}</td>
-                                <td>{formatDate(a.date)}<br /><small>{a.time}</small></td>
+                                <td>
+                                  <small className="text-muted d-block" style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>
+                                    {a.appointmentId || a._id.slice(-6)}
+                                  </small>
+                                </td>
+                                <td>
+                                  <strong>{a.service}</strong>
+                                  {a.message && <small className="d-block text-muted">{a.message.slice(0, 50)}{a.message.length > 50 ? '…' : ''}</small>}
+                                </td>
+                                <td>
+                                  {a.status === 'rescheduled' && a.rescheduledDate ? (
+                                    <>
+                                      <span className="text-decoration-line-through text-muted small">{formatDate(a.date)}</span>
+                                      <br /><strong className="text-primary small">{formatDate(a.rescheduledDate)}</strong>
+                                      <br /><small>{a.rescheduledTime || a.time}</small>
+                                    </>
+                                  ) : (
+                                    <>{formatDate(a.date)}<br /><small>{a.time}</small></>
+                                  )}
+                                </td>
                                 <td><span className={`badge bg-${STATUS_BADGE[a.paymentStatus] || 'secondary'}`}>{a.paymentStatus?.replace('_', ' ') || 'unpaid'}</span></td>
-                                <td><span className={`badge bg-${STATUS_BADGE[a.status] || 'secondary'}`}>{a.status}</span></td>
+                                <td>
+                                  <span className={`badge bg-${STATUS_BADGE[a.status] || 'secondary'}`}>
+                                    {a.status.charAt(0).toUpperCase() + a.status.slice(1)}
+                                  </span>
+                                </td>
                                 <td><small>{formatDate(a.createdAt)}</small></td>
+                                <td>
+                                  {a.status === 'cancelled' && (
+                                    <a
+                                      href={`tel:${s?.contact_phone || '+919392538226'}`}
+                                      className="btn btn-outline-warning btn-sm"
+                                      title="Request Reschedule"
+                                    >
+                                      <i className="fas fa-redo-alt me-1"></i>Reschedule
+                                    </a>
+                                  )}
+                                </td>
                               </tr>
                             ))}
                           </tbody>
@@ -412,32 +449,41 @@ export default function Profile() {
                         <table className="profile-table">
                           <thead>
                             <tr>
-                              <th>#</th>
+                              <th>Order ID</th>
                               <th>Book</th>
                               <th>Qty</th>
                               <th>Order Date</th>
                               <th>Payment</th>
                               <th>Status</th>
-                              {orders.some(o => o.paymentId?.receiptId) && <th>Receipt</th>}
+                              <th>Tracking</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {orders.map((o, i) => (
+                            {orders.map((o) => (
                               <tr key={o._id}>
-                                <td><small className="text-muted">{i + 1}</small></td>
-                                <td><strong>{o.bookTitle || o.book?.name || '—'}</strong>{o.bookPrice && <small className="d-block text-muted">₹{o.bookPrice}</small>}</td>
+                                <td>
+                                  <small className="text-muted d-block" style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>
+                                    {o.orderId || o._id.slice(-6)}
+                                  </small>
+                                </td>
+                                <td>
+                                  <strong>{o.bookTitle || o.book?.name || '—'}</strong>
+                                  {o.bookPrice && <small className="d-block text-muted">₹{o.bookPrice}</small>}
+                                </td>
                                 <td>{o.quantity}</td>
                                 <td><small>{formatDate(o.createdAt)}</small></td>
                                 <td><span className={`badge bg-${STATUS_BADGE[o.paymentStatus] || 'secondary'}`}>{o.paymentStatus?.replace('_', ' ') || 'unpaid'}</span></td>
-                                <td><span className={`badge bg-${STATUS_BADGE[o.status] || 'secondary'}`}>{o.status}</span></td>
-                                {orders.some(ord => ord.paymentId?.receiptId) && (
-                                  <td>
-                                    {o.paymentId?.receiptId
-                                      ? <button className="btn btn-outline-success btn-sm" onClick={() => window.print()} title="Download receipt"><i className="fas fa-download"></i></button>
-                                      : <small className="text-muted">—</small>
-                                    }
-                                  </td>
-                                )}
+                                <td>
+                                  <span className={`badge bg-${STATUS_BADGE[o.status] || 'secondary'}`}>
+                                    {o.status.charAt(0).toUpperCase() + o.status.slice(1)}
+                                  </span>
+                                </td>
+                                <td>
+                                  {o.trackingNumber
+                                    ? <small className="text-info fw-semibold">{o.trackingNumber}</small>
+                                    : <small className="text-muted">—</small>
+                                  }
+                                </td>
                               </tr>
                             ))}
                           </tbody>

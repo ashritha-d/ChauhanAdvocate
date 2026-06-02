@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { createAppointment, getAllAppointments, getAppointment, updateAppointment, deleteAppointment, getStats } = require('../controllers/appointmentController');
+const { createAppointment, getAllAppointments, getAppointment, updateAppointment, deleteAppointment, getStats, getAvailableSlots } = require('../controllers/appointmentController');
 const { protect } = require('../middleware/auth');
 const { body } = require('express-validator');
 const { validate } = require('../middleware/validate');
@@ -14,6 +14,7 @@ const appointmentValidation = [
   validate
 ];
 
+router.get('/available-slots', getAvailableSlots);
 router.post('/', appointmentValidation, createAppointment);
 router.get('/', protect, getAllAppointments);
 router.get('/stats', protect, getStats);

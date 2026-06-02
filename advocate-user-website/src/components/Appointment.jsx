@@ -1,11 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getServices, bookAppointment } from '../api';
+import { getServices, bookAppointment, getAvailableSlots } from '../api';
 import { useSite } from '../context/SiteContext';
 import { useUserAuth } from '../context/UserAuthContext';
 import { saveAuthRedirect } from './AuthGateModal';
-
-const TIMES = ['09:00 AM','10:00 AM','11:00 AM','12:00 PM','02:00 PM','03:00 PM','04:00 PM','05:00 PM','06:00 PM'];
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -14,18 +12,36 @@ export default function Appointment() {
   const { user, authHeader } = useUserAuth();
   const [services, setServices] = useState([]);
   const [form, setForm] = useState({ name:'', email:'', phone:'', service:'', date:'', time:'', message:'' });
+  const [slots, setSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState(null);
+
+  // Today's date string for min attribute
+  const todayStr = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     getServices().then(r => { if (r.data.success) setServices(r.data.data); }).catch(() => {});
     if (user) setForm(f => ({ ...f, name: user.name || f.name, email: user.email || f.email, phone: user.phone || f.phone }));
-    // Set min date
-    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-    document.getElementById('appt-date-input')?.setAttribute('min', tomorrow.toISOString().split('T')[0]);
   }, [user]);
 
-  const showAlert = (type, msg) => { setAlert({ type, msg }); setTimeout(() => setAlert(null), 5000); };
+  const loadSlots = useCallback(async (date) => {
+    if (!date) { setSlots([]); return; }
+    setSlotsLoading(true);
+    try {
+      const r = await getAvailableSlots(date);
+      if (r.data.success) setSlots(r.data.slots);
+    } catch { setSlots([]); }
+    setSlotsLoading(false);
+  }, []);
+
+  const handleDateChange = (e) => {
+    const date = e.target.value;
+    setForm(f => ({ ...f, date, time: '' }));
+    loadSlots(date);
+  };
+
+  const showAlert = (type, msg) => { setAlert({ type, msg }); setTimeout(() => setAlert(null), 6000); };
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -35,10 +51,16 @@ export default function Appointment() {
       const payload = { ...form, userId: user._id };
       const r = await bookAppointment(payload, authHeader());
       if (r.data.success) {
-        showAlert('success', (r.data.message || 'Appointment booked!') + ' <a href="/ChauhanAdvocate/profile?tab=appointments" class="alert-link ms-1">View in dashboard →</a>');
+        const apptId = r.data.data?.appointmentId || '';
+        showAlert('success', (r.data.message || 'Appointment booked!') + (apptId ? ` ID: <strong>${apptId}</strong>.` : '') + ' <a href="/ChauhanAdvocate/profile?tab=appointments" class="alert-link ms-1">View in dashboard →</a>');
         setForm({ name: user.name || '', email: user.email || '', phone: user.phone || '', service:'', date:'', time:'', message:'' });
+        setSlots([]);
         e.target.classList.remove('was-validated');
-      } else { showAlert('danger', r.data.message || 'Something went wrong.'); }
+      } else {
+        showAlert('danger', r.data.message || 'Something went wrong.');
+        // Refresh slots if conflict
+        if (form.date) loadSlots(form.date);
+      }
     } catch { showAlert('danger', 'Server error. Please try again later or call us directly.'); }
     setSubmitting(false);
   };
@@ -76,7 +98,6 @@ export default function Appointment() {
           {/* Right: form or login gate */}
           <div className="col-lg-7" data-aos="fade-left">
             {user ? (
-              /* ── Logged-in: show full booking form ── */
               <div className="appointment-form-card">
                 <h4 className="mb-4"><i className="fas fa-calendar-alt text-gold me-2"></i>Book an Appointment</h4>
                 <form onSubmit={handleSubmit} noValidate>
@@ -102,13 +123,27 @@ export default function Appointment() {
                     </div>
                     <div className="col-md-6">
                       <label className="form-label">Preferred Date *</label>
-                      <input type="date" id="appt-date-input" className="form-control" value={form.date} onChange={set('date')} required />
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={form.date}
+                        min={todayStr}
+                        onChange={handleDateChange}
+                        required
+                      />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label">Preferred Time *</label>
-                      <select className="form-select" value={form.time} onChange={set('time')} required>
-                        <option value="">Select time...</option>
-                        {TIMES.map(t => <option key={t}>{t}</option>)}
+                      <label className="form-label">
+                        Preferred Time *
+                        {slotsLoading && <span className="text-muted ms-2 small"><i className="fas fa-spinner fa-spin"></i></span>}
+                      </label>
+                      <select className="form-select" value={form.time} onChange={set('time')} required disabled={!form.date || slotsLoading}>
+                        <option value="">{form.date ? 'Select time...' : 'Select date first'}</option>
+                        {slots.map(({ time, available }) => (
+                          <option key={time} value={time} disabled={!available}>
+                            {time}{!available ? ' — Booked' : ''}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div className="col-12">
@@ -128,7 +163,6 @@ export default function Appointment() {
                 {alert && <div className={`alert alert-${alert.type} mt-3`} dangerouslySetInnerHTML={{ __html: alert.msg }}></div>}
               </div>
             ) : (
-              /* ── Guest: login gate ── */
               <div className="appt-gate-card">
                 <div className="appt-gate-lock">
                   <i className="fas fa-lock"></i>

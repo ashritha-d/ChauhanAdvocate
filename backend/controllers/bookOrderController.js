@@ -1,5 +1,6 @@
 const BookOrder = require('../models/BookOrder');
 const UserNotification = require('../models/UserNotification');
+const wa = require('../services/whatsapp');
 
 exports.createBookOrder = async (req, res) => {
   try {
@@ -9,12 +10,20 @@ exports.createBookOrder = async (req, res) => {
       await UserNotification.create({
         userId: order.userId,
         title: 'Order Placed',
-        message: `Your order for "${order.bookTitle}" (Qty: ${order.quantity}) has been placed successfully and is pending confirmation.`,
+        message: `Your order for "${order.bookTitle}" (Qty: ${order.quantity}) has been placed successfully.\nOrder ID: ${order.orderId || order._id}`,
         type: 'order',
         referenceId: order._id,
         referenceType: 'BookOrder',
       });
     }
+
+    // WhatsApp notification (non-blocking)
+    wa.orderPlaced({
+      name: order.name,
+      phone: order.phone,
+      orderId: order.orderId || order._id.toString(),
+      bookTitle: order.bookTitle,
+    }).catch(() => {});
 
     res.status(201).json({ success: true, message: 'Book order placed successfully! We will contact you shortly.', data: order });
   } catch (error) {
@@ -31,7 +40,8 @@ exports.getAllBookOrders = async (req, res) => {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
-        { bookTitle: { $regex: search, $options: 'i' } }
+        { bookTitle: { $regex: search, $options: 'i' } },
+        { orderId: { $regex: search, $options: 'i' } },
       ];
     }
     const total = await BookOrder.countDocuments(query);
@@ -57,6 +67,7 @@ exports.getBookOrder = async (req, res) => {
 
 const ORDER_STATUS_MESSAGES = {
   confirmed: 'Your book order has been confirmed and is being processed.',
+  processing: 'Your order is being processed and will be shipped soon.',
   shipped: 'Great news! Your order has been shipped and is on the way.',
   delivered: 'Your order has been delivered. Enjoy your book!',
   cancelled: 'Your book order has been cancelled.',
@@ -69,16 +80,37 @@ exports.updateBookOrder = async (req, res) => {
 
     const order = await BookOrder.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
 
-    if (existing.userId && req.body.status && req.body.status !== existing.status) {
-      const statusLabel = req.body.status.charAt(0).toUpperCase() + req.body.status.slice(1);
+    const newStatus = req.body.status;
+    const statusChanged = newStatus && newStatus !== existing.status;
+
+    if (existing.userId && statusChanged) {
+      const statusLabel = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
       await UserNotification.create({
         userId: existing.userId,
         title: `Order ${statusLabel}`,
-        message: ORDER_STATUS_MESSAGES[req.body.status] || `Your order status has been updated to "${statusLabel}".`,
+        message: ORDER_STATUS_MESSAGES[newStatus] || `Your order status has been updated to "${statusLabel}".`,
         type: 'order',
         referenceId: existing._id,
         referenceType: 'BookOrder',
       });
+    }
+
+    // WhatsApp on status change (non-blocking)
+    if (statusChanged) {
+      const orderId = existing.orderId || existing._id.toString();
+      const info = { name: existing.name, phone: existing.phone, orderId };
+
+      if (newStatus === 'confirmed') {
+        wa.orderConfirmed(info).catch(() => {});
+      } else if (newStatus === 'processing') {
+        wa.orderProcessing(info).catch(() => {});
+      } else if (newStatus === 'shipped') {
+        wa.orderShipped({ ...info, trackingNumber: req.body.trackingNumber || order.trackingNumber }).catch(() => {});
+      } else if (newStatus === 'delivered') {
+        wa.orderDelivered(info).catch(() => {});
+      } else if (newStatus === 'cancelled') {
+        wa.orderCancelled(info).catch(() => {});
+      }
     }
 
     res.json({ success: true, data: order });

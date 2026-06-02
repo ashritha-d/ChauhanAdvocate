@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const appointmentSchema = new mongoose.Schema({
+  appointmentId: { type: String, unique: true, sparse: true },
   name: { type: String, required: true, trim: true },
   email: { type: String, required: true, lowercase: true, trim: true },
   phone: { type: String, required: true, trim: true },
@@ -10,9 +11,11 @@ const appointmentSchema = new mongoose.Schema({
   message: { type: String, trim: true },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'cancelled', 'completed'],
+    enum: ['pending', 'confirmed', 'rescheduled', 'completed', 'cancelled'],
     default: 'pending'
   },
+  rescheduledDate: { type: Date, default: null },
+  rescheduledTime: { type: String, default: '' },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   adminNotes: { type: String, default: '' },
   isRead: { type: Boolean, default: false },

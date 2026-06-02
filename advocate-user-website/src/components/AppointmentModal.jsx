@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { getServices, bookAppointment } from '../api';
+import { useEffect, useState, useCallback } from 'react';
+import { getServices, bookAppointment, getAvailableSlots } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
 
-const TIMES = ['09:00 AM','10:00 AM','11:00 AM','12:00 PM','02:00 PM','03:00 PM','04:00 PM','05:00 PM','06:00 PM'];
+const todayStr = () => new Date().toISOString().split('T')[0];
 
 export default function AppointmentModal({ onClose }) {
   const { user, authHeader } = useUserAuth();
@@ -11,17 +11,30 @@ export default function AppointmentModal({ onClose }) {
     name: user?.name || '', email: user?.email || '',
     phone: user?.phone || '', service: '', date: '', time: '', message: '',
   });
+  const [slots, setSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState(null);
 
   useEffect(() => {
     getServices().then(r => { if (r.data.success) setServices(r.data.data); }).catch(() => {});
-    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-    const minDate = tomorrow.toISOString().split('T')[0];
-    setTimeout(() => {
-      document.getElementById('appt-modal-date')?.setAttribute('min', minDate);
-    }, 50);
   }, []);
+
+  const loadSlots = useCallback(async (date) => {
+    if (!date) { setSlots([]); return; }
+    setSlotsLoading(true);
+    try {
+      const r = await getAvailableSlots(date);
+      if (r.data.success) setSlots(r.data.slots);
+    } catch { setSlots([]); }
+    setSlotsLoading(false);
+  }, []);
+
+  const handleDateChange = (e) => {
+    const date = e.target.value;
+    setForm(f => ({ ...f, date, time: '' }));
+    loadSlots(date);
+  };
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 
@@ -34,12 +47,15 @@ export default function AppointmentModal({ onClose }) {
       const payload = user ? { ...form, userId: user._id } : form;
       const r = await bookAppointment(payload, user ? authHeader() : {});
       if (r.data.success) {
-        setAlert({ type: 'success', msg: 'Appointment booked successfully! We will confirm shortly.' });
+        const apptId = r.data.data?.appointmentId || '';
+        setAlert({ type: 'success', msg: `Appointment booked!${apptId ? ` ID: ${apptId}.` : ''} We will confirm shortly.` });
         setForm(f => ({ ...f, service: '', date: '', time: '', message: '' }));
+        setSlots([]);
         e.target.classList.remove('was-validated');
         setTimeout(onClose, 2500);
       } else {
         setAlert({ type: 'danger', msg: r.data.message || 'Something went wrong.' });
+        if (form.date) loadSlots(form.date);
       }
     } catch {
       setAlert({ type: 'danger', msg: 'Server error. Please try again or call us directly.' });
@@ -86,13 +102,33 @@ export default function AppointmentModal({ onClose }) {
             </div>
             <div className="col-md-6">
               <label className="form-label form-label-sm">Preferred Date *</label>
-              <input id="appt-modal-date" type="date" className="form-control form-control-sm" value={form.date} onChange={set('date')} required />
+              <input
+                type="date"
+                className="form-control form-control-sm"
+                value={form.date}
+                min={todayStr()}
+                onChange={handleDateChange}
+                required
+              />
             </div>
             <div className="col-md-6">
-              <label className="form-label form-label-sm">Preferred Time *</label>
-              <select className="form-select form-select-sm" value={form.time} onChange={set('time')} required>
-                <option value="">Select time…</option>
-                {TIMES.map(t => <option key={t}>{t}</option>)}
+              <label className="form-label form-label-sm">
+                Preferred Time *
+                {slotsLoading && <span className="ms-1 small text-muted"><i className="fas fa-spinner fa-spin"></i></span>}
+              </label>
+              <select
+                className="form-select form-select-sm"
+                value={form.time}
+                onChange={set('time')}
+                required
+                disabled={!form.date || slotsLoading}
+              >
+                <option value="">{form.date ? 'Select time…' : 'Select date first'}</option>
+                {slots.map(({ time, available }) => (
+                  <option key={time} value={time} disabled={!available}>
+                    {time}{!available ? ' — Booked' : ''}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="col-12">

@@ -9,11 +9,13 @@ const bookOrderSchema = new mongoose.Schema({
   quantity: { type: Number, required: true, min: 1, default: 1 },
   address: { type: String, required: true, trim: true },
   notes: { type: String, trim: true },
+  orderId: { type: String, unique: true, sparse: true },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
+    enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
     default: 'pending'
   },
+  trackingNumber: { type: String, default: '' },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   adminNotes: { type: String, default: '' },
   isRead: { type: Boolean, default: false },

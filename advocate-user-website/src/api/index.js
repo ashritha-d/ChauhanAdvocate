@@ -13,6 +13,7 @@ export const getMagazines = () => api.get('/magazines');
 export const getDrafts = () => api.get('/drafts');
 export const getBooks = () => api.get('/books');
 export const bookAppointment = (data, headers = {}) => api.post('/appointments', data, { headers });
+export const getAvailableSlots = (date) => api.get(`/appointments/available-slots?date=${date}`);
 export const sendContact = (data) => api.post('/contacts', data);
 
 // ── User Auth ─────────────────────────────────────────────────────────────────
