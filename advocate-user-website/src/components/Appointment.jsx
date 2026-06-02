@@ -58,7 +58,7 @@ export default function Appointment() {
           {/* Left info column */}
           <div className="col-lg-5" data-aos="fade-right">
             <div className="section-label" style={{ color: 'rgba(201,168,76,0.8)' }}>Schedule a Meeting</div>
-            <h2 className="section-title text-white">Book Your <span className="text-gold">Free Consultation</span></h2>
+            <h2 className="section-title text-white">Book Your <span className="text-gold">Consultation</span></h2>
             <p style={{ color: 'rgba(255,255,255,0.75)' }} className="mb-4">Take the first step towards resolving your legal matter.</p>
             <div className="appointment-info">
               {infoItems.map(({ icon, title, text }) => (
@@ -78,7 +78,7 @@ export default function Appointment() {
             {user ? (
               /* ── Logged-in: show full booking form ── */
               <div className="appointment-form-card">
-                <h4 className="mb-4"><i className="fas fa-calendar-alt text-gold me-2"></i>Book Appointment</h4>
+                <h4 className="mb-4"><i className="fas fa-calendar-alt text-gold me-2"></i>Book an Appointment</h4>
                 <form onSubmit={handleSubmit} noValidate>
                   <div className="row g-3">
                     <div className="col-md-6">

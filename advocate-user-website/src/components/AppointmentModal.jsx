@@ -52,7 +52,7 @@ export default function AppointmentModal({ onClose }) {
       <div className="appt-modal" onClick={e => e.stopPropagation()}>
         <button className="jr-modal-close" onClick={onClose}>&times;</button>
         <h5 className="mb-1" style={{ fontFamily: "'Playfair Display',serif" }}>
-          <i className="fas fa-calendar-alt text-gold me-2"></i>Book Appointment
+          <i className="fas fa-calendar-alt text-gold me-2"></i>Book an Appointment
         </h5>
         <p className="text-muted small mb-3">Fill in the details below to schedule your consultation</p>
 

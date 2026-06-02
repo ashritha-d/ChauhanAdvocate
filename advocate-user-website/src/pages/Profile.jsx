@@ -227,7 +227,7 @@ export default function Profile() {
             <div className="profile-top-bar-right">
               <button className="btn btn-sm btn-outline-secondary" onClick={() => setShowApptModal(true)}>
                 <i className="fas fa-calendar-check me-1"></i>
-                <span className="d-none d-sm-inline">Book Appointment</span>
+                <span className="d-none d-sm-inline">Book an Appointment</span>
                 <span className="d-sm-none">Book</span>
               </button>
               <button className="btn btn-sm btn-outline-danger" onClick={() => { logout(); navigate('/'); }}>
@@ -363,7 +363,7 @@ export default function Profile() {
                   {dataLoading
                     ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
                     : appointments.length === 0
-                    ? <div className="profile-empty"><i className="fas fa-calendar-times"></i><p>No appointments found</p><button className="btn btn-gold btn-sm" onClick={() => setShowApptModal(true)}>Book Appointment</button></div>
+                    ? <div className="profile-empty"><i className="fas fa-calendar-times"></i><p>No appointments found</p><button className="btn btn-gold btn-sm" onClick={() => setShowApptModal(true)}>Book an Appointment</button></div>
                     : (
                       <div className="profile-table-wrap">
                         <table className="profile-table">

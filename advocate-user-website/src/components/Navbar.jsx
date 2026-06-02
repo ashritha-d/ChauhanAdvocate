@@ -131,7 +131,7 @@ export default function Navbar() {
               : <a key={id} className="nav-link" href={`#${id}`} onClick={handleSection(id)}>{label}</a>
           ))}
           <a href="#appointment" className="btn btn-gold ms-2" onClick={handleAppointment}>
-            Book Appointment
+            Book an Appointment
           </a>
 
           {/* Auth — desktop */}
@@ -206,7 +206,7 @@ export default function Navbar() {
               : <a key={id} className="nav-link" href={`#${id}`} onClick={handleSection(id)}>{label}</a>
           ))}
           <a className="nav-link" href="#appointment" onClick={handleAppointment}>
-            <i className="fas fa-calendar-check me-2"></i>Book Appointment
+            <i className="fas fa-calendar-check me-2"></i>Book an Appointment
           </a>
 
           <div className="nav-links-divider"></div>
