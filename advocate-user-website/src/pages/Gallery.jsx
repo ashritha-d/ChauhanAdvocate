@@ -1,26 +1,17 @@
 import { useEffect, useState } from 'react';
-import api from '../api/axios';
+
+const STATIC_IMAGES = [
+  'g1.jpeg','g2.jpeg','g3.jpeg','g4.jpeg',
+  'g6.jpeg','g7.jpeg','g8.jpeg','g9.jpeg','g10.jpeg',
+].map(f => ({ filename: f, url: `/gallery/${f}` }));
 
 export default function Gallery() {
-  const [images, setImages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [lightbox, setLightbox] = useState(null); // index of open image
+  const [images] = useState(STATIC_IMAGES);
+  const [loading] = useState(false);
+  const [lightbox, setLightbox] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    api.get('/gallery')
-      .then(r => {
-        if (r.data.success) {
-          // Upgrade http → https to avoid mixed-content blocks
-          const isHttps = window.location.protocol === 'https:';
-          setImages(r.data.data.map(img => ({
-            ...img,
-            url: isHttps ? img.url.replace(/^http:\/\//, 'https://') : img.url,
-          })));
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
   }, []);
 
   // Keyboard navigation for lightbox
