@@ -46,10 +46,7 @@ export default function Hero() {
           </div>
           <div className="col-lg-5 text-center mt-5 mt-lg-0" data-aos="fade-left" data-aos-duration="1000">
             <div className="hero-image-wrap">
-              <div className="hero-card-float">
-                <i className="fas fa-balance-scale"></i>
-                <span>Scales of Justice</span>
-              </div>
+
               <img
                 src={mediaUrl(s.advocate_photo) || `${import.meta.env.BASE_URL}advocate.jpeg`}
                 alt={s.advocate_name || 'Advocate'}
