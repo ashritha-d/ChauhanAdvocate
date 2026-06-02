@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 
+const BASE = import.meta.env.BASE_URL;
 const STATIC_IMAGES = [
   'g1.jpeg','g2.jpeg','g3.jpeg','g4.jpeg',
   'g6.jpeg','g7.jpeg','g8.jpeg','g9.jpeg','g10.jpeg',
-].map(f => ({ filename: f, url: `/gallery/${f}` }));
+].map(f => ({ filename: f, url: `${BASE}gallery/${f}` }));
 
 export default function Gallery() {
   const [images] = useState(STATIC_IMAGES);
