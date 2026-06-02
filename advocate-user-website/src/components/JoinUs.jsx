@@ -3,6 +3,7 @@ import SliderSection from './SliderSection';
 import { useSite } from '../context/SiteContext';
 import { useUserAuth } from '../context/UserAuthContext';
 import api from '../api/axios';
+import AuthGateModal, { saveAuthRedirect } from './AuthGateModal';
 
 const STEPS = ['Personal', 'Education', 'Documents'];
 
@@ -247,11 +248,24 @@ function JrAdvocateModal({ onClose }) {
   );
 }
 
+const BASE = import.meta.env.BASE_URL;
+
 export default function JoinUs() {
   const { settings: s } = useSite();
+  const { user } = useUserAuth();
   const [showModal, setShowModal] = useState(false);
+  const [showGate, setShowGate] = useState(false);
 
   const waNumber = (s.contact_whatsapp || s.contact_phone || '919392538226').replace(/\D/g, '');
+
+  const handleApplyClick = () => {
+    if (user) {
+      setShowModal(true);
+    } else {
+      saveAuthRedirect(`${BASE}#join`);
+      setShowGate(true);
+    }
+  };
 
   const items = [
     {
@@ -283,7 +297,7 @@ export default function JoinUs() {
       description: 'Start your legal career with us. Apply for a junior advocate position with full details and resume.',
       buttonText: 'Apply Now',
       isButton: true,
-      onClick: () => setShowModal(true),
+      onClick: handleApplyClick,
     },
   ];
 
@@ -298,6 +312,13 @@ export default function JoinUs() {
         bg="bg-light"
       />
       {showModal && <JrAdvocateModal onClose={() => setShowModal(false)} />}
+      {showGate && (
+        <AuthGateModal
+          action="Apply as Jr. Advocate"
+          redirectTo={`${BASE}#join`}
+          onClose={() => setShowGate(false)}
+        />
+      )}
     </>
   );
 }

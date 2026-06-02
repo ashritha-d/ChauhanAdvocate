@@ -1,5 +1,34 @@
 
 /* ═══════════════════════════════════════════════════════════
+   AUTH GATE MODAL (Login Required popup)
+═══════════════════════════════════════════════════════════ */
+.auth-gate-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+  text-align: center;
+}
+.auth-gate-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: #fff; font-size: 1.6rem;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 8px 24px rgba(201,168,76,0.4);
+}
+.auth-gate-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: #1a1a2e; margin-bottom: 8px; }
+.auth-gate-msg { color: #555; font-size: 0.9rem; margin-bottom: 6px; }
+.auth-gate-action { color: #888; font-size: 0.82rem; margin-bottom: 20px; }
+.auth-gate-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
+.auth-gate-btns .flex-1 { flex: 1; min-width: 120px; }
+.auth-gate-cancel { background: none; border: none; color: #aaa; font-size: 0.85rem; cursor: pointer; text-decoration: underline; }
+.auth-gate-cancel:hover { color: #555; }
+
+/* ═══════════════════════════════════════════════════════════
    AUTH PAGES (Login / Register / ForgotPassword)
 ═══════════════════════════════════════════════════════════ */
 .auth-page {

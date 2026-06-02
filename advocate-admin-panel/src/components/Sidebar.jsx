@@ -24,6 +24,9 @@ const NAV = [
   { label: 'Users', items: [
     { icon: 'fas fa-users', label: 'Registered Users', page: 'users' },
   ]},
+  { label: 'Alerts', items: [
+    { icon: 'fas fa-bell', label: 'All Notifications', page: 'notifications' },
+  ]},
   { label: 'Account', items: [
     { icon: 'fas fa-user-circle', label: 'My Profile', page: 'profile' },
   ]},

@@ -512,6 +512,38 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .latest-card-img { height: 150px; }
 }
 
+/* ── Appointment Auth Gate Card ── */
+.appt-gate-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 48px 36px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.appt-gate-lock {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: #fff; font-size: 1.8rem;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 8px 24px rgba(201,168,76,0.4);
+}
+.appt-gate-title { font-family: 'Playfair Display', serif; color: var(--dark); font-size: 1.6rem; margin-bottom: 12px; }
+.appt-gate-sub { color: rgba(255,255,255,0.75); font-size: 0.95rem; margin-bottom: 24px; }
+.appt-gate-features { text-align: left; display: inline-block; margin: 0 auto; }
+.appt-gate-feature { color: rgba(255,255,255,0.8); font-size: 0.88rem; padding: 5px 0; }
+.appt-gate-feature i { color: var(--gold); margin-right: 8px; }
+.appt-gate-note { color: rgba(255,255,255,0.5); font-size: 0.82rem; }
+
+/* Override card bg in dark section */
+.appointment-section .appt-gate-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(201,168,76,0.25); backdrop-filter: blur(10px); }
+.appointment-section .appt-gate-title { color: #fff; }
+
+@media (max-width: 576px) {
+  .appt-gate-card { padding: 32px 20px; }
+  .auth-gate-card { padding: 28px 20px; }
+}
+
 /* ── Jr. Advocate Modal ── */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
 .jr-modal { background: #fff; border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 460px; position: relative; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
