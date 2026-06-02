@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 
+// Gallery has a dedicated page; all others are home-page anchors
 const NAV_LINKS = [
-  { id: 'home',    label: 'Home' },
-  { id: 'services', label: 'Services' },
-  { id: 'gallery', label: 'Gallery' },
-  { id: 'blog',    label: 'Blog' },
-  { id: 'faq',     label: 'FAQ' },
-  { id: 'contact', label: 'Contact' },
+  { id: 'home',     label: 'Home',     page: null },
+  { id: 'services', label: 'Services', page: null },
+  { id: 'gallery',  label: 'Gallery',  page: '/gallery' },
+  { id: 'blog',     label: 'Blog',     page: null },
+  { id: 'faq',      label: 'FAQ',      page: null },
+  { id: 'contact',  label: 'Contact',  page: null },
 ];
 
 function formatDate(d) {
@@ -23,6 +24,7 @@ export default function Navbar() {
   const navRef = useRef(null);
   const { user, logout, unreadCount } = useUserAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -123,10 +125,10 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="d-none d-lg-flex ms-auto align-items-center gap-1">
-          {NAV_LINKS.map(({ id, label }) => (
-            <a key={id} className="nav-link" href={`#${id}`} onClick={handleSection(id)}>
-              {label}
-            </a>
+          {NAV_LINKS.map(({ id, label, page }) => (
+            page
+              ? <Link key={id} to={page} className={`nav-link ${location.pathname === page ? 'active' : ''}`} onClick={close}>{label}</Link>
+              : <a key={id} className="nav-link" href={`#${id}`} onClick={handleSection(id)}>{label}</a>
           ))}
           <a href="#appointment" className="btn btn-gold ms-2" onClick={handleAppointment}>
             Book Appointment
@@ -198,10 +200,10 @@ export default function Navbar() {
 
         {/* Mobile dropdown menu */}
         <div className={`nav-links d-lg-none ${menuOpen ? 'active' : ''}`}>
-          {NAV_LINKS.map(({ id, label }) => (
-            <a key={id} className="nav-link" href={`#${id}`} onClick={handleSection(id)}>
-              {label}
-            </a>
+          {NAV_LINKS.map(({ id, label, page }) => (
+            page
+              ? <Link key={id} to={page} className="nav-link" onClick={close}>{label}</Link>
+              : <a key={id} className="nav-link" href={`#${id}`} onClick={handleSection(id)}>{label}</a>
           ))}
           <a className="nav-link" href="#appointment" onClick={handleAppointment}>
             <i className="fas fa-calendar-check me-2"></i>Book Appointment

@@ -14,6 +14,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import Profile from './pages/Profile';
+import Gallery from './pages/Gallery';
 
 function ScrollToHash() {
   const location = useLocation();
@@ -96,6 +97,11 @@ export default function App() {
               <AuthLayout>
                 <Profile />
               </AuthLayout>
+            } />
+            <Route path="/gallery" element={
+              <AppLayout>
+                <Gallery />
+              </AppLayout>
             } />
           </Routes>
         </BrowserRouter>

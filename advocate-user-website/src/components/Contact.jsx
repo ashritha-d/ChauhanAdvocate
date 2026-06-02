@@ -83,6 +83,19 @@ export default function Contact() {
             </div>
           </div>
           <div className="col-lg-8" data-aos="fade-left">
+            {/* Google Map */}
+            <div className="contact-map-wrap mb-4">
+              <iframe
+                title="Office Location"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(address)}&output=embed&z=15`}
+                width="100%"
+                height="240"
+                style={{ border: 0, borderRadius: 12 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
             <div className="contact-form-card">
               <h4 className="mb-4"><i className="fas fa-paper-plane text-gold me-2"></i>Send Us a Message</h4>
               <form onSubmit={handleSubmit} noValidate>

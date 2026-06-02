@@ -10,8 +10,8 @@ exports.register = async (req, res) => {
   try {
     const { name, email, phone, password, confirmPassword } = req.body;
 
-    if (!name || !email || !phone || !password || !confirmPassword) {
-      return res.status(400).json({ success: false, message: 'All fields are required' });
+    if (!name || !phone || !password || !confirmPassword) {
+      return res.status(400).json({ success: false, message: 'Name, mobile, password are required' });
     }
     if (password !== confirmPassword) {
       return res.status(400).json({ success: false, message: 'Passwords do not match' });
@@ -23,16 +23,18 @@ exports.register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Enter a valid 10-digit mobile number' });
     }
 
-    const emailExists = await User.findOne({ email: email.toLowerCase().trim() });
-    if (emailExists) {
-      return res.status(400).json({ success: false, message: 'Email is already registered' });
+    // Email is optional — only check duplicate if provided
+    const cleanEmail = email && email.trim() ? email.toLowerCase().trim() : null;
+    if (cleanEmail) {
+      const emailExists = await User.findOne({ email: cleanEmail });
+      if (emailExists) return res.status(400).json({ success: false, message: 'Email is already registered' });
     }
     const phoneExists = await User.findOne({ phone: phone.trim() });
     if (phoneExists) {
       return res.status(400).json({ success: false, message: 'Mobile number is already registered' });
     }
 
-    const user = await User.create({ name: name.trim(), email: email.toLowerCase().trim(), phone: phone.trim(), password });
+    const user = await User.create({ name: name.trim(), email: cleanEmail, phone: phone.trim(), password });
 
     await UserNotification.create({
       userId: user._id,

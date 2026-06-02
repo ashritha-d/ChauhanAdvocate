@@ -6,6 +6,7 @@ import {
   getMyAppointments, getMyOrders, getNotifications,
   markNotificationRead, markAllNotificationsRead, getMyApplications,
 } from '../api';
+import AppointmentModal from '../components/AppointmentModal';
 
 const TABS = [
   { id: 'dashboard', icon: 'fa-tachometer-alt', label: 'Dashboard' },
@@ -54,6 +55,7 @@ export default function Profile() {
   const [pwdForm, setPwdForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [showPwd, setShowPwd] = useState({});
   const [saving, setSaving] = useState(false);
+  const [showApptModal, setShowApptModal] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/login');
@@ -223,7 +225,7 @@ export default function Profile() {
               </div>
             </div>
             <div className="profile-top-bar-right">
-              <button className="btn btn-sm btn-outline-secondary" onClick={() => goTo('appointment')}>
+              <button className="btn btn-sm btn-outline-secondary" onClick={() => setShowApptModal(true)}>
                 <i className="fas fa-calendar-check me-1"></i>
                 <span className="d-none d-sm-inline">Book Appointment</span>
                 <span className="d-sm-none">Book</span>
@@ -312,7 +314,7 @@ export default function Profile() {
                           <i className="fas fa-calendar-check text-gold me-2"></i>Recent Appointments
                         </div>
                         {appointments.length === 0 && apptStats.total === 0
-                          ? <div className="profile-empty"><i className="fas fa-calendar-times"></i><p>No appointments yet</p><a onClick={() => goTo('appointment')} className="btn btn-gold btn-sm">Book Now</a></div>
+                          ? <div className="profile-empty"><i className="fas fa-calendar-times"></i><p>No appointments yet</p><a onClick={() => setShowApptModal(true)} className="btn btn-gold btn-sm">Book Now</a></div>
                           : appointments.slice(0, 3).map(a => (
                             <div key={a._id} className="profile-list-item">
                               <div>
@@ -356,12 +358,12 @@ export default function Profile() {
                 <div>
                   <div className="d-flex align-items-center justify-content-between mb-4">
                     <h4 className="profile-section-title mb-0">My Appointments</h4>
-                    <button className="btn btn-gold btn-sm" onClick={() => goTo('appointment')}><i className="fas fa-plus me-1"></i>Book New</button>
+                    <button className="btn btn-gold btn-sm" onClick={() => setShowApptModal(true)}><i className="fas fa-plus me-1"></i>Book New</button>
                   </div>
                   {dataLoading
                     ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
                     : appointments.length === 0
-                    ? <div className="profile-empty"><i className="fas fa-calendar-times"></i><p>No appointments found</p><button className="btn btn-gold btn-sm" onClick={() => goTo('appointment')}>Book Appointment</button></div>
+                    ? <div className="profile-empty"><i className="fas fa-calendar-times"></i><p>No appointments found</p><button className="btn btn-gold btn-sm" onClick={() => setShowApptModal(true)}>Book Appointment</button></div>
                     : (
                       <div className="profile-table-wrap">
                         <table className="profile-table">
@@ -397,7 +399,10 @@ export default function Profile() {
               {/* ── Orders ── */}
               {tab === 'orders' && (
                 <div>
-                  <h4 className="profile-section-title">My Orders</h4>
+                  <div className="d-flex align-items-center justify-content-between mb-4">
+                    <h4 className="profile-section-title mb-0">My Orders</h4>
+                    <button className="btn btn-gold btn-sm" onClick={() => goTo('books')}><i className="fas fa-book me-1"></i>Browse Books</button>
+                  </div>
                   {dataLoading
                     ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
                     : orders.length === 0
@@ -420,7 +425,7 @@ export default function Profile() {
                             {orders.map((o, i) => (
                               <tr key={o._id}>
                                 <td><small className="text-muted">{i + 1}</small></td>
-                                <td><strong>{o.bookTitle}</strong>{o.bookPrice && <small className="d-block text-muted">₹{o.bookPrice}</small>}</td>
+                                <td><strong>{o.bookTitle || o.book?.name || '—'}</strong>{o.bookPrice && <small className="d-block text-muted">₹{o.bookPrice}</small>}</td>
                                 <td>{o.quantity}</td>
                                 <td><small>{formatDate(o.createdAt)}</small></td>
                                 <td><span className={`badge bg-${STATUS_BADGE[o.paymentStatus] || 'secondary'}`}>{o.paymentStatus?.replace('_', ' ') || 'unpaid'}</span></td>
@@ -634,6 +639,8 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {showApptModal && <AppointmentModal onClose={() => setShowApptModal(false)} />}
     </div>
   );
 }

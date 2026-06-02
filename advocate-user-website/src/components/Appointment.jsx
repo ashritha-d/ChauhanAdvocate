@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getServices, bookAppointment } from '../api';
 import { useSite } from '../context/SiteContext';
 import { useUserAuth } from '../context/UserAuthContext';
@@ -70,6 +71,22 @@ export default function Appointment() {
           <div className="col-lg-7" data-aos="fade-left">
             <div className="appointment-form-card">
               <h4 className="mb-4"><i className="fas fa-calendar-alt text-gold me-2"></i>Book Appointment</h4>
+
+              {/* Login/Register prompt for guests */}
+              {!user && (
+                <div className="appt-login-prompt">
+                  <i className="fas fa-user-shield fa-lg text-gold"></i>
+                  <div className="flex-grow-1">
+                    <div className="fw-semibold" style={{ fontSize: '0.92rem' }}>Login to track your appointment</div>
+                    <div className="text-muted" style={{ fontSize: '0.8rem' }}>Create an account to view appointment history and get status updates.</div>
+                  </div>
+                  <div className="d-flex gap-2 flex-shrink-0">
+                    <Link to="/login" className="btn btn-sm btn-gold">Login</Link>
+                    <Link to="/register" className="btn btn-sm btn-outline-secondary">Register</Link>
+                  </div>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} noValidate>
                 <div className="row g-3">
                   <div className="col-md-6">

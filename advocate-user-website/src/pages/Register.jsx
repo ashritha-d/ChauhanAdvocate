@@ -21,7 +21,7 @@ export default function Register() {
   const validate = () => {
     const errs = {};
     if (!form.name.trim()) errs.name = 'Full name is required';
-    if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Valid email is required';
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Enter a valid email address';
     if (!form.phone || !/^\d{10}$/.test(form.phone.replace(/\D/g, ''))) errs.phone = 'Enter a valid 10-digit mobile number';
     if (!form.password || form.password.length < 6) errs.password = 'Password must be at least 6 characters';
     if (form.password !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match';
@@ -82,9 +82,9 @@ export default function Register() {
               {fieldErrors.name && <div className="auth-field-error"><i className="fas fa-exclamation-circle me-1"></i>{fieldErrors.name}</div>}
             </div>
 
-            {/* Email */}
+            {/* Email — optional */}
             <div className="mb-3">
-              <label className="auth-label">Email Address *</label>
+              <label className="auth-label">Email Address <span className="text-muted fw-normal">(optional)</span></label>
               <div className="auth-input-wrap">
                 <i className="fas fa-envelope auth-input-icon"></i>
                 <input
@@ -92,7 +92,7 @@ export default function Register() {
                   className={`auth-input ${fieldErrors.email ? 'is-invalid' : ''}`}
                   value={form.email}
                   onChange={set('email')}
-                  placeholder="your@email.com"
+                  placeholder="your@email.com (optional)"
                   autoComplete="email"
                 />
               </div>
