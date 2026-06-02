@@ -1,23 +1,14 @@
 /**
- * WhatsApp notification service — Meta WhatsApp Cloud API (FREE)
- * https://developers.facebook.com/docs/whatsapp/cloud-api
- *
- * Free tier: 1000 conversations/month — sufficient for a law firm.
- * No client opt-in required. Messages go to any WhatsApp number.
+ * WhatsApp notification service — Fonnte
+ * https://fonnte.com
  *
  * Required .env vars:
- *   META_WHATSAPP_TOKEN      — Access token from Meta Developer Console
- *   META_PHONE_NUMBER_ID     — Phone Number ID from Meta Developer Console
- *   ADMIN_WHATSAPP           — Admin phone with country code e.g. "918523035920"
- *
- * Setup:
- *   1. Go to developers.facebook.com → Create App → Business
- *   2. Add WhatsApp product → API Setup
- *   3. Copy Phone Number ID and Access Token
- *   4. Add them to .env and Render environment variables
+ *   FONNTE_TOKEN    — API token from fonnte.com → Device → Token
+ *   ADMIN_WHATSAPP  — Admin phone e.g. "8523035920"
  */
 
 const https = require('https');
+const querystring = require('querystring');
 
 function toE164(number) {
   if (!number) return null;
@@ -27,31 +18,25 @@ function toE164(number) {
   return digits;
 }
 
-function sendMeta(to, body) {
+function sendFonnte(to, message) {
   return new Promise((resolve) => {
-    const token      = process.env.META_WHATSAPP_TOKEN;
-    const phoneNumId = process.env.META_PHONE_NUMBER_ID;
+    const token = process.env.FONNTE_TOKEN;
 
-    if (!token || !phoneNumId) {
-      console.log('[WhatsApp LOG] To:', to, '\nMessage:', body);
+    if (!token) {
+      console.log('[WhatsApp LOG] To:', to, '\nMessage:', message);
       return resolve({ logged: true });
     }
 
-    const payload = JSON.stringify({
-      messaging_product: 'whatsapp',
-      to,
-      type: 'text',
-      text: { body },
-    });
+    const postData = querystring.stringify({ target: to, message });
 
     const options = {
-      hostname: 'graph.facebook.com',
-      path: `/v19.0/${phoneNumId}/messages`,
+      hostname: 'api.fonnte.com',
+      path: '/send',
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(payload),
+        'Authorization': token,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(postData),
       },
     };
 
@@ -61,7 +46,8 @@ function sendMeta(to, body) {
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
-          if (json.error) console.error('[WhatsApp META ERROR]', json.error.message);
+          if (!json.status) console.error('[WhatsApp FONNTE ERROR]', data);
+          else console.log('[WhatsApp SENT] To:', to);
           resolve(json);
         } catch {
           resolve({ raw: data });
@@ -74,7 +60,7 @@ function sendMeta(to, body) {
       resolve({ error: true });
     });
 
-    req.write(payload);
+    req.write(postData);
     req.end();
   });
 }
@@ -83,7 +69,7 @@ async function sendWhatsApp(number, message) {
   const digits = toE164(number);
   if (!digits) return;
   try {
-    await sendMeta(digits, message);
+    await sendFonnte(digits, message);
   } catch (e) {
     console.error('[WhatsApp] Failed:', e.message);
   }
