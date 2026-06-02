@@ -51,7 +51,7 @@ export default function Appointment() {
       const r = await bookAppointment(payload, authHeader());
       if (r.data.success) {
         const apptId = r.data.data?.appointmentId || '';
-        showAlert('success', (r.data.message || 'Appointment booked!') + (apptId ? ` ID: <strong>${apptId}</strong>.` : '') + ' <a href="/ChauhanAdvocate/profile?tab=appointments" class="alert-link ms-1">View in dashboard →</a>');
+        showAlert('success', `✅ Your appointment has been successfully booked!${apptId ? ` (ID: <strong>${apptId}</strong>)` : ''} <a href="/ChauhanAdvocate/profile?tab=appointments" class="alert-link ms-1">View in dashboard →</a>`);
         setForm({ name: user.name || '', email: user.email || '', phone: user.phone || '', service:'', date:'', time:'', message:'' });
         setSlots([]);
         e.target.classList.remove('was-validated');
@@ -152,8 +152,9 @@ export default function Appointment() {
                     <div className="col-12">
                       <button type="submit" className="btn btn-gold w-100 py-3" disabled={submitting}>
                         {submitting
-                          ? <><i className="fas fa-spinner fa-spin me-2"></i>Booking...</>
-                          : <><i className="fas fa-calendar-check me-2"></i>Confirm Appointment</>
+                          ? <><i className="fas fa-spinner fa-spin me-2"></i>Submitting...</>
+                          : <><i className="fas fa-paper-plane me-2"></i>Submit</>
+
                         }
                       </button>
                     </div>

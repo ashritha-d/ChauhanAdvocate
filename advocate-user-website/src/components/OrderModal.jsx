@@ -36,6 +36,9 @@ function Receipt({ order, onClose }) {
       {order.bookPrice && <div className="receipt-row"><span>Price</span><span>{order.bookPrice}</span></div>}
       <div className="receipt-divider"></div>
       <div className="receipt-status">
+        <div className="text-success fw-bold mb-2" style={{ fontSize: '1.05rem' }}>
+          <i className="fas fa-check-circle me-2"></i>Your order has been successfully placed!
+        </div>
         <span className="badge bg-warning text-dark">Pending Confirmation</span>
       </div>
       <p className="receipt-note">We will contact you within 24 hours to confirm your order and payment details.</p>
@@ -151,7 +154,7 @@ export default function OrderModal({ book, onClose, onSuccess }) {
                 </div>
               </div>
               <button type="submit" className="btn btn-gold w-100 mt-3" disabled={submitting}>
-                {submitting ? <><i className="fas fa-spinner fa-spin me-2"></i>Placing Order…</> : <><i className="fas fa-check me-2"></i>Place Order</>}
+                {submitting ? <><i className="fas fa-spinner fa-spin me-2"></i>Submitting…</> : <><i className="fas fa-paper-plane me-2"></i>Submit</>}
               </button>
             </form>
           </>

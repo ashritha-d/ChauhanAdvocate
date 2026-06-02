@@ -48,7 +48,7 @@ export default function AppointmentModal({ onClose, onSuccess }) {
       const r = await bookAppointment(payload, user ? authHeader() : {});
       if (r.data.success) {
         const apptId = r.data.data?.appointmentId || '';
-        setAlert({ type: 'success', msg: `Appointment booked!${apptId ? ` ID: ${apptId}.` : ''} We will confirm shortly.` });
+        setAlert({ type: 'success', msg: `✅ Your appointment has been successfully booked!${apptId ? ` (ID: ${apptId})` : ''} We will confirm shortly.` });
         setForm(f => ({ ...f, service: '', date: '', time: '', message: '' }));
         setSlots([]);
         e.target.classList.remove('was-validated');
@@ -139,8 +139,8 @@ export default function AppointmentModal({ onClose, onSuccess }) {
           </div>
           <button type="submit" className="btn btn-gold w-100 mt-3" disabled={submitting}>
             {submitting
-              ? <><i className="fas fa-spinner fa-spin me-2"></i>Booking…</>
-              : <><i className="fas fa-calendar-check me-2"></i>Confirm Appointment</>
+              ? <><i className="fas fa-spinner fa-spin me-2"></i>Submitting…</>
+              : <><i className="fas fa-paper-plane me-2"></i>Submit</>
             }
           </button>
         </form>

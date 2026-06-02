@@ -85,11 +85,13 @@ export default function JrAdvocateModal({ onClose, onSuccess }) {
 
         {submitted ? (
           <div className="text-center py-4">
-            <i className="fas fa-check-circle fa-3x mb-3" style={{ color: 'var(--gold)' }}></i>
-            <h5 style={{ fontFamily: "'Playfair Display',serif" }}>Application Submitted!</h5>
-            <p className="text-muted">We will review your application and contact you within 3–5 business days.</p>
+            <i className="fas fa-check-circle fa-3x mb-3 text-success"></i>
+            <h5 style={{ fontFamily: "'Playfair Display',serif" }} className="text-success">
+              Your application has been successfully submitted!
+            </h5>
+            <p className="text-muted mt-2">We will review your application and contact you within 3–5 business days.</p>
             {user && <p className="small text-muted">Track your application status in <strong>My Profile → My Applications</strong>.</p>}
-            <button className="btn btn-gold mt-2" onClick={onClose}>Close</button>
+            <button className="btn btn-gold mt-3" onClick={onClose}>Close</button>
           </div>
         ) : (
           <>
@@ -228,7 +230,7 @@ export default function JrAdvocateModal({ onClose, onSuccess }) {
                 {step < STEPS.length - 1
                   ? <button type="button" className="btn btn-gold flex-grow-1" onClick={next}>Next <i className="fas fa-arrow-right ms-1"></i></button>
                   : <button type="submit" className="btn btn-gold flex-grow-1" disabled={submitting}>
-                      {submitting ? <><i className="fas fa-spinner fa-spin me-2"></i>Submitting…</> : <><i className="fas fa-paper-plane me-2"></i>Submit Application</>}
+                      {submitting ? <><i className="fas fa-spinner fa-spin me-2"></i>Submitting…</> : <><i className="fas fa-paper-plane me-2"></i>Submit</>}
                     </button>
                 }
               </div>
