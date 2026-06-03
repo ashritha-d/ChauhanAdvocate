@@ -945,6 +945,46 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .hero-img { width: 280px; height: 360px; }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   ≥992px DESKTOP — compact hero: above-fold on 1366×768 & 1920×1080
+   min-height uses calc(100vh - 116px) = fills visible area below
+   fixed topbar(40) + navbar(76); ticker(44) handled by document flow.
+   Placed AFTER ≤1199px so it wins at 992–1199px for hero-img height.
+══════════════════════════════════════════════════════════════ */
+@media (min-width: 992px) {
+  /* Hero section — fits precisely in the viewport below the fixed navbar */
+  .hero-section { min-height: calc(100vh - 116px); padding: 24px 0; }
+
+  /* Image: 280×300 (was 320×400) — right column now ~430px total */
+  .hero-img { width: 280px; height: 300px; }
+
+  /* Heading: ~3.2rem (was display-3 ≈ 4.5rem on large screens, ~15% cut) */
+  .hero-title    { font-size: 3.2rem !important; }
+  /* Subtitle: 1.05rem (was lead ≈ 1.25rem) */
+  .hero-subtitle { font-size: 1.05rem !important; }
+  /* Badge: slightly smaller */
+  .hero-badge    { padding: 6px 16px; font-size: 0.78rem; }
+
+  /* Tighten Bootstrap utility spacing within the hero section */
+  .hero-section .hero-badge    { margin-bottom: 0.75rem; }  /* was mb-3 = 1rem */
+  .hero-section .hero-title    { margin-bottom: 1rem;    }  /* was mb-4 = 1.5rem */
+  .hero-section .hero-subtitle { margin-bottom: 1.5rem;  }  /* was mb-5 = 3rem */
+
+  /* Stats row: less top margin, tighter cards */
+  .hero-stats  { margin-top: 1.25rem !important; }           /* was mt-5 = 3rem */
+  .stat-item   { padding: 10px 14px; }
+  .stat-number { font-size: 1.5rem; }
+  .stat-label  { font-size: 0.7rem; }
+
+  /* Advocate profile card below photo — tighter */
+  .advocate-profile-card    { padding: 12px 16px; margin-top: 12px; }
+  .advocate-profile-name    { font-size: 1rem; margin-bottom: 2px; }
+  .advocate-profile-desig   { font-size: 0.76rem; margin-bottom: 8px; }
+  .advocate-profile-divider { margin-bottom: 8px; }
+  .advocate-profile-details { gap: 4px; }
+  .advocate-profile-item    { font-size: 0.76rem; }
+}
+
 /* ── ≤991px: tablet ── */
 @media (max-width: 991px) {
   .hero-section {
