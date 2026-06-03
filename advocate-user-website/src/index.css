@@ -142,6 +142,23 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
 @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
 
+/* ── Advocate Profile Card (below hero photo) ── */
+.advocate-profile-card {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(201,168,76,0.3);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-top: 20px;
+  text-align: center;
+}
+.advocate-profile-name { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.advocate-profile-desig { font-size: 0.82rem; color: var(--gold); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+.advocate-profile-divider { width: 40px; height: 2px; background: var(--gold); margin: 0 auto 12px; border-radius: 2px; }
+.advocate-profile-details { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.advocate-profile-item { display: flex; align-items: center; gap: 10px; font-size: 0.82rem; color: rgba(255,255,255,0.8); }
+.advocate-profile-item i { color: var(--gold); width: 16px; flex-shrink: 0; }
+
 /* ── About ── */
 .about-image-wrap { position: relative; overflow: visible; }
 .about-img { width: 100%; max-width: 100%; max-height: 450px; object-fit: cover; display: block; }
@@ -162,6 +179,60 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .service-features { list-style: none; padding: 0; margin: 0; }
 .service-features li { padding: 4px 0; font-size: 0.85rem; color: #555; }
 .service-features li::before { content: '✓ '; color: var(--gold); font-weight: 700; }
+
+/* ── Course Cards ── */
+.course-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eee;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: all 0.3s;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.course-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.12); border-color: var(--gold); }
+.course-card-thumb { position: relative; height: 180px; overflow: hidden; background: linear-gradient(135deg, #1a1a2e, #16213e); display: flex; align-items: center; justify-content: center; }
+.course-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.course-card-thumb-placeholder { color: var(--gold); font-size: 3rem; }
+.course-badge-featured { position: absolute; top: 10px; left: 10px; background: var(--gold); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+.course-badge-level { position: absolute; top: 10px; right: 10px; font-size: 0.7rem; }
+.course-card-body { padding: 18px 18px 12px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.course-card-title { font-family: 'Playfair Display', serif; font-size: 1.02rem; font-weight: 700; color: var(--dark); line-height: 1.4; margin: 0; }
+.course-card-desc { font-size: 0.83rem; color: #666; line-height: 1.55; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0; }
+.course-card-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.75rem; color: #888; }
+.course-card-meta span { display: flex; align-items: center; gap: 3px; }
+.course-card-students { font-size: 0.78rem; color: #555; }
+.course-card-footer { padding: 12px 18px 16px; border-top: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+.course-card-price { display: flex; align-items: baseline; gap: 6px; }
+.course-price-free { font-size: 1.1rem; font-weight: 700; color: #16a34a; }
+.course-price-current { font-size: 1.1rem; font-weight: 700; color: var(--gold); }
+.course-price-original { font-size: 0.85rem; color: #aaa; text-decoration: line-through; }
+
+/* ── Course Enroll Modal ── */
+.course-enroll-modal {
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px 28px 24px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+}
+.course-enroll-details { background: #f8f9fa; border-radius: 12px; padding: 14px; margin-bottom: 4px; }
+.course-detail-item { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: #555; background: #fff; border-radius: 8px; padding: 8px 10px; border: 1px solid #eee; }
+.course-enroll-price-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid #eee; margin-top: 8px; }
+
+/* ── Course Payment ── */
+.course-payment-box { background: #f8f9fa; border-radius: 12px; padding: 16px; border: 1px solid #eee; }
+.course-payment-amount { display: flex; flex-direction: column; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #eee; margin-bottom: 12px; }
+.course-payment-price { font-size: 1.6rem; font-weight: 800; color: var(--gold); }
+.course-payment-upi { font-size: 0.88rem; color: #333; }
+.course-payment-qr { display: flex; justify-content: center; padding: 10px 0; }
+.course-payment-qr img { width: 140px; height: 140px; object-fit: contain; border-radius: 10px; border: 1px solid #eee; }
 
 /* ── Profile ── */
 .profile-section { background: linear-gradient(135deg, var(--darker), #16213e); }

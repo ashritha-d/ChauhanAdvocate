@@ -49,8 +49,10 @@ export default function SiteSettings() {
       { key:'about_content', label:'About Content', type:'textarea' },
       { key:'advocate_name', label:'Advocate Name', type:'text' },
       { key:'advocate_designation', label:'Designation', type:'text' },
-      { key:'advocate_bio', label:'Advocate Bio', type:'textarea' },
+      { key:'advocate_qualification', label:'Qualification (e.g. LLB, LLM)', type:'text' },
+      { key:'advocate_enrollment', label:'Bar Enrollment Number', type:'text' },
       { key:'advocate_experience', label:'Years of Experience', type:'number' },
+      { key:'advocate_bio', label:'Advocate Bio', type:'textarea' },
       { key:'advocate_photo', label:'Advocate Photo', type:'image' },
     ],
     Contact: [
@@ -58,6 +60,9 @@ export default function SiteSettings() {
       { key:'contact_email', label:'Email Address', type:'email' },
       { key:'contact_address', label:'Office Address', type:'textarea' },
       { key:'contact_whatsapp', label:'WhatsApp Number (with country code)', type:'text' },
+      { key:'contact_phone2', label:'Secondary Phone', type:'text' },
+      { key:'office_hours_weekday', label:'Weekday Hours (Mon–Sat)', type:'text' },
+      { key:'office_hours_sunday', label:'Sunday Hours', type:'text' },
     ],
     Social: [
       { key:'social_facebook', label:'Facebook URL', type:'url' },

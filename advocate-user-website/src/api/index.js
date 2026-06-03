@@ -38,3 +38,10 @@ export const markAllNotificationsRead = (headers) => api.put('/users/notificatio
 // ── Jr Advocate Applications ──────────────────────────────────────────────────
 export const submitJrAdvocateApplication = (formData) => api.post('/jr-advocates', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const getMyApplications = (headers) => api.get('/jr-advocates/my-applications', { headers });
+
+// ── Courses / LMS ─────────────────────────────────────────────────────────────
+export const getPublicCourses = () => api.get('/courses/public');
+export const getPublicCourse = (id, headers = {}) => api.get(`/courses/public/${id}`, { headers });
+export const enrollCourse = (data, headers) => api.post('/courses/enroll', data, { headers });
+export const getMyEnrollments = (headers) => api.get('/courses/my-enrollments', { headers });
+export const updateCourseProgress = (data, headers) => api.post('/courses/progress', data, { headers });

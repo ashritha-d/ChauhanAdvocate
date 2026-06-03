@@ -72,7 +72,8 @@ export default function Footer() {
                 <li><i className="fas fa-phone-alt"></i><a href={`tel:${phone2}`}>{phone2}</a></li>
                 <li><i className="fas fa-envelope"></i><a href={`mailto:${email}`}>{email}</a></li>
                 <li><i className="fas fa-map-marker-alt"></i><span>{address}</span></li>
-                <li><i className="fas fa-clock"></i><span>Mon–Sat: 9AM – 7PM</span></li>
+                <li><i className="fas fa-clock"></i><span>{s.office_hours_weekday || 'Mon–Sat: 9:00 AM – 7:00 PM'}</span></li>
+                <li><i className="fas fa-clock"></i><span>{s.office_hours_sunday || 'Sunday: 2:00 PM – 7:00 PM'}</span></li>
               </ul>
             </div>
           </div>

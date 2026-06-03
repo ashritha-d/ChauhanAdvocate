@@ -79,8 +79,10 @@ export default function Appointment() {
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 
+  const weekdayHours = s.office_hours_weekday || 'Mon–Sat: 9:00 AM – 7:00 PM';
+  const sundayHours  = s.office_hours_sunday  || 'Sunday: 2:00 PM – 7:00 PM';
   const infoItems = [
-    { icon: 'fas fa-clock',         title: 'Office Hours',       text: 'Mon-Sat: 9:00 AM – 7:00 PM' },
+    { icon: 'fas fa-clock',         title: 'Office Hours',       text: `${weekdayHours}  |  ${sundayHours}` },
     { icon: 'fas fa-phone',          title: 'Emergency Contact',  text: s.contact_phone || '+91 93925 38226' },
     { icon: 'fas fa-map-marker-alt', title: 'Location',           text: s.contact_address || 'Balu Law Chamber, New Venkatramana Colony, Hasthinapuram, LB Nagar' },
   ];

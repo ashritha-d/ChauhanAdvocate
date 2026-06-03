@@ -110,7 +110,12 @@ export default function Contact() {
                   {
                     icon: 'fas fa-clock',
                     label: 'Office Hours',
-                    content: <p className="mb-0 text-muted" style={{ fontSize: '0.88rem' }}>Mon–Sat: 9:00 AM – 7:00 PM</p>,
+                    content: (
+                      <div style={{ fontSize: '0.88rem' }}>
+                        <p className="mb-1 text-muted">{s.office_hours_weekday || 'Mon–Sat: 9:00 AM – 7:00 PM'}</p>
+                        <p className="mb-0 text-muted">{s.office_hours_sunday || 'Sunday: 2:00 PM – 7:00 PM'}</p>
+                      </div>
+                    ),
                   },
                 ].map(({ icon, label, content }) => (
                   <div className="contact-detail-item" key={label}>

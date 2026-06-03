@@ -6,6 +6,7 @@ import {
   getUserProfile, updateUserProfile, changeUserPassword, uploadUserPhoto,
   getMyAppointments, getMyOrders, getNotifications,
   markNotificationRead, markAllNotificationsRead, getMyApplications,
+  getMyEnrollments, getPublicCourse, updateCourseProgress,
 } from '../api';
 import AppointmentModal from '../components/AppointmentModal';
 
@@ -13,6 +14,7 @@ const TABS = [
   { id: 'dashboard', icon: 'fa-tachometer-alt', label: 'Dashboard' },
   { id: 'appointments', icon: 'fa-calendar-alt', label: 'My Appointments' },
   { id: 'orders', icon: 'fa-book', label: 'My Orders' },
+  { id: 'courses', icon: 'fa-graduation-cap', label: 'My Courses' },
   { id: 'applications', icon: 'fa-user-tie', label: 'My Applications' },
   { id: 'notifications', icon: 'fa-bell', label: 'Notifications' },
   { id: 'settings', icon: 'fa-user-cog', label: 'Profile Settings' },
@@ -39,6 +41,139 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+function getVideoEmbed(url) {
+  if (!url) return null;
+  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}?rel=0&autoplay=1`;
+  const drive = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
+  if (drive) return `https://drive.google.com/file/d/${drive[1]}/preview`;
+  return null; // MP4 direct
+}
+
+function CoursePlayer({ enrollment, authHeader, onClose }) {
+  const course = enrollment.courseId;
+  const [detail, setDetail] = useState(null);
+  const [currentVideo, setCurrentVideo] = useState(null);
+  const [completedSet, setCompletedSet] = useState(
+    new Set((enrollment.progress || []).map(p => p.videoId?.toString()).filter(Boolean))
+  );
+  const [loadingDetail, setLoadingDetail] = useState(true);
+
+  useEffect(() => {
+    getPublicCourse(course._id, authHeader())
+      .then(r => {
+        if (r.data.success) {
+          setDetail(r.data.data);
+          const first = r.data.data.modules?.[0]?.videos?.[0];
+          if (first?.videoUrl) setCurrentVideo(first);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingDetail(false));
+  }, [course._id]);
+
+  const handleSelectVideo = (video) => {
+    if (!video.videoUrl) return;
+    setCurrentVideo(video);
+  };
+
+  const handleMarkDone = async () => {
+    if (!currentVideo?._id || completedSet.has(currentVideo._id)) return;
+    try {
+      await updateCourseProgress({ courseId: course._id, videoId: currentVideo._id }, authHeader());
+      setCompletedSet(prev => new Set([...prev, currentVideo._id]));
+    } catch {}
+  };
+
+  const totalVideos = detail?.modules?.reduce((s, m) => s + (m.videos?.length || 0), 0) || 0;
+
+  return (
+    <div className="course-player-wrap">
+      <div className="course-player-header">
+        <span className="course-player-title"><i className="fas fa-graduation-cap me-2" style={{ color: 'var(--gold)' }}></i>{course.title}</span>
+        <button className="course-player-close" onClick={onClose} title="Close player">&times;</button>
+      </div>
+
+      {loadingDetail ? (
+        <div className="text-center py-4"><div className="spinner-border" style={{ color: 'var(--gold)' }}></div></div>
+      ) : !detail ? (
+        <div className="text-center py-4 text-muted">Could not load course content.</div>
+      ) : (
+        <div className="course-player-body">
+          {/* Sidebar — module & video list */}
+          <div className="course-player-sidebar">
+            {(detail.modules || []).map((mod, mi) => (
+              <div key={mi}>
+                <div className="course-module-header">
+                  <i className="fas fa-folder me-1"></i>{mod.title || `Module ${mi + 1}`}
+                </div>
+                {(mod.videos || []).map((vid, vi) => (
+                  <div
+                    key={vi}
+                    className={`course-video-item ${currentVideo?._id === vid._id ? 'active' : ''} ${!vid.videoUrl ? 'opacity-50' : ''}`}
+                    onClick={() => handleSelectVideo(vid)}
+                    title={!vid.videoUrl ? 'Video not available' : vid.title}
+                  >
+                    <i className={`fas ${completedSet.has(vid._id) ? 'fa-check-circle text-success' : vid.videoUrl ? 'fa-play-circle' : 'fa-lock'}`}></i>
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{vid.title}</span>
+                    {vid.duration && <span className="course-video-duration">{vid.duration}</span>}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* Main — video player */}
+          <div className="course-player-main">
+            <div className="course-player-video">
+              {currentVideo ? (
+                (() => {
+                  const embed = getVideoEmbed(currentVideo.videoUrl);
+                  return embed
+                    ? <iframe src={embed} title={currentVideo.title} allowFullScreen allow="autoplay; encrypted-media"></iframe>
+                    : <video controls src={currentVideo.videoUrl} style={{ width: '100%', height: '100%', background: '#000' }}></video>;
+                })()
+              ) : (
+                <div className="d-flex align-items-center justify-content-center h-100" style={{ background: '#111', color: '#aaa' }}>
+                  <div className="text-center">
+                    <i className="fas fa-play-circle fa-3x mb-2"></i>
+                    <p className="small mb-0">Select a video to start watching</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {currentVideo && (
+              <>
+                <div className="course-player-info">
+                  <div className="course-player-video-title">{currentVideo.title}</div>
+                  {currentVideo.description && <p className="small text-muted mb-2">{currentVideo.description}</p>}
+                  <button
+                    className={`btn btn-sm course-player-mark-btn ${completedSet.has(currentVideo._id) ? 'btn-success disabled' : 'btn-outline-success'}`}
+                    onClick={handleMarkDone}
+                    disabled={completedSet.has(currentVideo._id)}
+                  >
+                    <i className={`fas ${completedSet.has(currentVideo._id) ? 'fa-check-circle' : 'fa-circle'} me-1`}></i>
+                    {completedSet.has(currentVideo._id) ? 'Completed' : 'Mark as Done'}
+                  </button>
+                </div>
+                <div className="course-player-progress">
+                  <i className="fas fa-chart-line text-gold"></i>
+                  <span>{completedSet.size} / {totalVideos} videos completed</span>
+                  <div className="progress flex-grow-1" style={{ height: 6 }}>
+                    <div className="progress-bar bg-success" style={{ width: `${totalVideos > 0 ? Math.round((completedSet.size / totalVideos) * 100) : 0}%` }}></div>
+                  </div>
+                  <span className="text-muted">{totalVideos > 0 ? Math.round((completedSet.size / totalVideos) * 100) : 0}%</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Profile() {
   const { user, loading: authLoading, logout, updateUser, fetchUnreadCount, authHeader, unreadCount } = useUserAuth();
   const { settings: s } = useSite();
@@ -48,6 +183,7 @@ export default function Profile() {
   const [appointments, setAppointments] = useState([]);
   const [orders, setOrders] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -60,6 +196,7 @@ export default function Profile() {
   const [showPwd, setShowPwd] = useState({});
   const [saving, setSaving] = useState(false);
   const [showApptModal, setShowApptModal] = useState(false);
+  const [watchingEnrollmentId, setWatchingEnrollmentId] = useState(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/login');
@@ -73,6 +210,7 @@ export default function Profile() {
     if (!user) return;
     if (tab === 'appointments') loadAppointments();
     if (tab === 'orders') loadOrders();
+    if (tab === 'courses') loadEnrollments();
     if (tab === 'applications') loadApplications();
     if (tab === 'notifications') loadNotifications();
   }, [tab, user]);
@@ -105,6 +243,15 @@ export default function Profile() {
     try {
       const r = await getMyApplications(authHeader());
       if (r.data.success) setApplications(r.data.data);
+    } catch { /* silent */ }
+    setDataLoading(false);
+  };
+
+  const loadEnrollments = async () => {
+    setDataLoading(true);
+    try {
+      const r = await getMyEnrollments(authHeader());
+      if (r.data.success) setEnrollments(r.data.data);
     } catch { /* silent */ }
     setDataLoading(false);
   };
@@ -488,6 +635,89 @@ export default function Profile() {
                             ))}
                           </tbody>
                         </table>
+                      </div>
+                    )
+                  }
+                </div>
+              )}
+
+              {/* ── My Courses ── */}
+              {tab === 'courses' && (
+                <div>
+                  <div className="d-flex align-items-center justify-content-between mb-4">
+                    <h4 className="profile-section-title mb-0">My Courses</h4>
+                    <a href="/ChauhanAdvocate/courses" className="btn btn-gold btn-sm"><i className="fas fa-plus me-1"></i>Browse Courses</a>
+                  </div>
+                  {dataLoading
+                    ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
+                    : enrollments.length === 0
+                    ? (
+                      <div className="profile-empty">
+                        <i className="fas fa-graduation-cap"></i>
+                        <p>No courses enrolled yet</p>
+                        <a href="/ChauhanAdvocate/courses" className="btn btn-gold btn-sm">Browse Courses</a>
+                      </div>
+                    ) : (
+                      <div className="row g-3">
+                        {enrollments.map(en => {
+                          const course = en.courseId;
+                          if (!course) return null;
+                          const totalVideos = course.modules?.reduce((s, m) => s + (m.videos?.length || 0), 0) || 0;
+                          const pct = totalVideos > 0 ? Math.round(((en.completedVideos || 0) / totalVideos) * 100) : 0;
+                          const isWatching = watchingEnrollmentId === en._id;
+                          const statusColor = { paid: 'success', pending_verification: 'warning', pending: 'secondary', failed: 'danger' };
+                          return (
+                            <div key={en._id} className={isWatching ? 'col-12' : 'col-md-6'}>
+                              <div className="profile-course-card">
+                                <div className="profile-course-header">
+                                  <div className="profile-course-title">{course.title}</div>
+                                  <span className={`badge bg-${statusColor[en.paymentStatus] || 'secondary'}`}>
+                                    {en.paymentStatus === 'paid' ? 'Active' :
+                                     en.paymentStatus === 'pending_verification' ? 'Payment Review' :
+                                     en.paymentStatus === 'pending' ? 'Pending' : 'Rejected'}
+                                  </span>
+                                </div>
+                                <div className="text-muted small mb-2">by {course.instructor}</div>
+                                {en.paymentStatus === 'paid' && (
+                                  <>
+                                    <div className="d-flex justify-content-between small mb-1">
+                                      <span>Progress</span>
+                                      <span>{en.completedVideos}/{totalVideos} videos</span>
+                                    </div>
+                                    <div className="progress" style={{ height: 6 }}>
+                                      <div className="progress-bar bg-success" style={{ width: `${pct}%` }}></div>
+                                    </div>
+                                    <div className="text-end small text-muted mt-1">{pct}% complete</div>
+                                    <button
+                                      className="btn btn-gold btn-sm w-100 mt-3"
+                                      onClick={() => setWatchingEnrollmentId(watchingEnrollmentId === en._id ? null : en._id)}
+                                    >
+                                      <i className={`fas ${watchingEnrollmentId === en._id ? 'fa-chevron-up' : 'fa-play'} me-1`}></i>
+                                      {watchingEnrollmentId === en._id ? 'Hide Player' : pct > 0 ? 'Continue Learning' : 'Start Learning'}
+                                    </button>
+                                  </>
+                                )}
+                                {en.paymentStatus === 'pending_verification' && (
+                                  <p className="small text-warning mb-0">
+                                    <i className="fas fa-clock me-1"></i>Payment under review. Access will be granted within 24 hours.
+                                  </p>
+                                )}
+                                {en.enrolledAt && (
+                                  <small className="text-muted d-block mt-2">
+                                    <i className="fas fa-calendar me-1"></i>Enrolled: {formatDate(en.enrolledAt)}
+                                  </small>
+                                )}
+                              </div>
+                              {isWatching && en.paymentStatus === 'paid' && (
+                                <CoursePlayer
+                                  enrollment={en}
+                                  authHeader={authHeader}
+                                  onClose={() => setWatchingEnrollmentId(null)}
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )
                   }
