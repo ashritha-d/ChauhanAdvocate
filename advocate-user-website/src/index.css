@@ -476,9 +476,10 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
    (nav-spacer handles the offset)
 ══════════════════════════════════════════════════════════════ */
 .news-ticker-section {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-bottom: 2px solid rgba(201,168,76,0.35);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+  background: linear-gradient(to right, var(--gold-dark, #a8893a), var(--gold, #c9a84c), #d4b05a, var(--gold, #c9a84c));
+  border-top: 1px solid rgba(255,255,255,0.18);
+  border-bottom: 2px solid rgba(0,0,0,0.12);
+  box-shadow: 0 3px 14px rgba(201,168,76,0.45);
   position: sticky;
   top: 116px;
   z-index: 1039;
@@ -491,20 +492,20 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .news-ticker-wrap {
   display: flex;
   align-items: center;
-  height: 46px;
+  height: 44px;
   overflow: hidden;
 }
 
-/* "Latest News" pill label */
+/* "Latest News" label */
 .news-ticker-label {
   flex-shrink: 0;
-  background: var(--gold);
+  background: rgba(0,0,0,0.22);
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 0.73rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
-  padding: 0 18px;
+  padding: 0 16px;
   height: 100%;
   display: flex;
   align-items: center;
@@ -513,15 +514,15 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   z-index: 2;
 }
 
-/* Gradient fade on the right of label */
+/* Gradient fade after label blends into gold background */
 .news-ticker-label::after {
   content: '';
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
-  width: 140px;
-  background: linear-gradient(to right, #1a1a2e 60%, transparent);
+  width: 120px;
+  background: linear-gradient(to right, rgba(0,0,0,0.22) 40%, transparent);
   pointer-events: none;
   z-index: 1;
 }
@@ -533,8 +534,8 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   height: 100%;
   display: flex;
   align-items: center;
-  mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
 }
 
 /* Track — duplicated items, animated */
@@ -563,48 +564,48 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 }
 
 .news-ticker-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: var(--gold);
+  background: rgba(0,0,0,0.35);
   flex-shrink: 0;
 }
 
 .news-ticker-date {
-  color: rgba(201,168,76,0.7);
-  font-size: 0.72rem;
-  font-weight: 600;
+  color: rgba(0,0,0,0.55);
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
 .news-ticker-title {
-  color: rgba(255,255,255,0.88);
-  font-weight: 500;
+  color: #1a1a2e;
+  font-weight: 600;
 }
 
 .news-ticker-link {
-  color: rgba(255,255,255,0.88);
+  color: #1a1a2e;
   text-decoration: none;
   transition: color 0.2s;
 }
-.news-ticker-link:hover { color: var(--gold); text-decoration: underline; }
+.news-ticker-link:hover { color: #fff; text-decoration: underline; }
 
 .news-ticker-btn {
-  background: rgba(201,168,76,0.15);
-  border: 1px solid rgba(201,168,76,0.4);
-  color: var(--gold);
+  background: rgba(0,0,0,0.15);
+  border: 1px solid rgba(0,0,0,0.2);
+  color: #1a1a2e;
   border-radius: 20px;
-  padding: 2px 12px;
-  font-size: 0.72rem;
+  padding: 2px 11px;
+  font-size: 0.7rem;
   font-weight: 700;
   text-decoration: none;
   transition: all 0.2s;
   white-space: nowrap;
 }
-.news-ticker-btn:hover { background: var(--gold); color: #fff; }
+.news-ticker-btn:hover { background: rgba(0,0,0,0.28); color: #fff; }
 
 .news-ticker-sep {
-  color: rgba(255,255,255,0.2);
-  padding: 0 8px;
+  color: rgba(0,0,0,0.2);
+  padding: 0 6px;
 }
 
 /* View All button */
@@ -612,17 +613,17 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  color: var(--gold);
-  font-size: 0.78rem;
-  font-weight: 700;
+  padding: 0 14px;
+  color: #1a1a2e;
+  font-size: 0.76rem;
+  font-weight: 800;
   text-decoration: none;
-  border-left: 1px solid rgba(201,168,76,0.2);
+  border-left: 1px solid rgba(0,0,0,0.15);
   height: 100%;
   white-space: nowrap;
   transition: background 0.2s;
 }
-.news-ticker-viewall:hover { background: rgba(201,168,76,0.1); color: var(--gold); }
+.news-ticker-viewall:hover { background: rgba(0,0,0,0.1); color: #1a1a2e; }
 
 /* ══════════════════════════════════════════════════════════════
    NEWS PAGE
