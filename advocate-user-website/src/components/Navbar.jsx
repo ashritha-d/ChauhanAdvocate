@@ -102,17 +102,30 @@ export default function Navbar() {
           />
         </a>
 
-        {/* Mobile: Book button centered + optional notification bell */}
+        {/* Mobile: Book Appointment button + Profile icon */}
         <div className="d-lg-none mobile-nav-center">
-          {user && (
-            <Link to="/profile?tab=notifications" className="navbar-notif-btn me-1" onClick={close}>
-              <i className="fas fa-bell"></i>
-              {unreadCount > 0 && <span className="navbar-notif-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
-            </Link>
-          )}
           <a href="#appointment" className="btn btn-gold mobile-appt-btn" onClick={handleAppointment}>
             Book an Appointment
           </a>
+          {/* Profile / Login icon — right after appointment button */}
+          {user ? (
+            <Link
+              to="/profile"
+              className="mobile-profile-btn"
+              onClick={close}
+              title={user.name}
+            >
+              {user.profilePhoto
+                ? <img src={user.profilePhoto} alt={user.name} className="mobile-profile-avatar" />
+                : <span className="mobile-profile-initial">{user.name.charAt(0).toUpperCase()}</span>
+              }
+              {unreadCount > 0 && <span className="mobile-notif-dot"></span>}
+            </Link>
+          ) : (
+            <Link to="/login" className="mobile-profile-btn" onClick={close} title="Login / Register">
+              <i className="fas fa-user-circle"></i>
+            </Link>
+          )}
         </div>
 
         {/* Hamburger — right on mobile */}

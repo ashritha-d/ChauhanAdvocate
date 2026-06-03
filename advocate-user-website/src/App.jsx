@@ -40,6 +40,7 @@ function AppLayout({ children, hideFooterExtras }) {
     <>
       <TopBar />
       <Navbar />
+      <div className="nav-spacer" />
       <NewsTicker />
       <main>{children}</main>
       {!hideFooterExtras && (

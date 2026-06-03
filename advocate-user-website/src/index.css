@@ -460,25 +460,33 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .spinner-gold { color: var(--gold); }
 
 /* ══════════════════════════════════════════════════════════════
-   NEWS TICKER — sticky right below navbar
-   TopBar: 40px  +  Navbar: ~76px  =  116px offset
+   NAV SPACER — pushes content below fixed TopBar + Navbar
+   TopBar: 40px  +  Navbar: ~76px  =  116px
+══════════════════════════════════════════════════════════════ */
+.nav-spacer {
+  height: 116px;
+  flex-shrink: 0;
+  transition: height 0.3s ease;
+}
+/* When navbar scrolls it shrinks (padding 16px→10px, ~12px less) */
+.navbar.scrolled + .nav-spacer { height: 104px; }
+
+/* ══════════════════════════════════════════════════════════════
+   NEWS TICKER — sticky right below navbar, no margin-top needed
+   (nav-spacer handles the offset)
 ══════════════════════════════════════════════════════════════ */
 .news-ticker-section {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   border-bottom: 2px solid rgba(201,168,76,0.35);
   box-shadow: 0 4px 20px rgba(0,0,0,0.35);
-  /* sticky: sits in normal flow at margin-top: 116px, then sticks below navbar */
   position: sticky;
   top: 116px;
-  margin-top: 116px;
   z-index: 1039;
   overflow: hidden;
-  transition: top 0.3s ease, box-shadow 0.3s;
+  transition: top 0.3s ease;
 }
-/* When navbar is scrolled (shorter padding) the navbar shrinks → ticker adjusts */
-.navbar.scrolled + .news-ticker-section {
-  top: 104px;
-}
+/* Sync with scrolled navbar */
+.navbar.scrolled ~ .news-ticker-section { top: 104px; }
 
 .news-ticker-wrap {
   display: flex;
@@ -882,6 +890,50 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+}
+
+/* ── Mobile Profile Icon (after Book button) ── */
+.mobile-profile-btn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(201,168,76,0.15);
+  border: 1.5px solid rgba(201,168,76,0.45);
+  color: var(--gold);
+  font-size: 1.1rem;
+  text-decoration: none;
+  position: relative;
+  transition: background 0.2s;
+  overflow: visible;
+}
+.mobile-profile-btn:hover { background: rgba(201,168,76,0.28); color: var(--gold); }
+
+.mobile-profile-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.mobile-profile-initial {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+.mobile-notif-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 9px;
+  height: 9px;
+  background: #dc3545;
+  border-radius: 50%;
+  border: 1.5px solid #1a1a2e;
 }
 
 /* ════════════════════════════════════════════════
@@ -898,7 +950,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 @media (max-width: 991px) {
   .hero-section {
     align-items: flex-start;
-    padding-top: 150px;
+    padding-top: 40px;   /* nav-spacer handles navbar clearance; just breathing room */
     padding-bottom: 60px;
     overflow: hidden;
   }
@@ -911,7 +963,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   /* Mobile navbar: Logo LEFT — Button CENTER — Hamburger RIGHT */
   .navbar > .container { display: flex !important; flex-wrap: nowrap !important; align-items: center !important; padding-left: 12px !important; padding-right: 4px !important; gap: 0 !important; }
   .navbar-logo { order: 1 !important; flex: 0 0 auto !important; padding: 0 !important; margin: 0 !important; }
-  .mobile-nav-center { order: 2 !important; flex: 1 1 auto !important; justify-content: center !important; padding: 0 6px !important; min-width: 0 !important; }
+  .mobile-nav-center { order: 2 !important; flex: 1 1 auto !important; justify-content: flex-end !important; padding: 0 6px !important; min-width: 0 !important; gap: 6px !important; }
   .hamburger { display: flex !important; order: 3 !important; flex: 0 0 auto !important; padding: 10px 8px !important; margin: 0 !important; }
 
   .section-padding { padding: 60px 0; }
@@ -1065,13 +1117,14 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 @media (max-width: 320px) {
   /* Navbar */
   .mobile-appt-btn { padding: 5px 6px !important; font-size: 0.65rem !important; }
+  .mobile-profile-btn { width: 30px; height: 30px; font-size: 1rem; }
   #mainNavbar .navbar-brand img { max-width: 90px !important; height: 36px !important; }
   .top-bar { padding: 0 6px; }
   .top-bar-social { width: 24px; height: 24px; }
   .top-bar-social svg { width: 12px; height: 12px; }
 
-  /* Hero */
-  .hero-section { padding-top: 140px; }
+  /* Hero — nav-spacer clears navbar; minimal breathing room only */
+  .hero-section { padding-top: 24px; }
   .hero-title { font-size: 1.5rem !important; }
   .hero-subtitle { font-size: 0.88rem !important; }
   .hero-img { max-width: 180px; height: 215px; }
