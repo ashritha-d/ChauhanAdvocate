@@ -9,6 +9,7 @@ const appointmentSchema = new mongoose.Schema({
   date: { type: Date, required: true },
   time: { type: String, required: true },
   message: { type: String, trim: true },
+  appointmentMode: { type: String, enum: ['offline', 'online'], default: 'offline' },
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'rescheduled', 'completed', 'cancelled'],

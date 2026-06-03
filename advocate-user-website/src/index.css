@@ -862,6 +862,23 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .appointment-section .appt-gate-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(201,168,76,0.25); backdrop-filter: blur(10px); }
 .appointment-section .appt-gate-title { color: #fff; }
 
+/* ── Appointment Type Radio Cards ── */
+.appt-type-card {
+  display: inline-flex; align-items: center;
+  padding: 10px 18px; border: 2px solid rgba(201,168,76,0.3);
+  border-radius: 10px; cursor: pointer; font-weight: 500;
+  color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.06);
+  transition: all 0.2s; user-select: none;
+}
+.appt-type-card input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+.appt-type-card:hover, .appt-type-card.active {
+  border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.1);
+}
+.appt-type-card-sm { padding: 8px 14px; font-size: 0.85rem; }
+@media (max-width: 575px) {
+  .appt-type-card { width: 100%; justify-content: center; }
+}
+
 @media (max-width: 576px) {
   .appt-gate-card { padding: 32px 20px; }
   .auth-gate-card { padding: 28px 20px; }

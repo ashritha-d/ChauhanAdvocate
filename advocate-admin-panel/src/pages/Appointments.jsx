@@ -177,7 +177,12 @@ export default function Appointments() {
                     <small className="text-muted">{item.email}</small><br />
                     <small className="text-muted">{item.phone}</small>
                   </td>
-                  <td>{item.service}</td>
+                  <td>
+                    {item.service}
+                    {item.appointmentMode === 'online' && (
+                      <span className="badge bg-info ms-1" style={{ fontSize: '0.65rem', verticalAlign: 'middle' }}>Online</span>
+                    )}
+                  </td>
                   <td>
                     {item.status === 'rescheduled' && item.rescheduledDate ? (
                       <>
@@ -269,6 +274,7 @@ export default function Appointments() {
                   ['Email', selected.email],
                   ['Phone', selected.phone],
                   ['Service', selected.service],
+                  ['Appointment Type', selected.appointmentMode ? (selected.appointmentMode.charAt(0).toUpperCase() + selected.appointmentMode.slice(1) + ' Appointment') : 'Offline Appointment'],
                   ['Date', formatDate(selected.date)],
                   ['Time', selected.time],
                   ['Status', selected.status],

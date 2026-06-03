@@ -10,7 +10,7 @@ export default function AppointmentModal({ onClose, onSuccess }) {
   const [services, setServices] = useState([]);
   const [form, setForm] = useState({
     name: user?.name || '', email: user?.email || '',
-    phone: user?.phone || '', service: '', date: '', time: '', message: '',
+    phone: user?.phone || '', service: '', date: '', time: '', message: '', appointmentMode: 'offline',
   });
   const [slots, setSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -56,6 +56,7 @@ export default function AppointmentModal({ onClose, onSuccess }) {
           service: form.service,
           date: form.date,
           time: form.time,
+          appointmentMode: form.appointmentMode,
         });
         onSuccess?.();
       } else {
@@ -70,7 +71,7 @@ export default function AppointmentModal({ onClose, onSuccess }) {
 
   const handleBookAnother = () => {
     setBooked(null);
-    setForm({ name: user?.name || '', email: user?.email || '', phone: user?.phone || '', service: '', date: '', time: '', message: '' });
+    setForm({ name: user?.name || '', email: user?.email || '', phone: user?.phone || '', service: '', date: '', time: '', message: '', appointmentMode: 'offline' });
     setSlots([]);
   };
 
@@ -138,6 +139,20 @@ export default function AppointmentModal({ onClose, onSuccess }) {
                       <option key={time} value={time} disabled={!available}>{time}{!available ? ' — Booked' : ''}</option>
                     ))}
                   </select>
+                </div>
+                <div className="col-12">
+                  <label className="form-label form-label-sm">Appointment Type *</label>
+                  <div className="d-flex gap-3 flex-wrap mt-1">
+                    {[
+                      { value: 'offline', label: 'Offline Appointment', icon: 'fa-building' },
+                      { value: 'online',  label: 'Online Appointment',  icon: 'fa-video' },
+                    ].map(({ value, label, icon }) => (
+                      <label key={value} className={`appt-type-card appt-type-card-sm${form.appointmentMode === value ? ' active' : ''}`}>
+                        <input type="radio" name="appointmentMode" value={value} checked={form.appointmentMode === value} onChange={set('appointmentMode')} />
+                        <i className={`fas ${icon} me-2`}></i>{label}
+                      </label>
+                    ))}
+                  </div>
                 </div>
                 <div className="col-12">
                   <label className="form-label form-label-sm">Message / Case Brief</label>

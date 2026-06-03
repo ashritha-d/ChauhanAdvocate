@@ -114,6 +114,7 @@ exports.createAppointment = async (req, res) => {
       appointmentId,
       date: appointment.date,
       time: appointment.time,
+      appointmentMode: appointment.appointmentMode,
     }).catch(() => {});
 
     res.status(201).json({ success: true, message: 'Appointment booked successfully!', data: appointment });

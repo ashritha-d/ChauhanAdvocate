@@ -595,6 +595,13 @@ function selectBoPayment(method) {
   document.getElementById('bo-pay-qr-card').classList.toggle('active', method === 'qr_code');
 }
 
+function selectApptType(type) {
+  document.getElementById('appt-type-offline').checked = type === 'offline';
+  document.getElementById('appt-type-online').checked = type === 'online';
+  document.getElementById('appt-type-offline-card').classList.toggle('active', type === 'offline');
+  document.getElementById('appt-type-online-card').classList.toggle('active', type === 'online');
+}
+
 async function openQrModal(pendingData) {
   _qrPendingData = pendingData;
   showQrStep1();
@@ -690,6 +697,7 @@ async function submitQrPayment() {
         showAlert(document.getElementById('apptAlert'), 'success',
           '<i class="fas fa-clock me-2"></i>Appointment submitted! Payment is <strong>pending verification</strong>. We will confirm shortly.');
         selectApptPayment('cash');
+        selectApptType('offline');
       } else {
         document.getElementById('bookOrderFormWrap').style.display = 'none';
         document.getElementById('bookOrderSuccess').innerHTML = `
@@ -752,6 +760,7 @@ function initForms() {
         apptForm.reset();
         apptForm.classList.remove('was-validated');
         selectApptPayment('cash');
+        selectApptType('offline');
         showToast('Appointment booked successfully!', 'success');
       } else {
         showAlert(alert, 'danger', data.message || 'Something went wrong.');

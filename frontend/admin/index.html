@@ -1494,7 +1494,7 @@
         <div class="form-group"><label>Address</label><input readonly value="${esc(d.address||'—')}" /></div>`;
       const waPhone = (p.clientPhone||'').replace(/\D/g,'');
       const waMsg = isAppt
-        ? `Hello ${p.clientName} 👋,\n\nYour appointment has been *CONFIRMED*! 🎉\n\n📋 Service: ${d.service}\n📅 Date: ${d.date?new Date(d.date).toLocaleDateString('en-IN'):'—'}\n🕐 Time: ${d.time}\n\n🧾 Receipt ID: ${p.receiptId||'—'}\n💰 Amount: ₹${p.amount}\n\n📍 Balu Law Chamber, Hasthinapuram\n📞 +91 93925 38226`
+        ? `Hello ${p.clientName} 👋,\n\nYour appointment has been *CONFIRMED*! 🎉\n\n📋 Service: ${d.service}\n📅 Date: ${d.date?new Date(d.date).toLocaleDateString('en-IN'):'—'}\n🕐 Time: ${d.time}\n📍 Mode: ${d.appointmentMode==='online'?'Online':'Offline'}\n\n🧾 Receipt ID: ${p.receiptId||'—'}\n💰 Amount: ₹${p.amount}\n\n📍 Balu Law Chamber, Hasthinapuram\n📞 +91 93925 38226`
         : `Hello ${p.clientName} 👋,\n\nYour book order has been *CONFIRMED*! 📦\n\n📋 Book: ${d.bookTitle}\n📦 Qty: ${d.quantity||1}\n\n🧾 Receipt ID: ${p.receiptId||'—'}\n💰 Amount: ₹${p.amount}\n\n📍 Balu Law Chamber\n📞 +91 93925 38226`;
       const waUrl = waPhone ? `https://wa.me/91${waPhone}?text=${encodeURIComponent(waMsg)}` : '';
       document.getElementById('modal-title').textContent = 'Payment Details';

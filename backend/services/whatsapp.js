@@ -79,8 +79,9 @@ const adminNumber = () => toE164(process.env.ADMIN_WHATSAPP || '');
 
 // ─── Appointment Notifications ────────────────────────────────────────────────
 
-exports.appointmentBooked = async ({ name, phone, appointmentId, date, time }) => {
+exports.appointmentBooked = async ({ name, phone, appointmentId, date, time, appointmentMode }) => {
   const fmtDate = new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+  const modeLabel = appointmentMode === 'online' ? 'Online' : 'Offline';
 
   const clientMsg =
 `Dear ${name},
@@ -90,6 +91,7 @@ Your appointment has been successfully booked.
 Appointment ID: ${appointmentId}
 Date: ${fmtDate}
 Time: ${time}
+Mode: ${modeLabel}
 
 Thank you.
 Balu Law Chamber`;
@@ -101,6 +103,7 @@ Client: ${name}
 Phone: ${phone}
 Date: ${fmtDate}
 Time: ${time}
+Mode: ${modeLabel}
 ID: ${appointmentId}`;
 
   await Promise.all([
