@@ -259,7 +259,7 @@ async function loadServices() {
           <p>${s.shortDescription || s.description.substring(0, 120)}...</p>
           ${s.features && s.features.length ? `
             <ul class="service-features mt-3">
-              ${s.features.slice(0, 4).map(f => `<li>${f}</li>`).join('')}
+              ${s.features.slice(0, 6).map(f => `<li>${f}</li>`).join('')}
             </ul>` : ''}
         </div>
       </div>
@@ -276,9 +276,9 @@ function getFallbackServices() {
   return [
     { _id: '1', title: 'Criminal Law', icon: 'fas fa-gavel', shortDescription: 'Expert defense in criminal cases, bail applications, and trial representation.' },
     { _id: '2', title: 'Civil Litigation', icon: 'fas fa-balance-scale', shortDescription: 'Resolving civil disputes, property matters, and contract enforcement.' },
-    { _id: '3', title: 'Family Law', icon: 'fas fa-heart', shortDescription: 'Divorce, custody, maintenance, and matrimonial dispute resolution.' },
+    { _id: '3', title: 'Family Law', icon: 'fas fa-heart', shortDescription: 'Divorce, custody, maintenance, matrimonial dispute resolution, and RCR (Restitution of Conjugal Rights).' },
     { _id: '4', title: 'Corporate Law', icon: 'fas fa-building', shortDescription: 'Business formation, contracts, compliance, and corporate disputes.' },
-    { _id: '5', title: 'Property Law', icon: 'fas fa-home', shortDescription: 'Property transactions, title disputes, and real estate litigation.' },
+    { _id: '5', title: 'Property Law', icon: 'fas fa-home', shortDescription: 'Property transactions, title disputes, real estate litigation, and legal opinions on property matters.' },
     { _id: '6', title: 'Constitutional Law', icon: 'fas fa-scroll', shortDescription: 'Fundamental rights, PIL, and constitutional matters.' }
   ];
 }
