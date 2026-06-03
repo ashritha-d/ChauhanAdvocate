@@ -102,9 +102,9 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   max-width: 100%;
 }
 .hero-img {
-  width: 320px;
+  width: 360px;
   max-width: 100%;
-  height: 400px;
+  height: 450px;
   object-fit: cover;
   border-radius: 20px;
   border: 3px solid rgba(201,168,76,0.4);
@@ -942,7 +942,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 
 /* ── ≤1199px ── */
 @media (max-width: 1199px) {
-  .hero-img { width: 280px; height: 360px; }
+  .hero-img { width: 315px; height: 405px; }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -956,7 +956,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .hero-section { min-height: calc(100vh - 116px); padding: 24px 0; }
 
   /* Image: 280×300 (was 320×400) — right column now ~430px total */
-  .hero-img { width: 280px; height: 300px; }
+  .hero-img { width: 315px; height: 338px; }
 
   /* Heading: ~3.2rem (was display-3 ≈ 4.5rem on large screens, ~15% cut) */
   .hero-title    { font-size: 3.2rem !important; }
@@ -1001,7 +1001,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
     width: 100%;
     margin: 0;
   }
-  .hero-img { width: 100%; max-width: 300px; height: 360px; }
+  .hero-img { width: 100%; max-width: 338px; height: 405px; }
   .advocate-profile-card { margin: 20px auto 0; max-width: 340px; width: 100%; }
   .about-badge-box { right: 0; bottom: -10px; }
 }
@@ -1026,7 +1026,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
     width: 100%;
     margin: 0 auto;
   }
-  .hero-img { width: 100%; max-width: 260px; height: 300px; margin: 0 auto; }
+  .hero-img { width: 100%; max-width: 292px; height: 338px; margin: 0 auto; }
   .advocate-profile-card { margin: 16px auto 0; max-width: 320px; width: 100%; }
   .hero-card-float { bottom: 16px; left: 50%; transform: translateX(-50%); top: auto; font-size: 0.75rem; padding: 9px 12px; }
   .hero-card-float i { font-size: 1.15rem; }
@@ -1084,7 +1084,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   /* Hero */
   .hero-title { font-size: 1.85rem !important; }
   .hero-subtitle { font-size: 0.95rem !important; }
-  .hero-img { width: 100%; max-width: 240px; height: 280px; margin: 0 auto; }
+  .hero-img { width: 100%; max-width: 270px; height: 315px; margin: 0 auto; }
   .hero-card-float { display: none; }  /* hide float badge on small phones */
   .advocate-profile-card { max-width: 300px; }
 
@@ -1135,7 +1135,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 
 /* ── ≤414px: large phones (iPhone 12/13/14 Plus) ── */
 @media (max-width: 414px) {
-  .hero-img { max-width: 220px; height: 260px; margin: 0 auto; }
+  .hero-img { max-width: 248px; height: 292px; margin: 0 auto; }
   .book-card { min-width: 200px; max-width: 200px; }
   .latest-card { min-width: 250px; max-width: 250px; }
 }
@@ -1143,7 +1143,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 /* ── ≤390px: iPhone 14 Pro, Pixel 7 ── */
 @media (max-width: 390px) {
   .hero-title { font-size: 1.7rem !important; }
-  .hero-img { max-width: 210px; height: 250px; margin: 0 auto; }
+  .hero-img { max-width: 236px; height: 280px; margin: 0 auto; }
   .section-title { font-size: 1.4rem; }
   .appointment-form-card { padding: 18px 14px; }
   .contact-form-card { padding: 18px 14px; }
@@ -1152,14 +1152,14 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 /* ── ≤375px: iPhone SE 3rd / 6/7/8, Galaxy S22 ── */
 @media (max-width: 375px) {
   .hero-title { font-size: 1.6rem !important; }
-  .hero-img { max-width: 200px; height: 240px; margin: 0 auto; }
+  .hero-img { max-width: 225px; height: 270px; margin: 0 auto; }
   .book-card { min-width: 195px; max-width: 195px; }
   .latest-card { min-width: 235px; max-width: 235px; }
 }
 
 /* ── ≤360px: Samsung Galaxy S21, Moto G ── */
 @media (max-width: 360px) {
-  .hero-img { max-width: 190px; height: 230px; margin: 0 auto; }
+  .hero-img { max-width: 214px; height: 258px; margin: 0 auto; }
   .book-card { min-width: 185px; max-width: 185px; }
   .section-padding { padding: 44px 0; }
   .section-title { font-size: 1.35rem; }
@@ -1183,7 +1183,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .hero-section { padding-top: 20px; }
   .hero-title { font-size: 1.5rem !important; }
   .hero-subtitle { font-size: 0.88rem !important; }
-  .hero-img { max-width: 180px; height: 215px; margin: 0 auto; }
+  .hero-img { max-width: 202px; height: 242px; margin: 0 auto; }
   .hero-card-float { display: none; }
   .advocate-profile-card { max-width: 260px; }
   .hero-stats .col-auto { flex: 0 0 50% !important; max-width: 50% !important; }

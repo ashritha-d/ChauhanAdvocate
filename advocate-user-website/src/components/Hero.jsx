@@ -35,11 +35,9 @@ export default function Hero() {
     { num: s.stats_courts  || '100+',   label: 'Courts Covered' },
   ];
 
-  const advocateName  = s.advocate_name         || 'Srinivas Chauhan (Advocate)';
-  const designation   = s.advocate_designation   || 'Senior Advocate';
-  const qualification = s.advocate_qualification || 'LLB, LLM';
-  const experience    = s.advocate_experience    ? s.advocate_experience + '+ Years Experience' : '15+ Years Experience';
-  const enrollment    = s.advocate_enrollment    || '';
+  const advocateName = s.advocate_name       || 'Srinivas Chauhan (Advocate)';
+  const designation  = s.advocate_designation || 'MBA, M.Sc & LL.B';
+  const enrollment   = s.advocate_enrollment  || '';
 
   return (
     <section id="home" className="hero-section d-flex">
@@ -87,27 +85,17 @@ export default function Hero() {
             <div className="advocate-profile-card" data-aos="fade-up" data-aos-delay="300">
               <div className="advocate-profile-name">{advocateName}</div>
               <div className="advocate-profile-desig">{designation}</div>
-              <div className="advocate-profile-divider"></div>
-              <div className="advocate-profile-details">
-                <div className="advocate-profile-item">
-                  <i className="fas fa-graduation-cap"></i>
-                  <span>{qualification}</span>
-                </div>
-                <div className="advocate-profile-item">
-                  <i className="fas fa-briefcase"></i>
-                  <span>{experience}</span>
-                </div>
-                {enrollment && (
-                  <div className="advocate-profile-item">
-                    <i className="fas fa-id-card"></i>
-                    <span>Enroll No: {enrollment}</span>
+              {enrollment && (
+                <>
+                  <div className="advocate-profile-divider"></div>
+                  <div className="advocate-profile-details">
+                    <div className="advocate-profile-item">
+                      <i className="fas fa-id-card"></i>
+                      <span>Enroll No: {enrollment}</span>
+                    </div>
                   </div>
-                )}
-                <div className="advocate-profile-item">
-                  <i className="fas fa-map-marker-alt"></i>
-                  <span>Balu Law Chamber, Hyderabad</span>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           </div>
 

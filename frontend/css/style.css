@@ -236,8 +236,8 @@ h1, h2, h3, h4, h5 { font-family: var(--font-heading); }
 .hero-image-wrap { position: relative; display: inline-block; }
 .hero-img {
   width: 100%;
-  max-width: 400px;
-  height: 500px;
+  max-width: 450px;
+  height: 560px;
   object-fit: cover;
   border-radius: 30px 30px 100px 30px;
   box-shadow: 0 30px 80px rgba(0,0,0,0.4);
@@ -975,7 +975,7 @@ h1, h2, h3, h4, h5 { font-family: var(--font-heading); }
 
 /* ── 992px: tablets landscape ── */
 @media screen and (max-width: 992px) {
-  .hero-img { max-width: 300px; height: 380px; }
+  .hero-img { max-width: 338px; height: 428px; }
   .about-badge-box { right: 0; bottom: -10px; }
 }
 
@@ -1073,7 +1073,7 @@ h1, h2, h3, h4, h5 { font-family: var(--font-heading); }
   /* Hero */
   .hero-title { font-size: 1.9rem !important; }
   .hero-subtitle { font-size: 1rem; }
-  .hero-img { max-width: 100%; height: 260px; border-radius: 20px 20px 60px 20px; }
+  .hero-img { max-width: 100%; height: 292px; border-radius: 20px 20px 60px 20px; }
 
   .stat-number { font-size: 1.5rem; }
 

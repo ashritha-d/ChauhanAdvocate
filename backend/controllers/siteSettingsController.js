@@ -8,7 +8,7 @@ const DEFAULT_SETTINGS = [
   { key: 'hero_subtitle', value: 'Expert legal representation across criminal, civil, family & corporate law', group: 'hero', label: 'Hero Subtitle', type: 'textarea' },
   { key: 'hero_image', value: '', group: 'hero', label: 'Hero Background', type: 'image' },
   { key: 'advocate_name', value: 'Adv. Rajesh Chauhan', group: 'advocate', label: 'Advocate Name', type: 'text' },
-  { key: 'advocate_designation', value: 'Senior Advocate, High Court', group: 'advocate', label: 'Designation', type: 'text' },
+  { key: 'advocate_designation', value: 'MBA, M.Sc & LL.B', group: 'advocate', label: 'Designation', type: 'text' },
   { key: 'advocate_experience', value: '15+ Years Experience', group: 'advocate', label: 'Experience', type: 'text' },
   { key: 'advocate_photo', value: '', group: 'advocate', label: 'Advocate Photo', type: 'image' },
   { key: 'advocate_bio', value: 'With over 15 years of dedicated legal practice, Advocate Chauhan has successfully represented thousands of clients across various courts.', group: 'advocate', label: 'Bio', type: 'textarea' },
