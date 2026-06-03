@@ -22,7 +22,7 @@ const courseSchema = new mongoose.Schema({
   thumbnail: { type: String, default: '' },
   price: { type: Number, required: true, default: 0 },
   discountPrice: { type: Number, default: 0 },
-  instructor: { type: String, default: 'Srinivas Chauhan (Advocate)' },
+  instructor: { type: String, default: 'Srinivas Chauhan Advocate' },
   duration: { type: String, default: '' },
   level: { type: String, enum: ['beginner', 'intermediate', 'advanced'], default: 'beginner' },
   language: { type: String, default: 'Telugu / English' },
