@@ -348,13 +348,13 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   display: flex; align-items: center; justify-content: center;
   color: var(--gold); font-size: 0.85rem;
 }
-.contact-detail-label { font-size: 0.72rem; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 3px; }
-.contact-link { color: #333; text-decoration: none; font-size: 0.88rem; transition: color 0.2s; }
+.contact-detail-label { font-size: 0.72rem; font-weight: 500; color: #aaa; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 3px; }
+.contact-link { color: #333; text-decoration: none; font-size: 0.88rem; font-weight: 400; transition: color 0.2s; }
 .contact-link:hover { color: var(--gold); }
 
 /* Social footer — pushed to bottom of Details card */
 .contact-panel-footer { padding: 16px 24px; border-top: 1px solid #f0f0f0; margin-top: auto; }
-.contact-social-label { font-size: 0.72rem; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+.contact-social-label { font-size: 0.72rem; font-weight: 500; color: #aaa; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
 .contact-social-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .contact-social-btn {
   width: 34px; height: 34px;
