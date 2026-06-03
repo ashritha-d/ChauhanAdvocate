@@ -605,12 +605,12 @@
                 </div>
                 <div class="col-12">
                   <label class="form-label fw-semibold">Appointment Type *</label>
-                  <div class="d-flex gap-3 flex-wrap mt-1">
-                    <div class="payment-option-card active" id="appt-type-offline-card" onclick="selectApptType('offline')">
+                  <div class="d-flex gap-3 mt-1">
+                    <div class="appt-type-btn active" id="appt-type-offline-card" onclick="selectApptType('offline')">
                       <input type="radio" name="appointmentMode" id="appt-type-offline" value="offline" checked style="display:none">
                       <i class="fas fa-building me-2"></i>Offline Appointment
                     </div>
-                    <div class="payment-option-card" id="appt-type-online-card" onclick="selectApptType('online')">
+                    <div class="appt-type-btn" id="appt-type-online-card" onclick="selectApptType('online')">
                       <input type="radio" name="appointmentMode" id="appt-type-online" value="online" style="display:none">
                       <i class="fas fa-video me-2"></i>Online Appointment
                     </div>
@@ -1086,6 +1086,25 @@
     border-color: var(--gold); background: rgba(201,168,76,0.07); color: #000;
   }
   .payment-option-sm { padding: 8px 12px; font-size: .82rem; }
+  .appt-type-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    flex: 1; min-width: 0;
+    border: 2px solid #D1D5DB; border-radius: 10px;
+    padding: 10px 16px; cursor: pointer; font-size: .88rem;
+    font-weight: 500; transition: all .3s ease;
+    background: #F3F4F6; color: #374151; user-select: none;
+  }
+  .appt-type-btn:hover {
+    background: #E5E7EB; border-color: #9CA3AF; color: #1F2937;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .appt-type-btn.active {
+    background: #C9A646; border-color: #C9A646; color: #fff;
+    box-shadow: 0 2px 8px rgba(201,168,76,0.3);
+  }
+  @media (max-width: 576px) {
+    .appt-type-btn { padding: 10px 10px; font-size: .82rem; }
+  }
   </style>
 
   <!-- Scripts -->

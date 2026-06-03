@@ -176,7 +176,7 @@ export default function Appointment() {
                       </div>
                       <div className="col-12">
                         <label className="form-label">Appointment Type *</label>
-                        <div className="d-flex gap-3 flex-wrap mt-1">
+                        <div className="d-flex gap-3 mt-1">
                           {[
                             { value: 'offline', label: 'Offline Appointment', icon: 'fa-building' },
                             { value: 'online',  label: 'Online Appointment',  icon: 'fa-video' },

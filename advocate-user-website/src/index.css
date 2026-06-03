@@ -864,19 +864,25 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 
 /* ── Appointment Type Radio Cards ── */
 .appt-type-card {
-  display: inline-flex; align-items: center;
-  padding: 10px 18px; border: 2px solid rgba(201,168,76,0.3);
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 1; min-width: 0;
+  padding: 10px 18px; border: 2px solid #D1D5DB;
   border-radius: 10px; cursor: pointer; font-weight: 500;
-  color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.06);
-  transition: all 0.2s; user-select: none;
+  color: #374151; background: #F3F4F6;
+  transition: all 0.3s ease; user-select: none;
 }
 .appt-type-card input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
-.appt-type-card:hover, .appt-type-card.active {
-  border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.1);
+.appt-type-card:hover {
+  background: #E5E7EB; border-color: #9CA3AF; color: #1F2937;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.appt-type-card.active {
+  background: #C9A646; border-color: #C9A646; color: #fff;
+  box-shadow: 0 2px 8px rgba(201,168,76,0.3);
 }
 .appt-type-card-sm { padding: 8px 14px; font-size: 0.85rem; }
 @media (max-width: 575px) {
-  .appt-type-card { width: 100%; justify-content: center; }
+  .appt-type-card { flex: 1 1 0; padding: 10px 10px; font-size: 0.83rem; }
 }
 
 @media (max-width: 576px) {
