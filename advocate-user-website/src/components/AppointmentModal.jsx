@@ -5,7 +5,7 @@ import AppointmentSuccessCard from './AppointmentSuccessCard';
 
 const todayStr = () => new Date().toISOString().split('T')[0];
 
-export default function AppointmentModal({ onClose, onSuccess }) {
+export default function AppointmentModal({ onClose }) {
   const { user, authHeader } = useUserAuth();
   const [services, setServices] = useState([]);
   const [form, setForm] = useState({
@@ -58,7 +58,6 @@ export default function AppointmentModal({ onClose, onSuccess }) {
           time: form.time,
           appointmentMode: form.appointmentMode,
         });
-        onSuccess?.();
       } else {
         setError(r.data.message || 'Something went wrong. Please try again.');
         if (form.date) loadSlots(form.date);
