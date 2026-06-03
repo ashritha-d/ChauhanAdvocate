@@ -82,5 +82,11 @@ export const getPaymentStats = () => api.get('/payments/stats');
 // Notifications
 export const getNotificationCounts = () => api.get('/notifications/counts');
 
+// News
+export const getNews        = ()           => api.get('/news');
+export const createNews     = (data)       => api.post('/news', data);
+export const updateNews     = (id, data)   => api.put(`/news/${id}`, data);
+export const deleteNews     = (id)         => api.delete(`/news/${id}`);
+
 // Upload
 export const uploadFile = (formData) => api.post('/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });

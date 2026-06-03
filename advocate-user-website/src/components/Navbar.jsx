@@ -3,10 +3,11 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
 
-// Gallery and Courses have dedicated pages; all others are home-page anchors
+// Dedicated pages: News, Courses, Gallery. All others are home-page anchors.
 const NAV_LINKS = [
   { id: 'home',     label: 'Home',     page: null },
   { id: 'services', label: 'Services', page: null },
+  { id: 'news',     label: 'News',     page: '/news' },
   { id: 'courses',  label: 'Courses',  page: '/courses' },
   { id: 'gallery',  label: 'Gallery',  page: '/gallery' },
   { id: 'blog',     label: 'Blog',     page: null },

@@ -20,8 +20,10 @@ import BookOrders from './pages/BookOrders';
 import Payments from './pages/Payments';
 import Users from './pages/Users';
 import Notifications from './pages/Notifications';
+import News from './pages/News';
+import Courses from './pages/Courses';
 
-const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile, youtube: YouTubeVideos, orders: Orders, jradvocates: JrAdvocates, bookorders: BookOrders, payments: Payments, users: Users, notifications: Notifications };
+const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, news: News, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile, youtube: YouTubeVideos, orders: Orders, jradvocates: JrAdvocates, bookorders: BookOrders, payments: Payments, users: Users, notifications: Notifications, courses: Courses };
 
 function AdminApp() {
   const { admin, loading } = useAuth();

@@ -1,25 +1,29 @@
 import { useAuth } from '../context/AuthContext';
+import { useEffect, useState } from 'react';
+import api from '../api/axios';
 
 const NAV = [
   { label: 'Main', items: [
     { icon: 'fas fa-tachometer-alt', label: 'Dashboard', page: 'dashboard' },
   ]},
   { label: 'Content', items: [
-    { icon: 'fas fa-cog', label: 'Site Settings', page: 'settings' },
-    { icon: 'fas fa-image', label: 'Hero Banners', page: 'banners' },
-    { icon: 'fas fa-briefcase', label: 'Services', page: 'services' },
-    { icon: 'fas fa-newspaper', label: 'Blogs', page: 'blogs' },
-    { icon: 'fas fa-star', label: 'Testimonials', page: 'testimonials' },
-    { icon: 'fas fa-question-circle', label: 'FAQs', page: 'faqs' },
-    { icon: 'fab fa-youtube', label: 'YouTube Videos', page: 'youtube' },
+    { icon: 'fas fa-cog',            label: 'Site Settings',   page: 'settings' },
+    { icon: 'fas fa-image',          label: 'Hero Banners',    page: 'banners' },
+    { icon: 'fas fa-briefcase',      label: 'Services',        page: 'services' },
+    { icon: 'fas fa-rss',            label: 'Latest News',     page: 'news', badge: 'news' },
+    { icon: 'fas fa-newspaper',      label: 'Blogs',           page: 'blogs' },
+    { icon: 'fas fa-graduation-cap', label: 'Courses',         page: 'courses' },
+    { icon: 'fas fa-star',           label: 'Testimonials',    page: 'testimonials' },
+    { icon: 'fas fa-question-circle',label: 'FAQs',            page: 'faqs' },
+    { icon: 'fab fa-youtube',        label: 'YouTube Videos',  page: 'youtube' },
   ]},
   { label: 'Inquiries', items: [
-    { icon: 'fas fa-calendar-alt', label: 'Appointments', page: 'appointments' },
-    { icon: 'fas fa-file-alt', label: 'Orders', page: 'orders' },
-    { icon: 'fas fa-book', label: 'Book Orders', page: 'bookorders' },
-    { icon: 'fas fa-user-tie', label: 'Jr. Advocates', page: 'jradvocates' },
-    { icon: 'fas fa-envelope', label: 'Contacts', page: 'contacts' },
-    { icon: 'fas fa-credit-card', label: 'Payments', page: 'payments' },
+    { icon: 'fas fa-calendar-alt',   label: 'Appointments',   page: 'appointments' },
+    { icon: 'fas fa-file-alt',       label: 'Orders',         page: 'orders' },
+    { icon: 'fas fa-book',           label: 'Book Orders',    page: 'bookorders' },
+    { icon: 'fas fa-user-tie',       label: 'Jr. Advocates',  page: 'jradvocates' },
+    { icon: 'fas fa-envelope',       label: 'Contacts',       page: 'contacts' },
+    { icon: 'fas fa-credit-card',    label: 'Payments',       page: 'payments' },
   ]},
   { label: 'Users', items: [
     { icon: 'fas fa-users', label: 'Registered Users', page: 'users' },
@@ -34,6 +38,11 @@ const NAV = [
 
 export default function Sidebar({ current, onChange, mobileOpen, onClose }) {
   const { admin, logout } = useAuth();
+  const [newsCount, setNewsCount] = useState(0);
+
+  useEffect(() => {
+    api.get('/news').then(r => setNewsCount(r.data.activeCount || 0)).catch(() => {});
+  }, [current]);
 
   return (
     <>
@@ -54,6 +63,9 @@ export default function Sidebar({ current, onChange, mobileOpen, onClose }) {
                   onClick={() => { onChange(item.page); onClose(); }}
                 >
                   <i className={item.icon}></i> {item.label}
+                  {item.badge === 'news' && newsCount > 0 && (
+                    <span className="ms-auto badge bg-success" style={{ fontSize: '0.65rem' }}>{newsCount}</span>
+                  )}
                 </button>
               ))}
             </div>

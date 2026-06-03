@@ -89,6 +89,7 @@ app.use('/api/contact-details', require('./routes/contactDetails'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/courses', require('./routes/courses'));
+app.use('/api/news',    require('./routes/news'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));

@@ -39,6 +39,16 @@ export const markAllNotificationsRead = (headers) => api.put('/users/notificatio
 export const submitJrAdvocateApplication = (formData) => api.post('/jr-advocates', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const getMyApplications = (headers) => api.get('/jr-advocates/my-applications', { headers });
 
+// ── News ──────────────────────────────────────────────────────────────────────
+export const getActiveNews = (limit = 0) => api.get(`/news/active${limit ? `?limit=${limit}` : ''}`);
+export const getNewsPage   = (page = 1, limit = 9, search = '', from = '', to = '') => {
+  const params = new URLSearchParams({ page, limit });
+  if (search) params.set('search', search);
+  if (from)   params.set('from', from);
+  if (to)     params.set('to', to);
+  return api.get(`/news/page?${params}`);
+};
+
 // ── Courses / LMS ─────────────────────────────────────────────────────────────
 export const getPublicCourses = () => api.get('/courses/public');
 export const getPublicCourse = (id, headers = {}) => api.get(`/courses/public/${id}`, { headers });
