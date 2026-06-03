@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { getServices, bookAppointment, getAvailableSlots } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
 import AppointmentSuccessCard from './AppointmentSuccessCard';
@@ -7,6 +7,7 @@ const todayStr = () => new Date().toISOString().split('T')[0];
 
 export default function AppointmentModal({ onClose }) {
   const { user, authHeader } = useUserAuth();
+  const modalRef = useRef(null);
   const [services, setServices] = useState([]);
   const [form, setForm] = useState({
     name: user?.name || '', email: user?.email || '',
@@ -58,6 +59,7 @@ export default function AppointmentModal({ onClose }) {
           time: form.time,
           appointmentMode: form.appointmentMode,
         });
+        if (modalRef.current) modalRef.current.scrollTop = 0;
       } else {
         setError(r.data.message || 'Something went wrong. Please try again.');
         if (form.date) loadSlots(form.date);
@@ -76,7 +78,7 @@ export default function AppointmentModal({ onClose }) {
 
   return (
     <div className="modal-backdrop" onClick={!booked ? onClose : undefined}>
-      <div className={`appt-modal ${booked ? 'appt-modal-success' : ''}`} onClick={e => e.stopPropagation()}>
+      <div ref={modalRef} className={`appt-modal ${booked ? 'appt-modal-success' : ''}`} onClick={e => e.stopPropagation()}>
         <button className="jr-modal-close" onClick={onClose}>&times;</button>
 
         {booked ? (

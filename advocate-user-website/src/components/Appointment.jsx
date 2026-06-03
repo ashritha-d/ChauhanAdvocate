@@ -61,6 +61,7 @@ export default function Appointment() {
         });
         setSlots([]);
         e.target.classList.remove('was-validated');
+        setTimeout(() => document.getElementById('appointment')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
       } else {
         setError(r.data.message || 'Something went wrong. Please try again.');
         if (form.date) loadSlots(form.date);
