@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Photo Gallery - Advocate Chauhan Legal Services" />
+  <link rel="icon" type="image/jpeg" href="logo.jpeg" />
   <title>Gallery - Advocate Chauhan</title>
 
   <!-- Bootstrap 5 -->
@@ -18,10 +19,10 @@
   <link href="css/style.css" rel="stylesheet" />
 
   <style>
-    /* Gallery page has no top-bar — move navbar flush to top */
+    /* Gallery page has no top-bar â€” move navbar flush to top */
     #mainNavbar { top: 0 !important; }
 
-    /* ── Gallery page hero banner ── */
+    /* â”€â”€ Gallery page hero banner â”€â”€ */
     .gallery-hero {
       background: linear-gradient(135deg, var(--navy) 0%, #1a3550 60%, #0d2035 100%);
       padding: 90px 0 60px;
@@ -60,7 +61,7 @@
     .gallery-breadcrumb a { color: var(--gold); text-decoration: none; }
     .gallery-breadcrumb a:hover { color: #fff; }
 
-    /* ── Grid ── */
+    /* â”€â”€ Grid â”€â”€ */
     .gallery-section { padding: 60px 0 80px; background: #f8f6f2; }
     .gallery-grid {
       display: grid;
@@ -74,7 +75,7 @@
       .gallery-grid { grid-template-columns: 1fr; }
     }
 
-    /* ── Gallery card ── */
+    /* â”€â”€ Gallery card â”€â”€ */
     .gallery-item {
       position: relative;
       overflow: hidden;
@@ -113,7 +114,7 @@
       margin-left: auto;
     }
 
-    /* ── Empty state ── */
+    /* â”€â”€ Empty state â”€â”€ */
     .gallery-empty {
       text-align: center;
       padding: 60px 20px;
@@ -123,7 +124,7 @@
     .gallery-empty h5 { color: var(--navy); font-family: 'Playfair Display', serif; }
     .gallery-spinner { text-align: center; padding: 60px 20px; }
 
-    /* ── Lightbox ── */
+    /* â”€â”€ Lightbox â”€â”€ */
     .lightbox-overlay {
       display: none;
       position: fixed;
@@ -320,7 +321,7 @@
               </li>
               <li>
                 <i class="fas fa-clock"></i>
-                <span>Mon–Sat: 9AM – 7PM</span>
+                <span>Monâ€“Sat: 9AM â€“ 7PM</span>
               </li>
             </ul>
           </div>
@@ -368,17 +369,17 @@
   <script>
     AOS.init({ duration: 700, once: true });
 
-    // ── Year ──
+    // â”€â”€ Year â”€â”€
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // ── Back to top ──
+    // â”€â”€ Back to top â”€â”€
     const backToTop = document.getElementById('backToTop');
     window.addEventListener('scroll', () => {
       backToTop.classList.toggle('show', window.scrollY > 300);
     }, { passive: true });
     backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
-    // ── Gallery ──
+    // â”€â”€ Gallery â”€â”€
     const galleryImages = [
       'g1.jpeg','g2.jpeg','g3.jpeg','g4.jpeg',
       'g6.jpeg','g7.jpeg','g8.jpeg','g9.jpeg','g10.jpeg'
@@ -406,7 +407,7 @@
       });
     }
 
-    // ── Lightbox ──
+    // â”€â”€ Lightbox â”€â”€
     const lightbox = document.getElementById('lightbox');
     const lbImg    = document.getElementById('lightboxImg');
     const lbCount  = document.getElementById('lightboxCounter');
@@ -448,7 +449,7 @@
       if (e.key === 'ArrowRight') navigate(1);
     });
 
-    // ── Touch swipe for lightbox ──
+    // â”€â”€ Touch swipe for lightbox â”€â”€
     let touchStartX = 0;
     lightbox.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
     lightbox.addEventListener('touchend', e => {

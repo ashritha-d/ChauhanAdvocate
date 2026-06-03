@@ -1,8 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Books for Sale — Advocate Chauhan</title>
+  <link rel="icon" type="image/jpeg" href="logo.jpeg" />
+  <title>Books for Sale â€” Advocate Chauhan</title>
   <link rel="stylesheet" href="css/fa-all.min.css" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
@@ -73,7 +74,7 @@
           <div class="book-body">
             <div class="book-name">${b.name}</div>
             ${b.author ? `<div class="book-author">by ${b.author}</div>` : ''}
-            <div class="book-price">₹${b.price}</div>
+            <div class="book-price">â‚¹${b.price}</div>
             <span class="stock-badge ${b.stockStatus==='available'?'stock-available':'stock-out'}">${b.stockStatus==='available'?'In Stock':'Out of Stock'}</span>
             ${b.description ? `<div class="book-desc">${b.description}</div>` : ''}
             ${b.stockStatus==='available' ? `<button class="btn-enquire" onclick='openEnquiry("${b.name}","${b.price}")'>Enquire / Buy</button>` : `<button class="btn-enquire" style="opacity:.5;cursor:not-allowed" disabled>Out of Stock</button>`}
