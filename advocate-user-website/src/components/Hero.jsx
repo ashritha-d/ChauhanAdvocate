@@ -35,7 +35,7 @@ export default function Hero() {
     { num: s.stats_courts  || '100+',   label: 'Courts Covered' },
   ];
 
-  const advocateName  = s.advocate_name         || 'Advocate B. Chauhan';
+  const advocateName  = s.advocate_name         || 'Srinivas Chauhan (Advocate)';
   const designation   = s.advocate_designation   || 'Senior Advocate';
   const qualification = s.advocate_qualification || 'LLB, LLM';
   const experience    = s.advocate_experience    ? s.advocate_experience + '+ Years Experience' : '15+ Years Experience';
