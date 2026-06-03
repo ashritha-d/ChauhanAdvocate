@@ -1,5 +1,4 @@
 import Hero from '../components/Hero';
-import NewsTicker from '../components/NewsTicker';
 import Services from '../components/Services';
 import LatestUpdates from '../components/LatestUpdates';
 import YouTubeSection from '../components/YouTubeSection';
@@ -35,7 +34,6 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <NewsTicker />
       <Services />
       <LatestUpdates />
       <YouTubeSection />

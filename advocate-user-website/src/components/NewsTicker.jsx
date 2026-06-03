@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getActiveNews } from '../api';
 
 function fmt(d) {
@@ -71,10 +72,10 @@ export default function NewsTicker() {
           </div>
 
           {/* View all link */}
-          <a href="/ChauhanAdvocate/news" className="news-ticker-viewall">
+          <Link to="/news" className="news-ticker-viewall">
             <span className="d-none d-sm-inline">View All</span>
             <i className="fas fa-chevron-right ms-1"></i>
-          </a>
+          </Link>
         </div>
       </div>
     </div>

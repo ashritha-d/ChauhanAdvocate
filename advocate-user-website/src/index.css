@@ -460,15 +460,24 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .spinner-gold { color: var(--gold); }
 
 /* ══════════════════════════════════════════════════════════════
-   NEWS TICKER (Homepage)
+   NEWS TICKER — sticky right below navbar
+   TopBar: 40px  +  Navbar: ~76px  =  116px offset
 ══════════════════════════════════════════════════════════════ */
 .news-ticker-section {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-top: 3px solid var(--gold);
-  border-bottom: 1px solid rgba(201,168,76,0.2);
-  position: relative;
-  z-index: 10;
+  border-bottom: 2px solid rgba(201,168,76,0.35);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+  /* sticky: sits in normal flow at margin-top: 116px, then sticks below navbar */
+  position: sticky;
+  top: 116px;
+  margin-top: 116px;
+  z-index: 1039;
   overflow: hidden;
+  transition: top 0.3s ease, box-shadow 0.3s;
+}
+/* When navbar is scrolled (shorter padding) the navbar shrinks → ticker adjusts */
+.navbar.scrolled + .news-ticker-section {
+  top: 104px;
 }
 
 .news-ticker-wrap {

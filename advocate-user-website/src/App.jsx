@@ -17,6 +17,7 @@ import Profile from './pages/Profile';
 import Gallery from './pages/Gallery';
 import Courses from './pages/Courses';
 import NewsPage from './pages/News';
+import NewsTicker from './components/NewsTicker';
 
 function ScrollToHash() {
   const location = useLocation();
@@ -39,6 +40,7 @@ function AppLayout({ children, hideFooterExtras }) {
     <>
       <TopBar />
       <Navbar />
+      <NewsTicker />
       <main>{children}</main>
       {!hideFooterExtras && (
         <>
