@@ -185,6 +185,7 @@ export default function Payment() {
         order_id: data.order_id,
         prefill: data.prefill || {},
         theme: { color: '#C9A84C' },
+        method: { upi: true, card: true, netbanking: true, wallet: true, paylater: true },
         handler: async (response) => {
           setLoading(true); setLoadingText('Confirming your appointment...');
           try {
