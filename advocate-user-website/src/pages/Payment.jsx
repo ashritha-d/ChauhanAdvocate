@@ -134,7 +134,7 @@ export default function Payment() {
   const { user, authHeader } = useUserAuth();
   const [appt, setAppt] = useState(null);
   const [settings, setSettings] = useState({});
-  const [method, setMethod] = useState(null);
+  const [method, setMethod] = useState('razorpay');
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('');
   const [screen, setScreen] = useState('payment'); // payment | success | pending
@@ -369,7 +369,7 @@ export default function Payment() {
         <div style={cardStyle}>
           <div style={headerStyle}>
             <div style={{ fontWeight:700, fontSize:'1.1rem' }}>Complete Your Payment</div>
-            <div style={{ color:'#aaa', fontSize:'0.8rem', marginTop:2 }}>Step 2 of 2 — Choose a payment method</div>
+            <div style={{ color:'#aaa', fontSize:'0.8rem', marginTop:2 }}>Step 2 of 2 — Secure checkout via Razorpay</div>
           </div>
           <div style={bodyStyle}>
 
@@ -392,71 +392,25 @@ export default function Payment() {
               ))}
             </div>
 
-            {/* Payment Methods */}
-            <div className="mb-3">
-              <label className="form-label fw-semibold mb-3">
-                <i className="fas fa-credit-card me-2" style={{ color:'#C9A84C' }}></i>Choose Payment Method
-              </label>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-                <MethodCard
-                  id="razorpay" wide
-                  imgSrc="https://upload.wikimedia.org/wikipedia/commons/8/89/Razorpay_logo.svg"
-                  name="Razorpay — Card / Net Banking / UPI"
-                  sub="Instant confirmation · Most popular"
-                  selected={method === 'razorpay'}
-                  onClick={() => setMethod('razorpay')}
-                />
-                <MethodCard id="phonepe"
-                  imgSrc="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/PhonePe_Logo.svg/512px-PhonePe_Logo.svg.png"
-                  name="PhonePe"
-                  selected={method === 'phonepe'}
-                  onClick={() => setMethod('phonepe')}
-                />
-                <MethodCard id="googlepay"
-                  imgSrc="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/512px-Google_Pay_Logo.svg.png"
-                  name="Google Pay"
-                  selected={method === 'googlepay'}
-                  onClick={() => setMethod('googlepay')}
-                />
-                <MethodCard id="upi_id" icon="fa-mobile-alt" name="UPI ID"
-                  selected={method === 'upi_id'} onClick={() => setMethod('upi_id')}
-                />
-                <MethodCard id="qr_code" icon="fa-qrcode" name="Scan QR"
-                  selected={method === 'qr_code'} onClick={() => setMethod('qr_code')}
-                />
+            {/* Razorpay — only payment method */}
+            <div style={{ background:'#f9fafb', border:'1.5px solid #e5e7eb', borderRadius:14, padding:20, marginBottom:16 }}>
+              <div className="d-flex align-items-center gap-2 mb-3">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Razorpay_logo.svg" alt="Razorpay" style={{ height:22, objectFit:'contain' }} />
+                <span className="fw-semibold">Razorpay Secure Checkout</span>
               </div>
-            </div>
-
-            {/* Method Detail Panel */}
-            {method && (
-              <div style={{ background:'#f9fafb', border:'1.5px solid #e5e7eb', borderRadius:14, padding:20, marginBottom:16 }}>
-                {method === 'razorpay' ? (
-                  <div>
-                    <p className="small text-muted mb-3">
-                      <i className="fas fa-shield-alt text-success me-2"></i>
-                      Pay using any UPI app, debit/credit card, or net banking. Your appointment will be confirmed instantly.
-                    </p>
-                    <button className="btn w-100 py-3 fw-bold" style={{ background:'linear-gradient(135deg,#528FF0,#2563eb)', color:'#fff', borderRadius:12, fontSize:'1rem' }} onClick={startRazorpay}>
-                      <i className="fas fa-lock me-2"></i>Pay Securely with Razorpay
-                    </button>
-                  </div>
-                ) : (
-                  <ManualPanel
-                    method={method}
-                    upiId={upiId}
-                    qrUrl={qrUrl}
-                    feeDisplay={feeDisplay}
-                    onSuccess={handleManualSuccess}
-                  />
-                )}
-              </div>
-            )}
-
-            {!method && (
-              <p className="text-center text-muted small">
-                <i className="fas fa-arrow-up me-1"></i>Select a payment method above
+              <p className="small text-muted mb-3">
+                <i className="fas fa-shield-alt text-success me-2"></i>
+                Pay using any UPI app, debit/credit card, or net banking. Your appointment will be confirmed instantly after payment.
               </p>
-            )}
+              <div className="d-flex gap-2 flex-wrap mb-3">
+                {['PhonePe','Google Pay','Paytm','BHIM','Card','Net Banking'].map(m => (
+                  <span key={m} className="badge bg-light text-dark border" style={{ fontWeight:500 }}>{m}</span>
+                ))}
+              </div>
+              <button className="btn w-100 py-3 fw-bold" style={{ background:'linear-gradient(135deg,#528FF0,#2563eb)', color:'#fff', borderRadius:12, fontSize:'1rem' }} onClick={startRazorpay}>
+                <i className="fas fa-lock me-2"></i>Pay {feeDisplay} Securely
+              </button>
+            </div>
 
             <div className="d-flex justify-content-between align-items-center mt-3">
               <button className="btn btn-outline-secondary btn-sm" onClick={() => navigate(-1)}>
