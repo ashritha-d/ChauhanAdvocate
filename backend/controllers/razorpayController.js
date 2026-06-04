@@ -55,7 +55,7 @@ exports.getPaymentSettings = async (req, res) => {
   }
 };
 
-// PUBLIC: Create Razorpay order + pending appointment + payment record
+// PUBLIC: Create Razorpay order — appointment is NOT created yet (only after payment verified)
 exports.createRazorpayOrder = async (req, res) => {
   try {
     const { name, email, phone, service, date, time, message, appointmentMode, amount } = req.body;
@@ -79,22 +79,11 @@ exports.createRazorpayOrder = async (req, res) => {
       notes: { name, phone, service, appointmentMode },
     });
 
-    // Create appointment (pending until payment verified)
-    const appt = await Appointment.create({
-      name, email: email || '', phone, service,
-      date: new Date(date), time,
-      message: message || '',
-      appointmentMode: appointmentMode || 'offline',
-      paymentMethod: 'razorpay',
-      paymentStatus: 'pending_verification',
-      consultationFee: String(amount),
-      status: 'pending',
-    });
-
-    // Create payment record
+    // Store appointment details in the payment record only.
+    // The actual Appointment document is created in verifyRazorpayPayment
+    // AFTER the payment signature is verified — so no appointment exists until payment succeeds.
     const payment = await Payment.create({
       type: 'appointment',
-      referenceId: appt._id,
       clientName: name,
       clientPhone: phone,
       clientEmail: email || '',
@@ -106,15 +95,12 @@ exports.createRazorpayOrder = async (req, res) => {
       details: { name, email, phone, service, date, time, message, appointmentMode },
     });
 
-    await Appointment.findByIdAndUpdate(appt._id, { paymentId: payment._id });
-
     res.json({
       success: true,
       order_id: order.id,
       key_id: keyId,
       amount: amountPaise,
       payment_db_id: String(payment._id),
-      appointment_db_id: String(appt._id),
       prefill: { name, email: email || '', contact: phone },
     });
   } catch (err) {
@@ -175,12 +161,28 @@ exports.verifyRazorpayPayment = async (req, res) => {
 
     if (!payment) return res.status(404).json({ success: false, message: 'Payment record not found' });
 
-    // Confirm appointment
-    const appt = await Appointment.findByIdAndUpdate(
-      payment.referenceId,
-      { status: 'confirmed', paymentStatus: 'paid', appointmentId },
-      { new: true }
-    );
+    // Create appointment NOW — only after payment is verified.
+    // No appointment record existed before this point.
+    const d = payment.details || {};
+    const appt = await Appointment.create({
+      name:            d.name            || payment.clientName,
+      email:           d.email           || payment.clientEmail || '',
+      phone:           d.phone           || payment.clientPhone,
+      service:         d.service         || '',
+      date:            d.date ? new Date(d.date) : new Date(),
+      time:            d.time            || '',
+      message:         d.message         || '',
+      appointmentMode: d.appointmentMode || 'offline',
+      paymentMethod:   'razorpay',
+      paymentStatus:   'paid',
+      consultationFee: payment.amount,
+      status:          'confirmed',
+      appointmentId,
+      paymentId:       payment._id,
+    });
+
+    // Link payment → appointment
+    await Payment.findByIdAndUpdate(payment._id, { referenceId: appt._id });
 
     // WhatsApp notifications (non-blocking)
     whatsapp.appointmentPaymentConfirmed({
