@@ -444,7 +444,7 @@ export default function Payment() {
                 Pay using any UPI app, debit/credit card, or net banking. Your appointment will be confirmed instantly after payment verification.
               </p>
               <div className="d-flex gap-2 flex-wrap mb-3">
-                {['PhonePe','Google Pay','Paytm','BHIM','Card','Net Banking'].map(m => (
+                {['UPI QR','UPI Intent','Card'].map(m => (
                   <span key={m} className="badge bg-light text-dark border" style={{ fontWeight:500 }}>{m}</span>
                 ))}
               </div>

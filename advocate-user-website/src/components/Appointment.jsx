@@ -170,11 +170,9 @@ export default function Appointment() {
                           </div>
                         </div>
                         <div className="mt-2 pt-2 border-top d-flex gap-2 align-items-center flex-wrap">
-                          <span className="badge bg-light text-dark border">Razorpay</span>
-                          <span className="badge bg-light text-dark border">PhonePe</span>
-                          <span className="badge bg-light text-dark border">Google Pay</span>
-                          <span className="badge bg-light text-dark border">UPI</span>
-                          <span className="badge bg-light text-dark border">QR Code</span>
+                          <span className="badge bg-light text-dark border">UPI QR</span>
+                          <span className="badge bg-light text-dark border">UPI Intent</span>
+                          <span className="badge bg-light text-dark border">Card</span>
                         </div>
                       </div>
                     </div>

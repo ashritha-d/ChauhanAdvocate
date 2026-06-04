@@ -110,6 +110,20 @@ export default function SiteSettings() {
           <ul className="nav nav-tabs mb-4">
             {TABS.map(t => <li key={t} className="nav-item"><button className={`nav-link ${tab===t?'active':''}`} onClick={() => setTab(t)}>{t}</button></li>)}
           </ul>
+          {tab === 'Payment' && (
+            <div className="alert mb-4" style={{ background:'#fff8e1', border:'1.5px solid #f59e0b', borderRadius:12 }}>
+              <div className="fw-bold mb-1" style={{ color:'#92400e' }}>
+                <i className="fas fa-info-circle me-2"></i>About Razorpay Test Mode (MockSharp)
+              </div>
+              <p className="small mb-2" style={{ color:'#78350f' }}>
+                If you see a "<strong>Welcome to Razorpay Software Private Ltd Bank</strong>" page with Success/Failure buttons during payment, this is Razorpay's <strong>MockSharp simulator</strong>. It appears only when Test Mode keys (<code>rzp_test_...</code>) are active.
+              </p>
+              <p className="small mb-0" style={{ color:'#78350f' }}>
+                <i className="fas fa-check-circle me-1 text-success"></i>
+                After configuring <strong>Live Keys</strong> (<code>rzp_live_...</code>) in the fields below, all payments will use real banking flows (UPI apps, actual bank OTPs) and MockSharp will disappear automatically — <strong>no code changes required</strong>.
+              </p>
+            </div>
+          )}
           <form id="settings-form" onSubmit={handleSave}>
             <div className="row g-4">
               {(FIELDS[tab] || []).map(field => (
