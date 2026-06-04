@@ -210,7 +210,11 @@ export default function Payment() {
       };
       const rzp = new window.Razorpay(options);
       rzp.open();
-    } catch { setLoading(false); alert('Network error. Please try again.'); }
+    } catch (err) {
+      setLoading(false);
+      const msg = err?.response?.data?.message || err?.message || 'Unknown error';
+      alert('Payment error: ' + msg);
+    }
   };
 
   const handleManualSuccess = (type) => {
