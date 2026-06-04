@@ -185,7 +185,17 @@ export default function Payment() {
         order_id: data.order_id,
         prefill: data.prefill || {},
         theme: { color: '#C9A84C' },
-        method: { upi: true, card: true, netbanking: true, wallet: true, paylater: true },
+        method: { upi: 1, card: 1, netbanking: 1, wallet: 1, paylater: 1 },
+        config: {
+          display: {
+            blocks: {
+              upi: { name: 'Pay via UPI', instruments: [{ method: 'upi', flows: ['qr', 'intent', 'collect', 'omnichannel'] }] },
+              other: { name: 'Other Payment Methods', instruments: [{ method: 'card' }, { method: 'netbanking' }, { method: 'wallet' }, { method: 'paylater' }] },
+            },
+            sequence: ['block.upi', 'block.other'],
+            preferences: { show_default_blocks: false },
+          },
+        },
         handler: async (response) => {
           setLoading(true); setLoadingText('Confirming your appointment...');
           try {
