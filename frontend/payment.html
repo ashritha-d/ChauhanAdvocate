@@ -816,6 +816,16 @@ async function startRazorpay() {
       order_id: data.order_id,
       prefill: data.prefill || {},
       theme: { color: '#C9A84C' },
+      config: {
+        display: {
+          blocks: {
+            upi:  { name: 'Pay via UPI',  instruments: [{ method: 'upi', flows: ['qr', 'intent'] }] },
+            card: { name: 'Pay via Card', instruments: [{ method: 'card' }] },
+          },
+          sequence: ['block.upi', 'block.card'],
+          preferences: { show_default_blocks: false },
+        },
+      },
       modal: {
         ondismiss: () => {
           btn.disabled = false;

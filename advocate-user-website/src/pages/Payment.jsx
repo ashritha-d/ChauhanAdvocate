@@ -190,14 +190,13 @@ export default function Payment() {
         order_id: data.order_id,
         prefill: data.prefill || {},
         theme: { color: '#C9A84C' },
-        method: { upi: 1, card: 1, netbanking: 1, wallet: 1, paylater: 1 },
         config: {
           display: {
             blocks: {
-              upi: { name: 'Pay via UPI', instruments: [{ method: 'upi', flows: ['qr', 'intent', 'collect', 'omnichannel'] }] },
-              other: { name: 'Other Payment Methods', instruments: [{ method: 'card' }, { method: 'netbanking' }, { method: 'wallet' }, { method: 'paylater' }] },
+              upi:  { name: 'Pay via UPI',  instruments: [{ method: 'upi', flows: ['qr', 'intent'] }] },
+              card: { name: 'Pay via Card', instruments: [{ method: 'card' }] },
             },
-            sequence: ['block.upi', 'block.other'],
+            sequence: ['block.upi', 'block.card'],
             preferences: { show_default_blocks: false },
           },
         },
