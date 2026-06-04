@@ -819,10 +819,12 @@ async function startRazorpay() {
       config: {
         display: {
           blocks: {
-            upi:  { name: 'Pay via UPI',  instruments: [{ method: 'upi', flows: ['qr', 'intent'] }] },
-            card: { name: 'Pay via Card', instruments: [{ method: 'card' }] },
+            upi:        { name: 'Pay via UPI',    instruments: [{ method: 'upi', flows: ['collect', 'qr', 'intent'] }] },
+            netbanking: { name: 'Net Banking',    instruments: [{ method: 'netbanking' }] },
+            card:       { name: 'Pay via Card',   instruments: [{ method: 'card' }] },
+            wallet:     { name: 'Wallets',        instruments: [{ method: 'wallet' }] },
           },
-          sequence: ['block.upi', 'block.card'],
+          sequence: ['block.upi', 'block.netbanking', 'block.card', 'block.wallet'],
           preferences: { show_default_blocks: false },
         },
       },
