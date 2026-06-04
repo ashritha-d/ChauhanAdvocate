@@ -139,6 +139,7 @@ export default function Payment() {
   const [loadingText, setLoadingText] = useState('');
   const [screen, setScreen] = useState('payment'); // payment | success | pending
   const [result, setResult] = useState(null);
+  const [verifyError, setVerifyError] = useState('');
   const rzpRef = useRef(null);
 
   const API_BASE = 'https://chauhanadvocate.onrender.com';
@@ -197,7 +198,8 @@ export default function Payment() {
           },
         },
         handler: async (response) => {
-          setLoading(true); setLoadingText('Confirming your appointment...');
+          setLoading(true); setLoadingText('Verifying Payment...');
+          setVerifyError('');
           try {
             const headers2 = user ? authHeader() : {};
             const vRes = await verifyRazorpayPayment({
@@ -213,9 +215,12 @@ export default function Payment() {
               setScreen('success');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
-              alert(vRes.data.message || 'Payment verification failed.');
+              setVerifyError(vRes.data.message || 'Payment verification failed. Please try again or contact support.');
             }
-          } catch { setLoading(false); alert('Verification error. Contact support.'); }
+          } catch {
+            setLoading(false);
+            setVerifyError('Verification error. Please contact support with your transaction ID.');
+          }
         },
         modal: { ondismiss: () => {} },
       };
@@ -418,6 +423,11 @@ export default function Payment() {
                   <span key={m} className="badge bg-light text-dark border" style={{ fontWeight:500 }}>{m}</span>
                 ))}
               </div>
+              {verifyError && (
+                <div className="alert alert-danger py-2 small mb-3" style={{ borderRadius:10 }}>
+                  <i className="fas fa-exclamation-triangle me-2"></i>{verifyError}
+                </div>
+              )}
               <button className="btn w-100 py-3 fw-bold" style={{ background:'linear-gradient(135deg,#528FF0,#2563eb)', color:'#fff', borderRadius:12, fontSize:'1rem' }} onClick={startRazorpay}>
                 <i className="fas fa-lock me-2"></i>Pay {feeDisplay} Securely
               </button>

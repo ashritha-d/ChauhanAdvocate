@@ -823,7 +823,7 @@ async function startRazorpay() {
         }
       },
       handler: async (response) => {
-        showLoading('Confirming your appointment...');
+        showLoading('Verifying Payment...');
         await verifyRazorpay(response, data.payment_db_id);
       },
     };
@@ -840,6 +840,7 @@ async function startRazorpay() {
 }
 
 async function verifyRazorpay(response, paymentDbId) {
+  const btn = document.getElementById('btnRazorpay');
   try {
     const res = await fetch(`${API_BASE}/payments/razorpay/verify`, {
       method: 'POST',
@@ -858,10 +859,12 @@ async function verifyRazorpay(response, paymentDbId) {
       sessionStorage.removeItem('pendingAppointment');
       showSuccessScreen(data, 'Razorpay');
     } else {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-lock me-2"></i> Pay Securely with Razorpay'; }
       showAlert('alertRazorpay', data.message || 'Payment verification failed. Please contact support.');
     }
   } catch (err) {
     hideLoading();
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-lock me-2"></i> Pay Securely with Razorpay'; }
     showAlert('alertRazorpay', 'Verification error. Please contact support with your transaction ID.');
   }
 }

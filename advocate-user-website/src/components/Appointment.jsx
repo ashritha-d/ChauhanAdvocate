@@ -139,8 +139,8 @@ export default function Appointment() {
                       <label className="form-label">Appointment Type *</label>
                       <div className="d-flex gap-3 mt-1">
                         {[
-                          { value: 'offline', label: 'Offline — ₹1,000', icon: 'fa-building' },
-                          { value: 'online',  label: 'Online — ₹500',    icon: 'fa-video' },
+                          { value: 'offline', label: 'Offline — ₹1', icon: 'fa-building' },
+                          { value: 'online',  label: 'Online — ₹2',  icon: 'fa-video' },
                         ].map(({ value, label, icon }) => (
                           <label key={value} className={`appt-type-card${form.appointmentMode === value ? ' active' : ''}`} style={{ flex:1, cursor:'pointer' }}>
                             <input type="radio" name="appointmentMode" value={value} checked={form.appointmentMode === value} onChange={set('appointmentMode')} style={{ display:'none' }} />
