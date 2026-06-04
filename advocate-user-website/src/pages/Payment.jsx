@@ -160,7 +160,7 @@ export default function Payment() {
 
   if (!appt) return null;
 
-  const fee = appt.amount || (appt.appointmentMode === 'online' ? 2 : 1);
+  const fee = appt.amount || (appt.appointmentMode === 'online' ? 1 : 2);
   const feeDisplay = `₹${Number(fee).toLocaleString('en-IN')}`;
   const dateStr = appt.date ? new Date(appt.date).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : '—';
   const qrUrl = settings.payment_qr_image
@@ -170,12 +170,16 @@ export default function Payment() {
 
   // ── Razorpay ──────────────────────────────────────────────
   const startRazorpay = async () => {
+    setVerifyError('');
     setLoading(true); setLoadingText('Setting up secure checkout...');
     try {
       const headers = user ? authHeader() : {};
       const { data } = await createRazorpayOrder({ ...appt, amount: fee }, headers);
       setLoading(false);
-      if (!data.success) { alert(data.message || 'Could not create order. Try another method.'); return; }
+      if (!data.success) {
+        setVerifyError(data.message || 'Could not create payment order. Please try again.');
+        return;
+      }
 
       const options = {
         key: data.key_id,
@@ -222,14 +226,18 @@ export default function Payment() {
             setVerifyError('Verification error. Please contact support with your transaction ID.');
           }
         },
-        modal: { ondismiss: () => {} },
+        modal: {
+          ondismiss: () => {
+            setVerifyError('cancelled');
+          },
+        },
       };
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
       setLoading(false);
       const msg = err?.response?.data?.message || err?.message || 'Unknown error';
-      alert('Payment error: ' + msg);
+      setVerifyError(msg);
     }
   };
 
@@ -408,7 +416,25 @@ export default function Payment() {
               ))}
             </div>
 
+            {/* Payment Cancelled / Failed Banner */}
+            {verifyError === 'cancelled' && (
+              <div style={{ background:'#fff8f0', border:'1.5px solid #f59e0b', borderRadius:14, padding:20, marginBottom:16, textAlign:'center' }}>
+                <div style={{ width:56, height:56, borderRadius:'50%', background:'linear-gradient(135deg,#f59e0b,#d97706)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px', boxShadow:'0 4px 15px rgba(245,158,11,0.3)' }}>
+                  <i className="fas fa-times" style={{ color:'#fff', fontSize:'1.4rem' }}></i>
+                </div>
+                <div className="fw-bold mb-1" style={{ color:'#92400e' }}>Payment Cancelled</div>
+                <p className="small text-muted mb-3">You closed the payment window. Your appointment is NOT confirmed yet. Click below to try again.</p>
+                <button className="btn w-100 py-3 fw-bold" style={{ background:'linear-gradient(135deg,#f59e0b,#d97706)', color:'#fff', borderRadius:12, fontSize:'1rem' }} onClick={startRazorpay}>
+                  <i className="fas fa-redo me-2"></i>Retry Payment — {feeDisplay}
+                </button>
+                <button className="btn btn-link text-muted small mt-2 w-100" onClick={() => navigate(-1)}>
+                  Go back and change details
+                </button>
+              </div>
+            )}
+
             {/* Razorpay — only payment method */}
+            {verifyError !== 'cancelled' && (
             <div style={{ background:'#f9fafb', border:'1.5px solid #e5e7eb', borderRadius:14, padding:20, marginBottom:16 }}>
               <div className="d-flex align-items-center gap-2 mb-3">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Razorpay_logo.svg" alt="Razorpay" style={{ height:22, objectFit:'contain' }} />
@@ -416,7 +442,7 @@ export default function Payment() {
               </div>
               <p className="small text-muted mb-3">
                 <i className="fas fa-shield-alt text-success me-2"></i>
-                Pay using any UPI app, debit/credit card, or net banking. Your appointment will be confirmed instantly after payment.
+                Pay using any UPI app, debit/credit card, or net banking. Your appointment will be confirmed instantly after payment verification.
               </p>
               <div className="d-flex gap-2 flex-wrap mb-3">
                 {['PhonePe','Google Pay','Paytm','BHIM','Card','Net Banking'].map(m => (
@@ -429,9 +455,10 @@ export default function Payment() {
                 </div>
               )}
               <button className="btn w-100 py-3 fw-bold" style={{ background:'linear-gradient(135deg,#528FF0,#2563eb)', color:'#fff', borderRadius:12, fontSize:'1rem' }} onClick={startRazorpay}>
-                <i className="fas fa-lock me-2"></i>Pay {feeDisplay} Securely
+                <i className="fas fa-lock me-2"></i>{verifyError ? `Retry Payment — ${feeDisplay}` : `Pay ${feeDisplay} Securely`}
               </button>
             </div>
+            )}
 
             <div className="d-flex justify-content-between align-items-center mt-3">
               <button className="btn btn-outline-secondary btn-sm" onClick={() => navigate(-1)}>

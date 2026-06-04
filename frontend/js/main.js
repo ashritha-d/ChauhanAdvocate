@@ -577,7 +577,7 @@ function getFallbackFAQs() {
 }
 
 // ─── APPOINTMENT TYPE / FEE ──────────────────────────────────
-const APPT_FEES = { offline: 1, online: 2 };
+const APPT_FEES = { offline: 2, online: 1 };
 
 function selectApptType(type) {
   document.getElementById('appt-type-offline').checked = type === 'offline';

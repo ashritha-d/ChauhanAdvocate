@@ -46,8 +46,8 @@ exports.getPaymentSettings = async (req, res) => {
     settings.forEach(s => { result[s.key] = s.value; });
 
     // Fallback fee values
-    if (!result.consultation_fee_online) result.consultation_fee_online = '2';
-    if (!result.consultation_fee_offline) result.consultation_fee_offline = '1';
+    if (!result.consultation_fee_online) result.consultation_fee_online = '1';
+    if (!result.consultation_fee_offline) result.consultation_fee_offline = '2';
 
     res.json({ success: true, data: result });
   } catch (err) {

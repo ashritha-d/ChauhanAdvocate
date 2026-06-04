@@ -819,7 +819,8 @@ async function startRazorpay() {
       modal: {
         ondismiss: () => {
           btn.disabled = false;
-          btn.innerHTML = '<i class="fas fa-lock me-2"></i> Pay Securely with Razorpay';
+          btn.innerHTML = '<i class="fas fa-redo me-2"></i> Retry Payment';
+          showAlert('alertRazorpay', '<strong>Payment Cancelled.</strong> Your appointment is NOT confirmed. Click Retry Payment to complete the payment.');
         }
       },
       handler: async (response) => {
