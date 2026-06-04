@@ -5,7 +5,7 @@ import { useSite } from '../context/SiteContext';
 import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
 
-const APPT_FEES = { offline: 1000, online: 500 };
+const APPT_FEES = { offline: 1, online: 2 };
 
 export default function Appointment() {
   const { settings: s } = useSite();

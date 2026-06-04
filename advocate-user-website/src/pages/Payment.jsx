@@ -159,7 +159,7 @@ export default function Payment() {
 
   if (!appt) return null;
 
-  const fee = appt.amount || (appt.appointmentMode === 'online' ? 500 : 1000);
+  const fee = appt.amount || (appt.appointmentMode === 'online' ? 2 : 1);
   const feeDisplay = `₹${Number(fee).toLocaleString('en-IN')}`;
   const dateStr = appt.date ? new Date(appt.date).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : '—';
   const qrUrl = settings.payment_qr_image
