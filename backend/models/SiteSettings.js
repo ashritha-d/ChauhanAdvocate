@@ -5,7 +5,7 @@ const siteSettingsSchema = new mongoose.Schema({
   value: { type: mongoose.Schema.Types.Mixed },
   group: {
     type: String,
-    enum: ['general', 'hero', 'about', 'contact', 'social', 'seo', 'advocate'],
+    enum: ['general', 'hero', 'about', 'contact', 'social', 'seo', 'advocate', 'payment'],
     default: 'general'
   },
   label: { type: String },

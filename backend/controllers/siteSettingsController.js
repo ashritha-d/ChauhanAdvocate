@@ -32,11 +32,16 @@ const DEFAULT_SETTINGS = [
   { key: 'stats_courts', value: '50+', group: 'about', label: 'Courts', type: 'text' }
 ];
 
+// Keys that must never be returned to the public frontend
+const PRIVATE_KEYS = new Set(['razorpay_secret', 'jwt_secret', 'admin_password']);
+
 exports.getSettings = async (req, res) => {
   try {
     const settings = await SiteSettings.find();
     const settingsMap = {};
-    settings.forEach(s => { settingsMap[s.key] = s.value; });
+    settings.forEach(s => {
+      if (!PRIVATE_KEYS.has(s.key)) settingsMap[s.key] = s.value;
+    });
     res.json({ success: true, data: settingsMap });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

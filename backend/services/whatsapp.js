@@ -1,14 +1,13 @@
 /**
- * WhatsApp notification service — Fonnte
- * https://fonnte.com
+ * WhatsApp notification service — Meta WhatsApp Cloud API
  *
  * Required .env vars:
- *   FONNTE_TOKEN    — API token from fonnte.com → Device → Token
- *   ADMIN_WHATSAPP  — Admin phone e.g. "8523035920"
+ *   WHATSAPP_ACCESS_TOKEN    — permanent system user token from Meta Business Manager
+ *   WHATSAPP_PHONE_NUMBER_ID — phone number ID from WhatsApp Business Platform
+ *   ADMIN_WHATSAPP           — admin phone e.g. "8523035920" or "918523035920"
  */
 
 const https = require('https');
-const querystring = require('querystring');
 
 function toE164(number) {
   if (!number) return null;
@@ -18,25 +17,31 @@ function toE164(number) {
   return digits;
 }
 
-function sendFonnte(to, message) {
+function sendMetaWhatsApp(to, message) {
   return new Promise((resolve) => {
-    const token = process.env.FONNTE_TOKEN;
+    const token = process.env.WHATSAPP_ACCESS_TOKEN;
+    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
-    if (!token) {
+    if (!token || !phoneNumberId) {
       console.log('[WhatsApp LOG] To:', to, '\nMessage:', message);
       return resolve({ logged: true });
     }
 
-    const postData = querystring.stringify({ target: to, message });
+    const body = JSON.stringify({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'text',
+      text: { body: message },
+    });
 
     const options = {
-      hostname: 'api.fonnte.com',
-      path: '/send',
+      hostname: 'graph.facebook.com',
+      path: `/v19.0/${phoneNumberId}/messages`,
       method: 'POST',
       headers: {
-        'Authorization': token,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': Buffer.byteLength(postData),
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
       },
     };
 
@@ -46,7 +51,7 @@ function sendFonnte(to, message) {
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
-          if (!json.status) console.error('[WhatsApp FONNTE ERROR]', data);
+          if (json.error) console.error('[WhatsApp META ERROR]', JSON.stringify(json.error));
           else console.log('[WhatsApp SENT] To:', to);
           resolve(json);
         } catch {
@@ -60,7 +65,7 @@ function sendFonnte(to, message) {
       resolve({ error: true });
     });
 
-    req.write(postData);
+    req.write(body);
     req.end();
   });
 }
@@ -69,13 +74,14 @@ async function sendWhatsApp(number, message) {
   const digits = toE164(number);
   if (!digits) return;
   try {
-    await sendFonnte(digits, message);
+    await sendMetaWhatsApp(digits, message);
   } catch (e) {
     console.error('[WhatsApp] Failed:', e.message);
   }
 }
 
 const adminNumber = () => toE164(process.env.ADMIN_WHATSAPP || '');
+exports.getAdminNumber = adminNumber;
 
 // ─── Appointment Notifications ────────────────────────────────────────────────
 
@@ -175,6 +181,62 @@ exports.appointmentCompleted = async ({ name, phone, appointmentId }) => {
 Your appointment (ID: ${appointmentId}) has been completed.
 
 Thank you for choosing Balu Law Chamber.`);
+};
+
+// ─── Payment Confirmed (Razorpay / Online) ────────────────────────────────────
+
+exports.appointmentPaymentConfirmed = async ({ name, phone, appointmentId, date, time, appointmentMode, amount, transactionId, receiptId }) => {
+  const fmtDate = date ? new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—';
+  const modeLabel = appointmentMode === 'online' ? 'Online' : 'Offline';
+
+  const clientMsg =
+`Dear ${name},
+
+Your appointment has been confirmed!
+
+Appointment ID: ${appointmentId}
+Date: ${fmtDate}
+Time: ${time}
+Mode: ${modeLabel}
+Amount Paid: ₹${amount}
+Transaction ID: ${transactionId}
+Receipt ID: ${receiptId}
+
+Thank you for choosing Balu Law Chamber.`;
+
+  const adminMsg =
+`New Appointment Confirmed (Payment Received)
+
+Client: ${name}
+Phone: ${phone}
+ID: ${appointmentId}
+Date: ${fmtDate}
+Time: ${time}
+Mode: ${modeLabel}
+Amount: ₹${amount}
+Transaction: ${transactionId}`;
+
+  await Promise.all([
+    sendWhatsApp(phone, clientMsg),
+    adminNumber() ? sendWhatsApp(adminNumber(), adminMsg) : Promise.resolve(),
+  ]);
+};
+
+exports.sendAdminPaymentAlert = async ({ name, phone, paymentMethod, amount, service, date, time }) => {
+  const admin = adminNumber();
+  if (!admin) return;
+  const fmtDate = date ? new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—';
+  await sendWhatsApp(admin,
+`New Appointment Payment (Pending Verification)
+
+Client: ${name}
+Phone: ${phone}
+Service: ${service}
+Date: ${fmtDate} at ${time}
+Method: ${paymentMethod}
+Amount: ₹${amount}
+
+Please verify in Admin Panel.`);
 };
 
 // ─── Order Notifications ──────────────────────────────────────────────────────

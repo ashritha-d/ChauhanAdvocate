@@ -220,3 +220,100 @@ exports.uploadQRCode = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// ADMIN: Revenue dashboard stats
+exports.getRevenue = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+    const dateFilter = {};
+    if (from) dateFilter.$gte = new Date(from);
+    if (to) { const t = new Date(to); t.setHours(23, 59, 59, 999); dateFilter.$lte = t; }
+
+    const matchStage = { status: { $in: ['approved', 'completed'] } };
+    if (from || to) matchStage.approvedAt = dateFilter;
+
+    const [revenue, byMethod, byMonth, failedCount, pendingCount] = await Promise.all([
+      Payment.aggregate([
+        { $match: matchStage },
+        { $group: { _id: null, total: { $sum: { $toDouble: '$amount' } }, count: { $sum: 1 } } }
+      ]),
+      Payment.aggregate([
+        { $match: matchStage },
+        { $group: { _id: '$paymentMethod', total: { $sum: { $toDouble: '$amount' } }, count: { $sum: 1 } } }
+      ]),
+      Payment.aggregate([
+        { $match: matchStage },
+        {
+          $group: {
+            _id: { year: { $year: '$approvedAt' }, month: { $month: '$approvedAt' } },
+            total: { $sum: { $toDouble: '$amount' } },
+            count: { $sum: 1 }
+          }
+        },
+        { $sort: { '_id.year': 1, '_id.month': 1 } },
+        { $limit: 12 }
+      ]),
+      Payment.countDocuments({ status: 'failed' }),
+      Payment.countDocuments({ status: 'pending_verification' }),
+    ]);
+
+    res.json({
+      success: true,
+      totalRevenue: revenue[0]?.total || 0,
+      totalApproved: revenue[0]?.count || 0,
+      byMethod,
+      byMonth,
+      failedCount,
+      pendingCount,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ADMIN: Export payments as CSV
+exports.exportPayments = async (req, res) => {
+  try {
+    const { status, from, to } = req.query;
+    const query = {};
+    if (status) query.status = status;
+    if (from || to) {
+      query.createdAt = {};
+      if (from) query.createdAt.$gte = new Date(from);
+      if (to) { const t = new Date(to); t.setHours(23, 59, 59, 999); query.createdAt.$lte = t; }
+    }
+
+    const payments = await Payment.find(query).sort({ createdAt: -1 }).limit(5000);
+
+    const header = [
+      'Receipt ID', 'Transaction ID', 'Date', 'Client Name', 'Phone', 'Email',
+      'Type', 'Amount (₹)', 'GST (₹)', 'Payment Method', 'Status',
+      'UTR/Ref', 'Razorpay Payment ID', 'Appointment/Order ID'
+    ].join(',');
+
+    const rows = payments.map(p => [
+      p.receiptId || '',
+      p.transactionId || '',
+      p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-IN') : '',
+      `"${(p.clientName || '').replace(/"/g, '""')}"`,
+      p.clientPhone || '',
+      p.clientEmail || '',
+      p.type || '',
+      p.amount || '',
+      p.gstAmount || '0',
+      p.paymentMethod || '',
+      p.status || '',
+      p.utrNumber || '',
+      p.razorpay_payment_id || '',
+      p.referenceId || '',
+    ].join(','));
+
+    const csv = [header, ...rows].join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=payments_${Date.now()}.csv`);
+    res.send(csv);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

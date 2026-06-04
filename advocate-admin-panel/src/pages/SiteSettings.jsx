@@ -82,9 +82,13 @@ export default function SiteSettings() {
       { key:'seo_keywords', label:'Keywords (comma separated)', type:'text' },
     ],
     Payment: [
+      { key:'consultation_fee_offline', label:'Offline Consultation Fee (₹)', type:'text' },
+      { key:'consultation_fee_online', label:'Online Consultation Fee (₹)', type:'text' },
+      { key:'payment_upi_id', label:'UPI ID (e.g. name@upi)', type:'text' },
       { key:'payment_qr_image', label:'PhonePe / UPI QR Code Image', type:'image' },
-      { key:'consultation_fee', label:'Consultation Fee (₹)', type:'text' },
-      { key:'payment_upi_id', label:'UPI ID (shown below QR)', type:'text' },
+      { key:'razorpay_key_id', label:'Razorpay Key ID (rzp_live_...)', type:'text' },
+      { key:'razorpay_secret', label:'Razorpay Secret Key', type:'text' },
+      { key:'admin_email', label:'Admin Email (for payment receipts)', type:'email' },
     ],
   };
 

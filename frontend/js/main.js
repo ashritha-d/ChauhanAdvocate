@@ -576,30 +576,32 @@ function getFallbackFAQs() {
   ];
 }
 
-// ─── QR PAYMENT FLOW ─────────────────────────────────────────
-let _qrPendingData = null; // holds form data while QR modal is open
-let _qrModal = null;
-
-function selectApptPayment(method) {
-  document.getElementById('appt-pay-cash').checked = method === 'cash';
-  document.getElementById('appt-pay-qr').checked = method === 'qr_code';
-  document.getElementById('appt-pay-cash-card').classList.toggle('active', method === 'cash');
-  document.getElementById('appt-pay-qr-card').classList.toggle('active', method === 'qr_code');
-  document.getElementById('appt-qr-notice').style.display = method === 'qr_code' ? 'block' : 'none';
-}
-
-function selectBoPayment(method) {
-  document.getElementById('bo-pay-cash').checked = method === 'cash';
-  document.getElementById('bo-pay-qr').checked = method === 'qr_code';
-  document.getElementById('bo-pay-cash-card').classList.toggle('active', method === 'cash');
-  document.getElementById('bo-pay-qr-card').classList.toggle('active', method === 'qr_code');
-}
+// ─── APPOINTMENT TYPE / FEE ──────────────────────────────────
+const APPT_FEES = { offline: 1000, online: 500 };
 
 function selectApptType(type) {
   document.getElementById('appt-type-offline').checked = type === 'offline';
   document.getElementById('appt-type-online').checked = type === 'online';
   document.getElementById('appt-type-offline-card').classList.toggle('active', type === 'offline');
   document.getElementById('appt-type-online-card').classList.toggle('active', type === 'online');
+  // Update fee display
+  const fee = APPT_FEES[type] || 1000;
+  const label = type === 'online' ? 'Online Consultation Fee' : 'Offline Consultation Fee';
+  const el = document.getElementById('appt-fee-display');
+  const lbl = document.getElementById('appt-fee-label');
+  if (el) el.textContent = `₹${fee.toLocaleString('en-IN')}`;
+  if (lbl) lbl.textContent = label;
+}
+
+// ─── BOOK ORDER PAYMENT SELECTION (legacy) ───────────────────
+let _qrPendingData = null;
+let _qrModal = null;
+
+function selectBoPayment(method) {
+  document.getElementById('bo-pay-cash').checked = method === 'cash';
+  document.getElementById('bo-pay-qr').checked = method === 'qr_code';
+  document.getElementById('bo-pay-cash-card').classList.toggle('active', method === 'cash');
+  document.getElementById('bo-pay-qr-card').classList.toggle('active', method === 'qr_code');
 }
 
 async function openQrModal(pendingData) {
@@ -719,11 +721,9 @@ async function submitQrPayment() {
 
 // ─── FORMS ───────────────────────────────────────────────────
 function initForms() {
-  // Default active state for payment options
-  document.getElementById('appt-pay-cash-card')?.classList.add('active');
   document.getElementById('bo-pay-cash-card')?.classList.add('active');
 
-  // Appointment Form
+  // Appointment Form — redirects to payment page
   const apptForm = document.getElementById('appointmentForm');
   apptForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -735,40 +735,23 @@ function initForms() {
       return;
     }
 
-    const payMethod = document.getElementById('appt-pay-qr')?.checked ? 'qr_code' : 'cash';
+    const fields = getFormData(apptForm);
+    const apptMode = fields.appointmentMode || 'offline';
+    const amount = APPT_FEES[apptMode] || 1000;
 
-    if (payMethod === 'qr_code') {
-      const fields = getFormData(apptForm);
-      const fee = (await apiFetch('/site-settings').catch(() => ({})))?.data?.consultation_fee || '500';
-      _qrPendingData = {
-        type: 'appointment',
-        fields,
-        amount: fee,
-        amountDisplay: `₹${fee}`
-      };
-      openQrModal(_qrPendingData);
-      return;
-    }
+    // Store appointment data in sessionStorage and redirect to payment page
+    sessionStorage.setItem('pendingAppointment', JSON.stringify({
+      ...fields,
+      amount,
+      amountDisplay: `₹${amount.toLocaleString('en-IN')}`,
+      appointmentMode: apptMode,
+    }));
 
-    setButtonLoading(btn, true, 'Booking...');
-    try {
-      const payload = getFormData(apptForm);
-      payload.paymentMethod = 'cash';
-      const data = await apiFetch('/appointments', 'POST', payload);
-      if (data.success) {
-        showAlert(alert, 'success', '<i class="fas fa-check-circle me-2"></i>' + data.message);
-        apptForm.reset();
-        apptForm.classList.remove('was-validated');
-        selectApptPayment('cash');
-        selectApptType('offline');
-        showToast('Appointment booked successfully!', 'success');
-      } else {
-        showAlert(alert, 'danger', data.message || 'Something went wrong.');
-      }
-    } catch (err) {
-      showAlert(alert, 'danger', 'Server error. Please try again later or call us directly.');
-    }
-    setButtonLoading(btn, false, '<i class="fas fa-calendar-check me-2"></i> Confirm Appointment');
+    setButtonLoading(btn, true, 'Redirecting to Payment...');
+    // Small delay to show loading state then redirect
+    setTimeout(() => {
+      window.location.href = 'payment.html';
+    }, 300);
   });
 
   // Contact Form
