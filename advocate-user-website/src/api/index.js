@@ -35,6 +35,12 @@ export const getNotifications = (headers) => api.get('/users/notifications', { h
 export const markNotificationRead = (id, headers) => api.put(`/users/notifications/${id}/read`, {}, { headers });
 export const markAllNotificationsRead = (headers) => api.put('/users/notifications/mark-all-read', {}, { headers });
 
+// ── Payments / Razorpay ───────────────────────────────────────────────────────
+export const getPaymentSettings = () => api.get('/payments/payment-settings');
+export const createRazorpayOrder = (data, headers = {}) => api.post('/payments/razorpay/create-order', data, { headers });
+export const verifyRazorpayPayment = (data, headers = {}) => api.post('/payments/razorpay/verify', data, { headers });
+export const submitManualPayment = (formData, headers = {}) => api.post('/payments/manual', formData, { headers: { ...headers, 'Content-Type': 'multipart/form-data' } });
+
 // ── Jr Advocate Applications ──────────────────────────────────────────────────
 export const submitJrAdvocateApplication = (formData) => api.post('/jr-advocates', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const getMyApplications = (headers) => api.get('/jr-advocates/my-applications', { headers });

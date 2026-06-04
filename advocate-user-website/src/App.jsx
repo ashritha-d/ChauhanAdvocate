@@ -17,6 +17,7 @@ import Profile from './pages/Profile';
 import Gallery from './pages/Gallery';
 import Courses from './pages/Courses';
 import NewsPage from './pages/News';
+import Payment from './pages/Payment';
 import NewsTicker from './components/NewsTicker';
 
 function ScrollToHash() {
@@ -116,6 +117,11 @@ export default function App() {
             <Route path="/news" element={
               <AppLayout>
                 <NewsPage />
+              </AppLayout>
+            } />
+            <Route path="/payment" element={
+              <AppLayout hideFooterExtras>
+                <Payment />
               </AppLayout>
             } />
           </Routes>

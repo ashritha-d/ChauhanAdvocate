@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getServices, bookAppointment, getAvailableSlots } from '../api';
+import { getServices, getAvailableSlots } from '../api';
 import { useSite } from '../context/SiteContext';
 import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
-import AppointmentSuccessCard from './AppointmentSuccessCard';
+
+const APPT_FEES = { offline: 1000, online: 500 };
 
 export default function Appointment() {
   const { settings: s } = useSite();
@@ -16,7 +17,6 @@ export default function Appointment() {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [booked, setBooked] = useState(null);
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -41,42 +41,13 @@ export default function Appointment() {
     loadSlots(date);
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = e => {
     e.preventDefault();
     if (!e.target.checkValidity()) { e.target.classList.add('was-validated'); return; }
+    const amount = APPT_FEES[form.appointmentMode] || 1000;
+    sessionStorage.setItem('pendingAppointment', JSON.stringify({ ...form, userId: user?._id, amount }));
     setSubmitting(true);
-    setError('');
-    try {
-      const payload = { ...form, userId: user._id };
-      const r = await bookAppointment(payload, authHeader());
-      if (r.data.success) {
-        setBooked({
-          appointmentId: r.data.data?.appointmentId || '',
-          name: form.name,
-          email: form.email,
-          service: form.service,
-          date: form.date,
-          time: form.time,
-          appointmentMode: form.appointmentMode,
-        });
-        setSlots([]);
-        e.target.classList.remove('was-validated');
-        setTimeout(() => document.getElementById('appointment')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-      } else {
-        setError(r.data.message || 'Something went wrong. Please try again.');
-        if (form.date) loadSlots(form.date);
-      }
-    } catch {
-      setError('Server error. Please try again later or call us directly.');
-    }
-    setSubmitting(false);
-  };
-
-  const handleBookAnother = () => {
-    setBooked(null);
-    setError('');
-    setForm({ name: user?.name || '', email: user?.email || '', phone: user?.phone || '', service:'', date:'', time:'', message:'', appointmentMode:'offline' });
-    setSlots([]);
+    setTimeout(() => navigate('/payment'), 300);
   };
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
@@ -112,99 +83,113 @@ export default function Appointment() {
             </div>
           </div>
 
-          {/* Right: success card / form / login gate */}
+          {/* Right: form / login gate */}
           <div className="col-lg-7" data-aos="fade-left">
             {user ? (
-              booked ? (
-                /* ── Success Card ── */
-                <AppointmentSuccessCard
-                  booked={booked}
-                  onBookAnother={handleBookAnother}
-                  inline
-                />
-              ) : (
-                /* ── Booking Form ── */
-                <div className="appointment-form-card">
-                  <h4 className="mb-4"><i className="fas fa-calendar-alt text-gold me-2"></i>Book an Appointment</h4>
+              /* ── Booking Form ── */
+              <div className="appointment-form-card">
+                <h4 className="mb-4"><i className="fas fa-calendar-alt text-gold me-2"></i>Book an Appointment</h4>
 
-                  {error && (
-                    <div className="appt-error-card mb-3">
-                      <i className="fas fa-exclamation-circle me-2"></i>
-                      <div>
-                        <strong>Booking Failed</strong>
-                        <p className="mb-0 mt-1 small">{error}</p>
-                      </div>
-                      <button className="btn-close ms-auto flex-shrink-0" onClick={() => setError('')}></button>
+                {error && (
+                  <div className="appt-error-card mb-3">
+                    <i className="fas fa-exclamation-circle me-2"></i>
+                    <div><strong>Error</strong><p className="mb-0 mt-1 small">{error}</p></div>
+                    <button className="btn-close ms-auto flex-shrink-0" onClick={() => setError('')}></button>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} noValidate>
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label">Full Name *</label>
+                      <input type="text" className="form-control" value={form.name} onChange={set('name')} placeholder="Your full name" required />
                     </div>
-                  )}
+                    <div className="col-md-6">
+                      <label className="form-label">Email Address</label>
+                      <input type="email" className="form-control" value={form.email} onChange={set('email')} placeholder="your@email.com" />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Phone Number *</label>
+                      <input type="tel" className="form-control" value={form.phone} onChange={set('phone')} placeholder="+91 98765 43210" required />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Legal Service *</label>
+                      <select className="form-select" value={form.service} onChange={set('service')} required>
+                        <option value="">Select service...</option>
+                        {services.map(sv => <option key={sv._id} value={sv.title}>{sv.title}</option>)}
+                      </select>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Preferred Date *</label>
+                      <input type="date" className="form-control" value={form.date} min={todayStr} onChange={handleDateChange} required />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">
+                        Preferred Time *
+                        {slotsLoading && <span className="text-muted ms-2 small"><i className="fas fa-spinner fa-spin"></i></span>}
+                      </label>
+                      <select className="form-select" value={form.time} onChange={set('time')} required disabled={!form.date || slotsLoading}>
+                        <option value="">{form.date ? 'Select time...' : 'Select date first'}</option>
+                        {slots.map(({ time, available }) => (
+                          <option key={time} value={time} disabled={!available}>{time}{!available ? ' — Booked' : ''}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label">Appointment Type *</label>
+                      <div className="d-flex gap-3 mt-1">
+                        {[
+                          { value: 'offline', label: 'Offline — ₹1,000', icon: 'fa-building' },
+                          { value: 'online',  label: 'Online — ₹500',    icon: 'fa-video' },
+                        ].map(({ value, label, icon }) => (
+                          <label key={value} className={`appt-type-card${form.appointmentMode === value ? ' active' : ''}`} style={{ flex:1, cursor:'pointer' }}>
+                            <input type="radio" name="appointmentMode" value={value} checked={form.appointmentMode === value} onChange={set('appointmentMode')} style={{ display:'none' }} />
+                            <i className={`fas ${icon} me-2`}></i>{label}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label">Message / Case Brief</label>
+                      <textarea className="form-control" rows="3" value={form.message} onChange={set('message')} placeholder="Briefly describe your legal matter..."></textarea>
+                    </div>
 
-                  <form onSubmit={handleSubmit} noValidate>
-                    <div className="row g-3">
-                      <div className="col-md-6">
-                        <label className="form-label">Full Name *</label>
-                        <input type="text" className="form-control" value={form.name} onChange={set('name')} placeholder="Your full name" required />
-                      </div>
-                      <div className="col-md-6">
-                        <label className="form-label">Email Address</label>
-                        <input type="email" className="form-control" value={form.email} onChange={set('email')} placeholder="your@email.com" />
-                      </div>
-                      <div className="col-md-6">
-                        <label className="form-label">Phone Number *</label>
-                        <input type="tel" className="form-control" value={form.phone} onChange={set('phone')} placeholder="+91 98765 43210" required />
-                      </div>
-                      <div className="col-md-6">
-                        <label className="form-label">Legal Service *</label>
-                        <select className="form-select" value={form.service} onChange={set('service')} required>
-                          <option value="">Select service...</option>
-                          {services.map(sv => <option key={sv._id} value={sv.title}>{sv.title}</option>)}
-                        </select>
-                      </div>
-                      <div className="col-md-6">
-                        <label className="form-label">Preferred Date *</label>
-                        <input type="date" className="form-control" value={form.date} min={todayStr} onChange={handleDateChange} required />
-                      </div>
-                      <div className="col-md-6">
-                        <label className="form-label">
-                          Preferred Time *
-                          {slotsLoading && <span className="text-muted ms-2 small"><i className="fas fa-spinner fa-spin"></i></span>}
-                        </label>
-                        <select className="form-select" value={form.time} onChange={set('time')} required disabled={!form.date || slotsLoading}>
-                          <option value="">{form.date ? 'Select time...' : 'Select date first'}</option>
-                          {slots.map(({ time, available }) => (
-                            <option key={time} value={time} disabled={!available}>{time}{!available ? ' — Booked' : ''}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="col-12">
-                        <label className="form-label">Appointment Type *</label>
-                        <div className="d-flex gap-3 mt-1">
-                          {[
-                            { value: 'offline', label: 'Offline Appointment', icon: 'fa-building' },
-                            { value: 'online',  label: 'Online Appointment',  icon: 'fa-video' },
-                          ].map(({ value, label, icon }) => (
-                            <label key={value} className={`appt-type-card${form.appointmentMode === value ? ' active' : ''}`}>
-                              <input type="radio" name="appointmentMode" value={value} checked={form.appointmentMode === value} onChange={set('appointmentMode')} />
-                              <i className={`fas ${icon} me-2`}></i>{label}
-                            </label>
-                          ))}
+                    {/* Fee Summary Card */}
+                    <div className="col-12">
+                      <div style={{ background:'linear-gradient(135deg,#f9f5e8,#fff9ed)', border:'1.5px solid rgba(201,168,76,0.3)', borderRadius:12, padding:'14px 16px' }}>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <div>
+                            <div className="small text-muted mb-1"><i className="fas fa-shield-alt me-1 text-success"></i>Secure Online Payment</div>
+                            <div className="fw-semibold small">{form.appointmentMode === 'online' ? 'Online' : 'Offline'} Consultation Fee</div>
+                          </div>
+                          <div className="text-end">
+                            <div style={{ fontSize:'1.4rem', fontWeight:700, color:'#C9A84C' }}>
+                              ₹{(APPT_FEES[form.appointmentMode] || 1000).toLocaleString('en-IN')}
+                            </div>
+                            <div className="small text-muted">+ GST as applicable</div>
+                          </div>
+                        </div>
+                        <div className="mt-2 pt-2 border-top d-flex gap-2 align-items-center flex-wrap">
+                          <span className="badge bg-light text-dark border">Razorpay</span>
+                          <span className="badge bg-light text-dark border">PhonePe</span>
+                          <span className="badge bg-light text-dark border">Google Pay</span>
+                          <span className="badge bg-light text-dark border">UPI</span>
+                          <span className="badge bg-light text-dark border">QR Code</span>
                         </div>
                       </div>
-                      <div className="col-12">
-                        <label className="form-label">Message / Case Brief</label>
-                        <textarea className="form-control" rows="3" value={form.message} onChange={set('message')} placeholder="Briefly describe your legal matter..."></textarea>
-                      </div>
-                      <div className="col-12">
-                        <button type="submit" className="btn btn-gold w-100 py-3" disabled={submitting}>
-                          {submitting
-                            ? <><i className="fas fa-spinner fa-spin me-2"></i>Submitting...</>
-                            : <><i className="fas fa-paper-plane me-2"></i>Submit</>
-                          }
-                        </button>
-                      </div>
                     </div>
-                  </form>
-                </div>
-              )
+
+                    <div className="col-12">
+                      <button type="submit" className="btn btn-gold w-100 py-3" disabled={submitting}>
+                        {submitting
+                          ? <><i className="fas fa-spinner fa-spin me-2"></i>Redirecting to Payment...</>
+                          : <><i className="fas fa-arrow-right me-2"></i>Proceed to Payment</>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
             ) : (
               /* ── Guest Login Gate ── */
               <div className="appt-gate-card">
