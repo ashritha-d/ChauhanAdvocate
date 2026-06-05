@@ -489,9 +489,28 @@
 .course-video-duration { margin-left: auto; font-size: 0.75rem; color: #aaa; }
 .course-video-item.active .course-video-duration { color: var(--gold); }
 .course-player-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.course-player-video { width: 100%; aspect-ratio: 16/9; background: #000; }
+.course-player-video {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  /* Force own GPU compositing layer — prevents blur from nearby backdrop-filter/transforms */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  isolation: isolate;
+}
 .course-player-video iframe,
-.course-player-video video { width: 100%; height: 100%; border: 0; display: block; }
+.course-player-video video {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  /* Explicitly reset any inherited filter/transform that could degrade quality */
+  filter: none !important;
+  transform: none;
+  image-rendering: auto;
+  object-fit: contain;     /* contain keeps aspect ratio; no stretching or pixelation */
+}
 .course-player-info { padding: 14px 18px; border-top: 1px solid #f0f0f0; }
 .course-player-video-title { font-weight: 700; font-size: 0.92rem; color: #1a1a2e; margin-bottom: 6px; }
 .course-player-mark-btn { font-size: 0.8rem; }
@@ -558,6 +577,12 @@
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
+  /* Own GPU compositing layer — prevents backdrop-filter blur from the lock
+     overlay bleeding into the video surface before the overlay appears */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  isolation: isolate;
 }
 .preview-modal-player iframe,
 .preview-modal-player video,
@@ -566,6 +591,10 @@
   height: 100%;
   border: 0;
   display: block;
+  /* Explicit reset — prevents inheriting filter/opacity/transform from parents */
+  filter: none;
+  image-rendering: auto;
+  object-fit: contain;
 }
 
 /* Countdown badge in top-right corner */

@@ -41,7 +41,19 @@ export default function VideoSlider({ id, label, title, subscribeHref, subscribe
                   <img
                     src={item.thumb}
                     alt={item.title}
-                    onError={e => { e.target.src = 'https://placehold.co/320x180/1a1a2e/c9a84c?text=Video'; }}
+                    loading="lazy"
+                    decoding="async"
+                    onError={e => {
+                      // maxresdefault → sddefault → hqdefault → placeholder
+                      const src = e.target.src;
+                      if (src.includes('maxresdefault')) {
+                        e.target.src = src.replace('maxresdefault', 'sddefault');
+                      } else if (src.includes('sddefault')) {
+                        e.target.src = src.replace('sddefault', 'hqdefault');
+                      } else {
+                        e.target.src = 'https://placehold.co/320x180/1a1a2e/c9a84c?text=Video';
+                      }
+                    }}
                   />
                   <div className="video-play-overlay">
                     <div className="video-play-btn">&#9654;</div>
