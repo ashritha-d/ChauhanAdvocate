@@ -27,12 +27,18 @@ exports.getPublicCourse = async (req, res) => {
 
     const courseObj = course.toObject();
     if (!enrollment) {
+      // For non-enrolled users: expose only the very first video URL as a
+      // free preview; all remaining videos are hidden until payment is made.
+      let firstVideoSeen = false;
       courseObj.modules = courseObj.modules.map(m => ({
         ...m,
-        videos: m.videos.map(v => ({
-          ...v,
-          videoUrl: v.isPreview ? v.videoUrl : null,
-        })),
+        videos: m.videos.map(v => {
+          if (!firstVideoSeen && v.videoUrl) {
+            firstVideoSeen = true;
+            return { ...v }; // first video — full URL for preview
+          }
+          return { ...v, videoUrl: null }; // all others hidden
+        }),
       }));
     }
 
