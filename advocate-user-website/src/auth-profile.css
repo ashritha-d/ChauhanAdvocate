@@ -503,6 +503,197 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
+   COURSE PREVIEW MODAL — 60-second preview with payment lock
+═══════════════════════════════════════════════════════════ */
+.preview-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.2s ease;
+}
+
+.preview-modal-container {
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 860px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  max-height: 92vh;
+}
+
+.preview-modal-header {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.preview-modal-title { color: #fff; font-weight: 600; font-size: 0.95rem; }
+.preview-modal-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 1.6rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+  transition: color 0.15s;
+}
+.preview-modal-close:hover { color: #fff; }
+
+/* 16:9 video area */
+.preview-modal-player {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.preview-modal-player iframe,
+.preview-modal-player video,
+.preview-modal-player > div {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+/* Countdown badge in top-right corner */
+.preview-timer-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fbbf24;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 13px;
+  border-radius: 20px;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  z-index: 10;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Full-screen blurred lock overlay */
+.preview-lock-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 30, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Centered payment lock popup */
+.preview-lock-modal {
+  background: #fff;
+  border-radius: 22px;
+  padding: 36px 32px;
+  text-align: center;
+  max-width: 380px;
+  width: 90%;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+  animation: slideUp 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.preview-lock-icon {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a1a2e, #2d2d6e);
+  color: var(--gold, #C9A84C);
+  font-size: 1.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 8px 28px rgba(201, 168, 76, 0.4);
+}
+
+.preview-lock-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: #1a1a2e;
+  margin-bottom: 12px;
+}
+
+.preview-lock-msg {
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.preview-lock-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Footer strip below video */
+.preview-modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex-shrink: 0;
+  background: #fafafa;
+}
+.preview-video-title {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: #1a1a2e;
+}
+.preview-video-meta { font-size: 0.8rem; color: #888; }
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { transform: translateY(28px) scale(0.94); opacity: 0; }
+  to   { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .preview-modal-container { border-radius: 12px; max-height: 96vh; }
+  .preview-lock-modal { padding: 26px 18px; border-radius: 16px; }
+  .preview-lock-title { font-size: 1.1rem; }
+  .preview-lock-icon { width: 64px; height: 64px; font-size: 1.6rem; }
+  .preview-lock-actions { flex-direction: column; }
+  .preview-lock-actions .btn { width: 100%; }
+  .preview-modal-footer { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 400px) {
+  .preview-modal-header { padding: 12px 14px; }
+  .preview-modal-title { font-size: 0.85rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════
    FORM SUCCESS SCREEN — shared across all modals & sections
 ═══════════════════════════════════════════════════════════ */
 .form-success-screen {

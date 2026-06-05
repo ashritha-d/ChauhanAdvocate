@@ -5,6 +5,7 @@ import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
 import { mediaUrl } from '../utils/helpers';
 import CourseEnrollModal from '../components/CourseEnrollModal';
+import CoursePreviewModal from '../components/CoursePreviewModal';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -20,6 +21,7 @@ export default function Courses() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [previewCourse, setPreviewCourse] = useState(null);
 
   useEffect(() => {
     getPublicCourses()
@@ -35,6 +37,13 @@ export default function Courses() {
     } else {
       setSelectedCourse(course);
     }
+  };
+
+  const handlePreview = (course) => setPreviewCourse(course);
+
+  const handlePayNow = (course) => {
+    setPreviewCourse(null);
+    handleEnroll(course);
   };
 
   return (
@@ -107,9 +116,18 @@ export default function Courses() {
                           </>
                         )}
                       </div>
-                      <button className="btn btn-gold btn-sm px-4" onClick={() => handleEnroll(course)}>
-                        {price === 0 ? 'Enroll Free' : 'Enroll Now'}
-                      </button>
+                      <div className="d-flex flex-column align-items-end gap-2">
+                        <button className="btn btn-gold btn-sm px-4" onClick={() => handleEnroll(course)}>
+                          {price === 0 ? 'Enroll Free' : 'Enroll Now'}
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-secondary px-3"
+                          style={{ fontSize: '0.78rem' }}
+                          onClick={() => handlePreview(course)}
+                        >
+                          <i className="fas fa-play me-1" style={{ color: 'var(--gold)' }}></i>Watch Preview
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -123,6 +141,14 @@ export default function Courses() {
         <CourseEnrollModal
           course={selectedCourse}
           onClose={() => setSelectedCourse(null)}
+        />
+      )}
+
+      {previewCourse && (
+        <CoursePreviewModal
+          course={previewCourse}
+          onClose={() => setPreviewCourse(null)}
+          onPayNow={() => handlePayNow(previewCourse)}
         />
       )}
     </section>
