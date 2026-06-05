@@ -279,9 +279,9 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 /* ── Blog ── */
 .blog-card { background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid #eee; transition: all 0.3s; height: 100%; }
 .blog-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.1); }
-.blog-image { height: 200px; overflow: hidden; background: #f5f5f5; transform: translateZ(0); backface-visibility: hidden; }
-.blog-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; will-change: transform; backface-visibility: hidden; transform: translateZ(0) scale(1); }
-.blog-card:hover .blog-image img { transform: translateZ(0) scale(1.05); }
+.blog-image { height: 200px; overflow: hidden; background: #f5f5f5; }
+.blog-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+.blog-card:hover .blog-image img { transform: scale(1.05); }
 .blog-image-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #ccc; }
 .blog-content { padding: 24px; }
 .blog-category { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); }
@@ -428,23 +428,9 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .video-subscribe-btn:hover { opacity: 0.88; transform: translateY(-2px); color: #fff; }
 .video-card { min-width: 280px; max-width: 280px; text-decoration: none; display: block; border-radius: 12px; overflow: hidden; background: #1a1a1a; transition: transform 0.3s, box-shadow 0.3s; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
 .video-card:hover { transform: translateY(-5px); box-shadow: 0 14px 36px rgba(0,0,0,0.22); }
-/* Scale is applied to the thumb container, not the img, to prevent sub-pixel blur on the image itself */
-.video-card-thumb {
-  position: relative; aspect-ratio: 16/9; overflow: hidden;
-  transform: translateZ(0);       /* GPU compositing layer — prevents blur bleed from parent transforms */
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-.video-card-thumb img {
-  width: 100%; height: 100%; object-fit: cover;
-  transition: transform 0.3s ease;
-  will-change: transform;
-  image-rendering: auto;          /* browser default = best quality */
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transform: translateZ(0) scale(1);  /* start on GPU layer at 1× */
-}
-.video-card:hover .video-card-thumb img { transform: translateZ(0) scale(1.06); }
+.video-card-thumb { position: relative; aspect-ratio: 16/9; overflow: hidden; }
+.video-card-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+.video-card:hover .video-card-thumb img { transform: scale(1.06); }
 .video-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.28); }
 .video-play-btn { width: 50px; height: 50px; background: rgba(255,255,255,0.92); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; color: #222; padding-left: 4px; transition: transform 0.2s; }
 .video-card:hover .video-play-btn { transform: scale(1.18); }
@@ -734,8 +720,8 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .book-card { min-width: 260px; max-width: 260px; background: #fff; border-radius: 16px; border: 1px solid #eee; overflow: hidden; display: flex; flex-direction: column; transition: all 0.3s; box-shadow: 0 2px 12px rgba(0,0,0,0.05); flex-shrink: 0; }
 .book-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.12); border-color: var(--gold); }
 .book-card-img { width: 100%; height: 175px; overflow: hidden; background: #f0f0f0; }
-.book-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; will-change: transform; backface-visibility: hidden; transform: translateZ(0) scale(1); }
-.book-card:hover .book-card-img img { transform: translateZ(0) scale(1.06); }
+.book-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+.book-card:hover .book-card-img img { transform: scale(1.06); }
 .book-card-body { padding: 18px 16px; display: flex; flex-direction: column; flex: 1; }
 .book-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1rem; color: var(--dark); margin-bottom: 4px; }
 .book-author { font-size: 0.78rem; color: #888; margin-bottom: 6px; }
@@ -794,8 +780,8 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   overflow: hidden;
   background: #f0f0f0;
 }
-.latest-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; will-change: transform; backface-visibility: hidden; transform: translateZ(0) scale(1); }
-.latest-card:hover .latest-card-img img { transform: translateZ(0) scale(1.06); }
+.latest-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+.latest-card:hover .latest-card-img img { transform: scale(1.06); }
 
 .latest-type-pill {
   position: absolute;
