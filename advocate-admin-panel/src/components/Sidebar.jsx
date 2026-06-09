@@ -16,6 +16,7 @@ const NAV = [
     { icon: 'fas fa-star',           label: 'Testimonials',    page: 'testimonials' },
     { icon: 'fas fa-question-circle',label: 'FAQs',            page: 'faqs' },
     { icon: 'fab fa-youtube',        label: 'YouTube Videos',  page: 'youtube' },
+    { icon: 'fab fa-facebook',       label: 'Facebook Content', page: 'facebook' },
   ]},
   { label: 'Inquiries', items: [
     { icon: 'fas fa-calendar-alt',   label: 'Appointments',   page: 'appointments' },

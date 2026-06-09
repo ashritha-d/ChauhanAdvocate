@@ -4,6 +4,7 @@ const facebookPostSchema = new mongoose.Schema({
   description: { type: String, trim: true },
   facebookUrl: { type: String, trim: true },
   thumbnail: { type: String, default: '' },
+  category: { type: String, default: 'Video', trim: true },
   date: { type: Date, default: Date.now },
   isActive: { type: Boolean, default: true },
   order: { type: Number, default: 0 }

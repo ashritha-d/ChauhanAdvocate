@@ -57,6 +57,12 @@ export const createYouTubeVideo = (data) => api.post('/youtube-videos', data);
 export const updateYouTubeVideo = (id, data) => api.put(`/youtube-videos/${id}`, data);
 export const deleteYouTubeVideo = (id) => api.delete(`/youtube-videos/${id}`);
 
+// Facebook Content
+export const getFacebookContent = () => api.get('/facebook-posts/admin/all');
+export const createFacebookContent = (data) => api.post('/facebook-posts', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const updateFacebookContent = (id, data) => api.put(`/facebook-posts/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const deleteFacebookContent = (id) => api.delete(`/facebook-posts/${id}`);
+
 // Orders
 export const getOrders = (p = 1, l = 10, status = '') => api.get(`/orders?page=${p}&limit=${l}${status ? `&status=${status}` : ''}`);
 export const updateOrder = (id, data) => api.put(`/orders/${id}`, data);

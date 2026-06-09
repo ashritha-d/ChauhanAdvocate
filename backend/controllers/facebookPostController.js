@@ -2,6 +2,12 @@ const FacebookPost = require('../models/FacebookPost');
 const path = require('path');
 const fs = require('fs');
 
+const FB_URL_PATTERN = /^https?:\/\/(www\.|m\.)?facebook\.com\/.+|^https?:\/\/fb\.watch\/.+/;
+
+function isValidFacebookUrl(url) {
+  return url && FB_URL_PATTERN.test(url.trim());
+}
+
 exports.getPublic = async (req, res) => {
   try {
     const posts = await FacebookPost.find({ isActive: true }).sort({ order: 1, date: -1 });
@@ -18,6 +24,10 @@ exports.getAll = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
+    const { facebookUrl } = req.body;
+    if (facebookUrl && !isValidFacebookUrl(facebookUrl)) {
+      return res.status(400).json({ success: false, message: 'Invalid Facebook URL. Must be a facebook.com or fb.watch link.' });
+    }
     const data = { ...req.body };
     if (req.file) data.thumbnail = `/uploads/${req.file.filename}`;
     const post = await FacebookPost.create(data);
@@ -27,6 +37,10 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
+    const { facebookUrl } = req.body;
+    if (facebookUrl && !isValidFacebookUrl(facebookUrl)) {
+      return res.status(400).json({ success: false, message: 'Invalid Facebook URL. Must be a facebook.com or fb.watch link.' });
+    }
     const data = { ...req.body };
     if (req.file) data.thumbnail = `/uploads/${req.file.filename}`;
     const post = await FacebookPost.findByIdAndUpdate(req.params.id, data, { new: true, runValidators: true });
