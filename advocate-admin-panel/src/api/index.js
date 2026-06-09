@@ -96,5 +96,22 @@ export const createNews     = (data)       => api.post('/news', data);
 export const updateNews     = (id, data)   => api.put(`/news/${id}`, data);
 export const deleteNews     = (id)         => api.delete(`/news/${id}`);
 
+// Magazines
+export const getMagazines     = (params = {}) => api.get('/magazines/admin/all', { params });
+export const createMagazine   = (data) => api.post('/magazines', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const updateMagazine   = (id, data) => api.put(`/magazines/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const deleteMagazine   = (id) => api.delete(`/magazines/${id}`);
+export const bulkDeleteMagazines = (ids) => api.post('/magazines/bulk-delete', { ids });
+export const bulkPublishMagazines = (ids, isActive) => api.post('/magazines/bulk-publish', { ids, isActive });
+
+// Drafts
+export const getDrafts        = (params = {}) => api.get('/drafts/admin/all', { params });
+export const createDraft      = (data) => api.post('/drafts', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const updateDraft      = (id, data) => api.put(`/drafts/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const deleteDraft      = (id) => api.delete(`/drafts/${id}`);
+export const publishDraft     = (id) => api.put(`/drafts/${id}/publish`);
+export const bulkDeleteDrafts = (ids) => api.post('/drafts/bulk-delete', { ids });
+export const bulkPublishDrafts = (ids) => api.post('/drafts/bulk-publish', { ids });
+
 // Upload
 export const uploadFile = (formData) => api.post('/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });

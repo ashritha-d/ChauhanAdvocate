@@ -23,8 +23,10 @@ import Users from './pages/Users';
 import Notifications from './pages/Notifications';
 import News from './pages/News';
 import Courses from './pages/Courses';
+import Magazines from './pages/Magazines';
+import Drafts from './pages/Drafts';
 
-const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, news: News, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile, youtube: YouTubeVideos, facebook: FacebookContent, orders: Orders, jradvocates: JrAdvocates, bookorders: BookOrders, payments: Payments, users: Users, notifications: Notifications, courses: Courses };
+const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, news: News, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile, youtube: YouTubeVideos, facebook: FacebookContent, orders: Orders, jradvocates: JrAdvocates, bookorders: BookOrders, payments: Payments, users: Users, notifications: Notifications, courses: Courses, magazines: Magazines, drafts: Drafts };
 
 function AdminApp() {
   const { admin, loading } = useAuth();
