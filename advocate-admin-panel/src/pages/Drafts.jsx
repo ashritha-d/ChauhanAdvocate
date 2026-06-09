@@ -49,7 +49,9 @@ export default function Drafts() {
       if (ct) params.contentType = ct;
       if (st) params.status = st;
       const r = await getDrafts(params);
-      setItems(r.data.data || []);
+      const data = r.data.data || [];
+      console.log('Loaded Drafts:', data);
+      setItems(data);
       setTotal(r.data.total || 0);
       setSelected([]);
     } catch { showToast('danger', 'Failed to load drafts'); }
@@ -217,7 +219,7 @@ export default function Drafts() {
               {!loading && items.length === 0 && (
                 <tr><td colSpan="7" className="text-center py-5">
                   <i className="fas fa-drafting-compass fa-3x mb-3 d-block" style={{ color: '#dee2e6' }}></i>
-                  <span className="text-muted">No drafts found. Save unfinished content here!</span>
+                  <span className="text-muted">No existing data found.</span>
                 </td></tr>
               )}
               {items.map(item => {

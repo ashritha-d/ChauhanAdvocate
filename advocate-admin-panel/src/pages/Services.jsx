@@ -17,7 +17,10 @@ export default function Services() {
   const [deleting, setDeleting] = useState(false);
   const [featInput, setFeatInput] = useState('');
 
-  const load = () => { setLoading(true); getServices().then(r => setItems(r.data.data || [])).catch(() => {}).finally(() => setLoading(false)); };
+  const load = () => {
+    setLoading(true);
+    getServices().then(r => { const data = r.data.data || []; console.log('Loaded Services:', data); setItems(data); }).catch(() => {}).finally(() => setLoading(false));
+  };
   useEffect(() => { load(); }, []);
 
   const openCreate = () => { setForm(EMPTY); setEditing(null); setFeatInput(''); setError(''); setShowForm(true); };
@@ -57,7 +60,7 @@ export default function Services() {
             <thead><tr><th>Icon</th><th>Title</th><th>Featured</th><th>Status</th><th>Order</th><th>Actions</th></tr></thead>
             <tbody>
               {loading && <tr><td colSpan="6" className="text-center py-4"><div className="spinner-border spinner-border-sm"></div></td></tr>}
-              {!loading && items.length === 0 && <tr><td colSpan="6" className="text-center text-muted py-4">No services yet</td></tr>}
+              {!loading && items.length === 0 && <tr><td colSpan="6" className="text-center text-muted py-4">No existing data found.</td></tr>}
               {items.map(item => (
                 <tr key={item._id}>
                   <td><i className={`${item.icon} text-gold fa-lg`}></i></td>

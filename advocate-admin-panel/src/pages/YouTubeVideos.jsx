@@ -17,8 +17,12 @@ export default function YouTubeVideos() {
   const showAlert = (type, msg) => { setAlert({ type, msg }); setTimeout(() => setAlert(null), 4000); };
 
   const load = async () => {
-    try { const r = await getYouTubeVideos(); setVideos(r.data.data || []); }
-    catch { showAlert('danger', 'Failed to load videos'); }
+    try {
+      const r = await getYouTubeVideos();
+      const data = r.data.data || [];
+      console.log('Loaded YouTube Videos:', data);
+      setVideos(data);
+    } catch { showAlert('danger', 'Failed to load videos'); }
     setLoading(false);
   };
 
@@ -105,7 +109,7 @@ export default function YouTubeVideos() {
       {videos.length === 0 ? (
         <div className="text-center py-5 text-muted">
           <i className="fab fa-youtube fa-3x mb-3 text-danger opacity-50"></i>
-          <p>No videos yet. Add your first YouTube video!</p>
+          <p>No existing data found.</p>
         </div>
       ) : (
         <div className="row g-3">

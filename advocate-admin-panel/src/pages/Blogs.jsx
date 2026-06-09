@@ -21,7 +21,10 @@ export default function Blogs() {
   const [deleting, setDeleting] = useState(false);
   const [search, setSearch] = useState('');
 
-  const load = () => { setLoading(true); getBlogs(1, 50).then(r => setItems(r.data.data || [])).catch(() => {}).finally(() => setLoading(false)); };
+  const load = () => {
+    setLoading(true);
+    getBlogs(1, 50).then(r => { const data = r.data.data || []; console.log('Loaded Blogs:', data); setItems(data); }).catch(() => {}).finally(() => setLoading(false));
+  };
   useEffect(() => { load(); }, []);
 
   const openCreate = () => { setForm(EMPTY); setEditing(null); setError(''); setShowForm(true); };
@@ -62,7 +65,7 @@ export default function Blogs() {
             <thead><tr><th>Title</th><th>Category</th><th>Author</th><th>Published</th><th>Date</th><th>Actions</th></tr></thead>
             <tbody>
               {loading && <tr><td colSpan="6" className="text-center py-4"><div className="spinner-border spinner-border-sm"></div></td></tr>}
-              {!loading && filtered.length === 0 && <tr><td colSpan="6" className="text-center text-muted py-4">No blogs found</td></tr>}
+              {!loading && filtered.length === 0 && <tr><td colSpan="6" className="text-center text-muted py-4">No existing data found.</td></tr>}
               {filtered.map(item => (
                 <tr key={item._id}>
                   <td><div className="fw-semibold">{item.title}</div><small className="text-muted">{item.excerpt?.substring(0,60)}...</small></td>

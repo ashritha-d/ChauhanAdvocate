@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getSiteSettings, updateSiteSettings, seedSiteSettings } from '../api';
+import { getAdminSiteSettings, updateSiteSettings, seedSiteSettings } from '../api';
 import ImageUpload from '../components/ImageUpload';
 
 const TABS = ['General','Contact','Social','Stats','SEO','Payment'];
@@ -14,8 +14,15 @@ export default function SiteSettings() {
 
   const load = () => {
     setLoading(true);
-    getSiteSettings()
-      .then(r => { if (r.data.success) setForm(r.data.data || {}); })
+    getAdminSiteSettings()
+      .then(r => {
+        if (r.data.success) {
+          const map = {};
+          (r.data.data || []).forEach(s => { map[s.key] = s.value; });
+          console.log('Loaded Site Settings:', map);
+          setForm(map);
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   };
@@ -98,7 +105,7 @@ export default function SiteSettings() {
         <div className="page-card-header">
           <h6 className="mb-0 fw-bold">Site Settings</h6>
           <div className="d-flex gap-2">
-            {!form._id && <button className="btn btn-outline-secondary btn-sm" onClick={handleSeed}><i className="fas fa-database me-1"></i>Seed Defaults</button>}
+            {Object.keys(form).length === 0 && <button className="btn btn-outline-secondary btn-sm" onClick={handleSeed}><i className="fas fa-database me-1"></i>Seed Defaults</button>}
             <button className="btn btn-gold btn-sm" form="settings-form" type="submit" disabled={saving}>
               {saving ? <><i className="fas fa-spinner fa-spin me-1"></i>Saving...</> : <><i className="fas fa-save me-1"></i>Save All</>}
             </button>
@@ -107,6 +114,9 @@ export default function SiteSettings() {
         <div className="page-card-body">
           {success && <div className="alert alert-success py-2 mb-3"><i className="fas fa-check me-2"></i>{success}</div>}
           {error && <div className="alert alert-danger py-2 mb-3">{error}</div>}
+          {Object.keys(form).length === 0 && !loading && (
+            <div className="alert alert-info py-2 mb-3"><i className="fas fa-info-circle me-2"></i>No existing data found. Click <strong>Seed Defaults</strong> to populate default settings, or fill in the fields below.</div>
+          )}
           <ul className="nav nav-tabs mb-4">
             {TABS.map(t => <li key={t} className="nav-item"><button className={`nav-link ${tab===t?'active':''}`} onClick={() => setTab(t)}>{t}</button></li>)}
           </ul>

@@ -202,7 +202,7 @@ export default function Courses() {
 
   const loadCourses = () => {
     setLoading(true);
-    api.get('/courses').then(r => setCourses(r.data.data || [])).catch(() => {}).finally(() => setLoading(false));
+    api.get('/courses').then(r => { const data = r.data.data || []; console.log('Loaded Courses:', data); setCourses(data); }).catch(() => {}).finally(() => setLoading(false));
   };
 
   const loadEnrollments = () => {
@@ -366,6 +366,7 @@ export default function Courses() {
               <thead><tr><th>Title</th><th>Price</th><th>Students</th><th>Level</th><th>Status</th><th>Actions</th></tr></thead>
               <tbody>
                 {loading && <tr><td colSpan="6" className="text-center py-4"><div className="spinner-border spinner-border-sm"></div></td></tr>}
+                {!loading && filtered.length === 0 && <tr><td colSpan="6" className="text-center text-muted py-4">No existing data found.</td></tr>}
                 {!loading && filtered.map(c => (
                   <tr key={c._id}>
                     <td>

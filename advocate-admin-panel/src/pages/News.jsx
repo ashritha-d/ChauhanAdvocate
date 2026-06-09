@@ -26,7 +26,7 @@ export default function News() {
 
   const load = () => {
     setLoading(true);
-    getNews().then(r => setItems(r.data.data || [])).catch(() => {}).finally(() => setLoading(false));
+    getNews().then(r => { const data = r.data.data || []; console.log('Loaded Latest News:', data); setItems(data); }).catch(() => {}).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
 
@@ -103,7 +103,7 @@ export default function News() {
                 </td></tr>
               )}
               {!loading && filtered.length === 0 && (
-                <tr><td colSpan="6" className="text-center text-muted py-4">No news items yet</td></tr>
+                <tr><td colSpan="6" className="text-center text-muted py-4">No existing data found.</td></tr>
               )}
               {!loading && filtered.map(item => (
                 <tr key={item._id}>

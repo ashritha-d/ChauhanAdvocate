@@ -16,7 +16,10 @@ export default function HeroBanners() {
   const [confirm, setConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const load = () => { setLoading(true); getHeroBanners().then(r => setItems(r.data.data||[])).catch(()=>{}).finally(()=>setLoading(false)); };
+  const load = () => {
+    setLoading(true);
+    getHeroBanners().then(r => { const data = r.data.data || []; console.log('Loaded Hero Banners:', data); setItems(data); }).catch(()=>{}).finally(()=>setLoading(false));
+  };
   useEffect(() => { load(); }, []);
 
   const openCreate = () => { setForm(EMPTY); setEditing(null); setError(''); setShowForm(true); };
@@ -53,7 +56,7 @@ export default function HeroBanners() {
             <thead><tr><th>Title</th><th>Subtitle</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
               {loading && <tr><td colSpan="5" className="text-center py-4"><div className="spinner-border spinner-border-sm"></div></td></tr>}
-              {!loading && items.length === 0 && <tr><td colSpan="5" className="text-center text-muted py-4">No banners yet. Add your first hero banner.</td></tr>}
+              {!loading && items.length === 0 && <tr><td colSpan="5" className="text-center text-muted py-4">No existing data found.</td></tr>}
               {items.map(item => (
                 <tr key={item._id}>
                   <td className="fw-semibold">{item.title}</td>

@@ -16,7 +16,10 @@ export default function Testimonials() {
   const [confirm, setConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const load = () => { setLoading(true); getTestimonials().then(r => setItems(r.data.data || [])).catch(() => {}).finally(() => setLoading(false)); };
+  const load = () => {
+    setLoading(true);
+    getTestimonials().then(r => { const data = r.data.data || []; console.log('Loaded Testimonials:', data); setItems(data); }).catch(() => {}).finally(() => setLoading(false));
+  };
   useEffect(() => { load(); }, []);
 
   const openCreate = () => { setForm(EMPTY); setEditing(null); setError(''); setShowForm(true); };
@@ -53,7 +56,7 @@ export default function Testimonials() {
             <thead><tr><th>Client</th><th>Rating</th><th>Message</th><th>Approved</th><th>Featured</th><th>Actions</th></tr></thead>
             <tbody>
               {loading && <tr><td colSpan="6" className="text-center py-4"><div className="spinner-border spinner-border-sm"></div></td></tr>}
-              {!loading && items.length === 0 && <tr><td colSpan="6" className="text-center text-muted py-4">No testimonials yet</td></tr>}
+              {!loading && items.length === 0 && <tr><td colSpan="6" className="text-center text-muted py-4">No existing data found.</td></tr>}
               {items.map(item => (
                 <tr key={item._id}>
                   <td><div className="fw-semibold">{item.name}</div><small className="text-muted">{item.designation}</small></td>

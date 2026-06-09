@@ -29,8 +29,12 @@ export default function FacebookContent() {
 
   const load = async () => {
     setLoading(true);
-    try { const r = await getFacebookContent(); setPosts(r.data.data || []); }
-    catch { showAlert('danger', 'Failed to load Facebook content'); }
+    try {
+      const r = await getFacebookContent();
+      const data = r.data.data || [];
+      console.log('Loaded Facebook Content:', data);
+      setPosts(data);
+    } catch { showAlert('danger', 'Failed to load Facebook content'); }
     setLoading(false);
   };
 
@@ -196,7 +200,7 @@ export default function FacebookContent() {
       {posts.length === 0 ? (
         <div className="text-center py-5 text-muted">
           <i className="fab fa-facebook fa-3x mb-3 opacity-25" style={{ color: '#1877f2' }}></i>
-          <p>No Facebook content yet. Add your first entry!</p>
+          <p>No existing data found.</p>
         </div>
       ) : (
         <div className="row g-3">

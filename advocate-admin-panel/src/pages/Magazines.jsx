@@ -42,7 +42,9 @@ export default function Magazines() {
       if (cat) params.category = cat;
       if (st) params.status = st;
       const r = await getMagazines(params);
-      setItems(r.data.data || []);
+      const data = r.data.data || [];
+      console.log('Loaded Magazines:', data);
+      setItems(data);
       setTotal(r.data.total || 0);
       setSelected([]);
     } catch { showToast('danger', 'Failed to load magazines'); }
@@ -217,7 +219,7 @@ export default function Magazines() {
               {!loading && items.length === 0 && (
                 <tr><td colSpan="9" className="text-center py-5">
                   <i className="fas fa-book-open fa-3x mb-3 d-block" style={{ color: '#dee2e6' }}></i>
-                  <span className="text-muted">No magazines found. Add your first issue!</span>
+                  <span className="text-muted">No existing data found.</span>
                 </td></tr>
               )}
               {items.map(item => (

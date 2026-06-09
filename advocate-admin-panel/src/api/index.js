@@ -7,7 +7,7 @@ export const changePassword = (data) => api.put('/auth/change-password', data);
 export const updateProfile = (data) => api.put('/auth/profile', data);
 
 // Services
-export const getServices = () => api.get('/services');
+export const getServices = () => api.get('/services/admin/all');
 export const createService = (data) => api.post('/services', data);
 export const updateService = (id, data) => api.put(`/services/${id}`, data);
 export const deleteService = (id) => api.delete(`/services/${id}`);
@@ -42,8 +42,9 @@ export const deleteContact = (id) => api.delete(`/contacts/${id}`);
 
 // Site Settings
 export const getSiteSettings = () => api.get('/site-settings');
+export const getAdminSiteSettings = () => api.get('/site-settings/admin/all');
 export const updateSiteSettings = (data) => api.put('/site-settings', data);
-export const seedSiteSettings = () => api.get('/site-settings/seed');
+export const seedSiteSettings = () => api.post('/site-settings/seed');
 
 // Hero Banners
 export const getHeroBanners = () => api.get('/hero-banners/admin');
