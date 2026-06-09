@@ -57,6 +57,8 @@ const paymentsUploadDir = path.join(__dirname, 'uploads', 'payments');
 if (!fs.existsSync(paymentsUploadDir)) fs.mkdirSync(paymentsUploadDir, { recursive: true });
 const avatarsUploadDir = path.join(__dirname, 'uploads', 'avatars');
 if (!fs.existsSync(avatarsUploadDir)) fs.mkdirSync(avatarsUploadDir, { recursive: true });
+const videosUploadDir = path.join(__dirname, 'uploads', 'videos');
+if (!fs.existsSync(videosUploadDir)) fs.mkdirSync(videosUploadDir, { recursive: true });
 
 // MongoDB connection
 const mongoOptions = process.env.NODE_ENV === 'development' ? { tlsAllowInvalidCertificates: true } : {};

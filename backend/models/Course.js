@@ -3,7 +3,11 @@ const mongoose = require('mongoose');
 const videoSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   description: { type: String, default: '' },
-  videoUrl: { type: String, required: true },
+  videoSourceType: { type: String, enum: ['url', 'upload'], default: 'url' },
+  videoUrl: { type: String, default: '' },
+  uploadedVideoPath: { type: String, default: '' },
+  videoSize: { type: String, default: '' },
+  thumbnailUrl: { type: String, default: '' },
   duration: { type: String, default: '' },
   isPreview: { type: Boolean, default: false },
   order: { type: Number, default: 0 },

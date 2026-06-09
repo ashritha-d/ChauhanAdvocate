@@ -1,27 +1,204 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import api from '../api/axios';
 import ConfirmModal from '../components/ConfirmModal';
+
+const MEDIA_BASE = (import.meta.env.VITE_API_BASE || 'http://localhost:5000/api').replace('/api', '');
+const VIDEO_ACCEPT = '.mp4,.mov,.avi,.webm,.mkv,video/mp4,video/quicktime,video/x-msvideo,video/webm,video/x-matroska';
+const MAX_VIDEO_MB = parseInt(import.meta.env.VITE_MAX_VIDEO_MB) || 500;
+const ALLOWED_EXTS = ['mp4', 'mov', 'avi', 'webm', 'mkv'];
 
 const EMPTY_COURSE = {
   title: '', shortDescription: '', description: '', price: 0, discountPrice: 0,
   instructor: '', duration: '', level: 'beginner', language: 'Telugu / English',
   isActive: true, isFeatured: false, certificate: false, modules: [],
 };
-
 const EMPTY_MODULE = { title: '', order: 0, videos: [] };
-const EMPTY_VIDEO = { title: '', description: '', videoUrl: '', duration: '', isPreview: false, order: 0 };
+const EMPTY_VIDEO = {
+  title: '', description: '', videoSourceType: 'url', videoUrl: '',
+  uploadedVideoPath: '', videoSize: '', thumbnailUrl: '',
+  duration: '', isPreview: false, order: 0,
+};
 
+// ── Client-side thumbnail from local video file ───────────────────────────────
+async function generateVideoThumbnail(file) {
+  return new Promise(resolve => {
+    const video = document.createElement('video');
+    const url = URL.createObjectURL(file);
+    video.preload = 'metadata';
+    video.muted = true;
+    video.src = url;
+    const cleanup = () => URL.revokeObjectURL(url);
+    video.addEventListener('loadeddata', () => { video.currentTime = 1; });
+    video.addEventListener('seeked', () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 320; canvas.height = 180;
+        canvas.getContext('2d').drawImage(video, 0, 0, 320, 180);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      } catch { resolve(''); }
+      cleanup();
+    });
+    video.addEventListener('error', () => { resolve(''); cleanup(); });
+    video.load();
+  });
+}
+
+// ── Video Upload Zone ─────────────────────────────────────────────────────────
+function VideoUploadZone({ videoPath, videoSize, onUploaded, onRemove }) {
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState('');
+  const [dragOver, setDragOver] = useState(false);
+  const [localThumb, setLocalThumb] = useState('');
+  const fileRef = useRef();
+
+  const handleFile = async file => {
+    if (!file) return;
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!ALLOWED_EXTS.includes(ext)) {
+      setError(`Unsupported format ".${ext}". Allowed: MP4, MOV, AVI, WEBM, MKV`);
+      return;
+    }
+    if (file.size > MAX_VIDEO_MB * 1024 * 1024) {
+      setError(`File too large. Maximum size is ${MAX_VIDEO_MB} MB.`);
+      return;
+    }
+    setError(''); setUploading(true); setProgress(0);
+
+    const thumb = await generateVideoThumbnail(file);
+    if (thumb) setLocalThumb(thumb);
+
+    try {
+      const fd = new FormData();
+      fd.append('video', file);
+      const r = await api.post('/courses/upload-video', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: evt => {
+          if (evt.total) setProgress(Math.round((evt.loaded / evt.total) * 100));
+        },
+        timeout: 0, // disable timeout for large files
+      });
+      onUploaded({ path: r.data.path, size: r.data.size });
+    } catch (e) {
+      setError(e.response?.data?.message || 'Upload failed. Please try again.');
+      setLocalThumb('');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDrop = e => {
+    e.preventDefault(); setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  };
+
+  const handleReplace = () => {
+    onRemove();
+    setLocalThumb('');
+    setTimeout(() => fileRef.current?.click(), 50);
+  };
+
+  const thumbSrc = localThumb || (videoPath ? MEDIA_BASE + videoPath : '');
+  const filename = videoPath ? videoPath.split('/').pop() : '';
+
+  // ── Uploaded state ──
+  if (videoPath && !uploading) {
+    return (
+      <div className="border rounded p-2" style={{ background: '#f0fdf4' }}>
+        <div className="d-flex align-items-center gap-2">
+          {thumbSrc
+            ? <img src={thumbSrc} alt="thumb" style={{ width: 72, height: 40, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} />
+            : <div style={{ width: 72, height: 40, background: '#d1fae5', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <i className="fas fa-film text-success"></i>
+              </div>
+          }
+          <div className="flex-grow-1 overflow-hidden">
+            <div className="small fw-semibold text-truncate text-success">
+              <i className="fas fa-check-circle me-1"></i>{filename}
+            </div>
+            {videoSize && <div className="text-muted" style={{ fontSize: '0.7rem' }}>{videoSize}</div>}
+          </div>
+          <div className="d-flex gap-1 flex-shrink-0">
+            <button type="button" className="btn btn-xs btn-outline-secondary" onClick={handleReplace} title="Replace video">
+              <i className="fas fa-sync-alt"></i>
+            </button>
+            <button type="button" className="btn btn-xs btn-outline-danger" onClick={onRemove} title="Delete video">
+              <i className="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <input type="file" ref={fileRef} accept={VIDEO_ACCEPT} className="d-none"
+          onChange={e => { const f = e.target.files[0]; e.target.value = ''; if (f) handleFile(f); }} />
+      </div>
+    );
+  }
+
+  // ── Upload zone ──
+  return (
+    <div>
+      <div
+        className={`border rounded p-3 text-center ${dragOver ? 'border-primary' : ''}`}
+        style={{
+          borderStyle: 'dashed', cursor: uploading ? 'default' : 'pointer',
+          background: dragOver ? 'rgba(13,110,253,0.05)' : '#fafafa',
+          transition: 'all 0.15s', minHeight: 80,
+        }}
+        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+        onClick={() => !uploading && fileRef.current?.click()}
+      >
+        {uploading ? (
+          <div className="py-1">
+            <div className="small text-muted mb-2">
+              <i className="fas fa-spinner fa-spin me-1"></i>Uploading... {progress}%
+            </div>
+            <div className="progress" style={{ height: 6 }}>
+              <div
+                className="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                style={{ width: `${progress}%`, transition: 'width 0.3s' }}
+              />
+            </div>
+          </div>
+        ) : (
+          <>
+            <i className="fas fa-cloud-upload-alt fa-lg text-muted mb-1" style={{ display: 'block' }}></i>
+            <div className="small text-muted">
+              Drag & drop or <span className="text-primary fw-semibold">Choose Video</span>
+            </div>
+            <div className="text-muted mt-1" style={{ fontSize: '0.7rem' }}>
+              MP4, MOV, AVI, WEBM, MKV &nbsp;·&nbsp; Max {MAX_VIDEO_MB} MB
+            </div>
+          </>
+        )}
+      </div>
+      {error && (
+        <div className="text-danger small mt-1">
+          <i className="fas fa-exclamation-triangle me-1"></i>{error}
+        </div>
+      )}
+      <input type="file" ref={fileRef} accept={VIDEO_ACCEPT} className="d-none"
+        onChange={e => { const f = e.target.files[0]; e.target.value = ''; if (f) handleFile(f); }} />
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 export default function Courses() {
   const [courses, setCourses] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState('courses'); // courses | enrollments
+  const [view, setView] = useState('courses');
   const [editCourse, setEditCourse] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [enrolFilter, setEnrolFilter] = useState('');
   const [search, setSearch] = useState('');
+
+  // Track video paths uploaded in this editing session — clean up on cancel
+  const stagedUploads = useRef([]);
 
   const loadCourses = () => {
     setLoading(true);
@@ -36,6 +213,21 @@ export default function Courses() {
 
   useEffect(() => { if (view === 'courses') loadCourses(); else loadEnrollments(); }, [view, enrolFilter]);
 
+  const openEdit = course => {
+    stagedUploads.current = [];
+    setEditCourse({ ...course });
+  };
+
+  const handleCancel = async () => {
+    // Delete any video files uploaded during this session that won't be saved
+    for (const filePath of stagedUploads.current) {
+      const filename = filePath.split('/').pop();
+      try { await api.delete(`/courses/delete-video/${filename}`); } catch {}
+    }
+    stagedUploads.current = [];
+    setEditCourse(null);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -44,6 +236,7 @@ export default function Courses() {
       } else {
         await api.post('/courses', editCourse);
       }
+      stagedUploads.current = []; // saved — no cleanup needed
       setEditCourse(null);
       loadCourses();
     } catch (e) { alert(e.response?.data?.message || 'Save failed'); }
@@ -62,31 +255,71 @@ export default function Courses() {
 
   const setField = (k, v) => setEditCourse(c => ({ ...c, [k]: v }));
 
-  const addModule = () => setEditCourse(c => ({ ...c, modules: [...(c.modules || []), { ...EMPTY_MODULE, order: c.modules?.length || 0 }] }));
-  const removeModule = (i) => setEditCourse(c => ({ ...c, modules: c.modules.filter((_, idx) => idx !== i) }));
+  const addModule = () => setEditCourse(c => ({
+    ...c,
+    modules: [...(c.modules || []), { ...EMPTY_MODULE, order: c.modules?.length || 0 }],
+  }));
+
+  const removeModule = i => setEditCourse(c => ({
+    ...c,
+    modules: c.modules.filter((_, idx) => idx !== i),
+  }));
+
   const setModuleField = (i, k, v) => setEditCourse(c => {
     const modules = [...c.modules];
     modules[i] = { ...modules[i], [k]: v };
     return { ...c, modules };
   });
 
-  const addVideo = (mi) => setEditCourse(c => {
+  const addVideo = mi => setEditCourse(c => {
     const modules = [...c.modules];
-    modules[mi] = { ...modules[mi], videos: [...(modules[mi].videos || []), { ...EMPTY_VIDEO, order: modules[mi].videos?.length || 0 }] };
+    modules[mi] = {
+      ...modules[mi],
+      videos: [...(modules[mi].videos || []), { ...EMPTY_VIDEO, order: modules[mi].videos?.length || 0 }],
+    };
     return { ...c, modules };
   });
+
   const removeVideo = (mi, vi) => setEditCourse(c => {
     const modules = [...c.modules];
+    const video = modules[mi].videos[vi];
+    // Delete the uploaded file if it exists
+    if (video?.uploadedVideoPath) {
+      const filename = video.uploadedVideoPath.split('/').pop();
+      api.delete(`/courses/delete-video/${filename}`).catch(() => {});
+      stagedUploads.current = stagedUploads.current.filter(p => p !== video.uploadedVideoPath);
+    }
     modules[mi] = { ...modules[mi], videos: modules[mi].videos.filter((_, idx) => idx !== vi) };
     return { ...c, modules };
   });
-  const setVideoField = (mi, vi, k, v) => setEditCourse(c => {
+
+  const setVideoFields = (mi, vi, fields) => setEditCourse(c => {
     const modules = [...c.modules];
     const videos = [...modules[mi].videos];
-    videos[vi] = { ...videos[vi], [k]: v };
+    videos[vi] = { ...videos[vi], ...fields };
     modules[mi] = { ...modules[mi], videos };
     return { ...c, modules };
   });
+
+  const handleVideoUploaded = (mi, vi, currentPath, { path: newPath, size }) => {
+    // If replacing an existing upload, delete the old file
+    if (currentPath) {
+      const oldFilename = currentPath.split('/').pop();
+      api.delete(`/courses/delete-video/${oldFilename}`).catch(() => {});
+      stagedUploads.current = stagedUploads.current.filter(p => p !== currentPath);
+    }
+    stagedUploads.current.push(newPath);
+    setVideoFields(mi, vi, { uploadedVideoPath: newPath, videoSize: size });
+  };
+
+  const handleVideoRemoved = (mi, vi, currentPath) => {
+    if (currentPath) {
+      const filename = currentPath.split('/').pop();
+      api.delete(`/courses/delete-video/${filename}`).catch(() => {});
+      stagedUploads.current = stagedUploads.current.filter(p => p !== currentPath);
+    }
+    setVideoFields(mi, vi, { uploadedVideoPath: '', videoSize: '' });
+  };
 
   const filtered = courses.filter(c => !search || c.title.toLowerCase().includes(search.toLowerCase()));
 
@@ -102,14 +335,16 @@ export default function Courses() {
             <button className={`btn btn-sm ${view === 'enrollments' ? 'btn-gold' : 'btn-outline-secondary'}`} onClick={() => setView('enrollments')}>
               <i className="fas fa-users me-1"></i>Enrollments
               {enrollments.filter(e => e.paymentStatus === 'pending_verification').length > 0 && (
-                <span className="badge bg-danger ms-1">{enrollments.filter(e => e.paymentStatus === 'pending_verification').length}</span>
+                <span className="badge bg-danger ms-1">
+                  {enrollments.filter(e => e.paymentStatus === 'pending_verification').length}
+                </span>
               )}
             </button>
           </div>
           {view === 'courses' && (
             <div className="d-flex gap-2">
               <input className="search-input" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search courses…" />
-              <button className="btn btn-gold btn-sm" onClick={() => setEditCourse({ ...EMPTY_COURSE })}>
+              <button className="btn btn-gold btn-sm" onClick={() => openEdit({ ...EMPTY_COURSE })}>
                 <i className="fas fa-plus me-1"></i>Add Course
               </button>
             </div>
@@ -153,7 +388,7 @@ export default function Courses() {
                       {c.isFeatured && <span className="badge bg-warning text-dark ms-1">Featured</span>}
                     </td>
                     <td>
-                      <button className="btn btn-sm btn-outline-info me-1" onClick={() => setEditCourse({ ...c })}><i className="fas fa-edit"></i></button>
+                      <button className="btn btn-sm btn-outline-info me-1" onClick={() => openEdit({ ...c })}><i className="fas fa-edit"></i></button>
                       <button className="btn btn-sm btn-outline-danger" onClick={() => setConfirmDelete(c._id)}><i className="fas fa-trash"></i></button>
                     </td>
                   </tr>
@@ -221,7 +456,7 @@ export default function Courses() {
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">{editCourse._id ? 'Edit Course' : 'New Course'}</h5>
-                <button className="btn-close" onClick={() => setEditCourse(null)}></button>
+                <button className="btn-close" onClick={handleCancel}></button>
               </div>
               <div className="modal-body">
                 <div className="row g-3">
@@ -284,17 +519,19 @@ export default function Courses() {
                     </div>
                   </div>
 
-                  {/* Modules */}
+                  {/* Modules & Videos */}
                   <div className="col-12 mt-2">
                     <div className="d-flex align-items-center justify-content-between mb-2">
-                      <h6 className="mb-0 fw-bold">Course Modules & Videos</h6>
+                      <h6 className="mb-0 fw-bold">Course Modules &amp; Videos</h6>
                       <button type="button" className="btn btn-sm btn-outline-gold" onClick={addModule}>
                         <i className="fas fa-plus me-1"></i>Add Module
                       </button>
                     </div>
+
                     {(editCourse.modules || []).map((mod, mi) => (
                       <div key={mi} className="border rounded p-3 mb-3 bg-light">
-                        <div className="d-flex gap-2 align-items-center mb-2">
+                        {/* Module title */}
+                        <div className="d-flex gap-2 align-items-center mb-3">
                           <input
                             className="form-control form-control-sm"
                             placeholder="Module title"
@@ -305,29 +542,96 @@ export default function Courses() {
                             <i className="fas fa-trash"></i>
                           </button>
                         </div>
+
+                        {/* Videos */}
                         {(mod.videos || []).map((vid, vi) => (
                           <div key={vi} className="border rounded p-2 mb-2 bg-white">
-                            <div className="row g-2">
-                              <div className="col-md-4">
-                                <input className="form-control form-control-sm" placeholder="Video title *" value={vid.title} onChange={e => setVideoField(mi, vi, 'title', e.target.value)} />
-                              </div>
+                            {/* Row 1: title, duration, preview toggle, remove */}
+                            <div className="row g-2 mb-2">
                               <div className="col-md-5">
-                                <input className="form-control form-control-sm" placeholder="Video URL (YouTube/MP4/Drive) *" value={vid.videoUrl} onChange={e => setVideoField(mi, vi, 'videoUrl', e.target.value)} />
+                                <input
+                                  className="form-control form-control-sm"
+                                  placeholder="Video title *"
+                                  value={vid.title}
+                                  onChange={e => setVideoFields(mi, vi, { title: e.target.value })}
+                                />
                               </div>
-                              <div className="col-md-2">
-                                <input className="form-control form-control-sm" placeholder="Duration" value={vid.duration} onChange={e => setVideoField(mi, vi, 'duration', e.target.value)} />
+                              <div className="col-md-3">
+                                <input
+                                  className="form-control form-control-sm"
+                                  placeholder="Duration (e.g. 15 min)"
+                                  value={vid.duration}
+                                  onChange={e => setVideoFields(mi, vi, { duration: e.target.value })}
+                                />
                               </div>
-                              <div className="col-md-1 d-flex align-items-center gap-1">
-                                <div className="form-check mb-0" title="Preview (free)">
-                                  <input type="checkbox" className="form-check-input" checked={vid.isPreview} onChange={e => setVideoField(mi, vi, 'isPreview', e.target.checked)} />
+                              <div className="col d-flex align-items-center gap-2">
+                                <div className="form-check mb-0" title="Free preview">
+                                  <input
+                                    type="checkbox"
+                                    className="form-check-input"
+                                    id={`prev-${mi}-${vi}`}
+                                    checked={vid.isPreview}
+                                    onChange={e => setVideoFields(mi, vi, { isPreview: e.target.checked })}
+                                  />
+                                  <label className="form-check-label small" htmlFor={`prev-${mi}-${vi}`}>Preview</label>
                                 </div>
-                                <button type="button" className="btn btn-xs btn-outline-danger" onClick={() => removeVideo(mi, vi)}>
+                              </div>
+                              <div className="col-auto d-flex align-items-center">
+                                <button type="button" className="btn btn-xs btn-outline-danger" onClick={() => removeVideo(mi, vi)} title="Remove video">
                                   <i className="fas fa-times"></i>
                                 </button>
                               </div>
                             </div>
+
+                            {/* Row 2: Video source selector */}
+                            <div className="d-flex gap-3 mb-2">
+                              <div className="form-check">
+                                <input
+                                  type="radio"
+                                  className="form-check-input"
+                                  name={`vsrc-${mi}-${vi}`}
+                                  id={`vsrc-url-${mi}-${vi}`}
+                                  checked={vid.videoSourceType !== 'upload'}
+                                  onChange={() => setVideoFields(mi, vi, { videoSourceType: 'url' })}
+                                />
+                                <label className="form-check-label small fw-semibold" htmlFor={`vsrc-url-${mi}-${vi}`}>
+                                  <i className="fas fa-link me-1 text-secondary"></i>URL
+                                </label>
+                              </div>
+                              <div className="form-check">
+                                <input
+                                  type="radio"
+                                  className="form-check-input"
+                                  name={`vsrc-${mi}-${vi}`}
+                                  id={`vsrc-upload-${mi}-${vi}`}
+                                  checked={vid.videoSourceType === 'upload'}
+                                  onChange={() => setVideoFields(mi, vi, { videoSourceType: 'upload' })}
+                                />
+                                <label className="form-check-label small fw-semibold" htmlFor={`vsrc-upload-${mi}-${vi}`}>
+                                  <i className="fas fa-upload me-1 text-primary"></i>Upload Video
+                                </label>
+                              </div>
+                            </div>
+
+                            {/* Row 3: URL input or Upload zone */}
+                            {vid.videoSourceType !== 'upload' ? (
+                              <input
+                                className="form-control form-control-sm"
+                                placeholder="Video URL — YouTube, Google Drive, or direct MP4 link"
+                                value={vid.videoUrl}
+                                onChange={e => setVideoFields(mi, vi, { videoUrl: e.target.value })}
+                              />
+                            ) : (
+                              <VideoUploadZone
+                                videoPath={vid.uploadedVideoPath}
+                                videoSize={vid.videoSize}
+                                onUploaded={data => handleVideoUploaded(mi, vi, vid.uploadedVideoPath, data)}
+                                onRemove={() => handleVideoRemoved(mi, vi, vid.uploadedVideoPath)}
+                              />
+                            )}
                           </div>
                         ))}
+
                         <button type="button" className="btn btn-xs btn-outline-primary mt-1" onClick={() => addVideo(mi)}>
                           <i className="fas fa-plus me-1"></i>Add Video
                         </button>
@@ -337,7 +641,7 @@ export default function Courses() {
                 </div>
               </div>
               <div className="modal-footer">
-                <button className="btn btn-light" onClick={() => setEditCourse(null)}>Cancel</button>
+                <button className="btn btn-light" onClick={handleCancel}>Cancel</button>
                 <button className="btn btn-gold" onClick={handleSave} disabled={saving}>
                   {saving ? <><i className="fas fa-spinner fa-spin me-1"></i>Saving…</> : <><i className="fas fa-save me-1"></i>Save Course</>}
                 </button>
@@ -347,7 +651,14 @@ export default function Courses() {
         </div>
       )}
 
-      <ConfirmModal show={!!confirmDelete} title="Delete Course" message="Delete this course and all enrollments? This cannot be undone." onConfirm={handleDelete} onCancel={() => setConfirmDelete(null)} loading={deleting} />
+      <ConfirmModal
+        show={!!confirmDelete}
+        title="Delete Course"
+        message="Delete this course and all enrollments? This cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(null)}
+        loading={deleting}
+      />
     </div>
   );
 }

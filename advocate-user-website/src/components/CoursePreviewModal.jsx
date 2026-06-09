@@ -3,6 +3,16 @@ import { getPublicCourse } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
 
 const PREVIEW_SECONDS = 60;
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
+const MEDIA_BASE = API_BASE.replace('/api', '');
+
+function getEffectiveUrl(video) {
+  if (!video) return null;
+  if (video.videoSourceType === 'upload' || (!video.videoUrl && video.uploadedVideoPath)) {
+    return video.uploadedVideoPath ? MEDIA_BASE + video.uploadedVideoPath : null;
+  }
+  return video.videoUrl || null;
+}
 
 function getVideoType(url) {
   if (!url) return null;
@@ -62,7 +72,6 @@ function YouTubePreview({ videoId, onTimeUpdate, onLock }) {
         playerVars: { autoplay: 1, rel: 0, modestbranding: 1 },
         events: {
           onStateChange: ({ data }) => {
-            // 1 = PLAYING, anything else = not playing
             if (data === 1) startPolling();
             else stopPolling();
           },
@@ -96,7 +105,7 @@ function YouTubePreview({ videoId, onTimeUpdate, onLock }) {
   return <div id={containerIdRef.current} style={{ width: '100%', height: '100%' }} />;
 }
 
-// ── MP4 preview with HTML5 video API ──────────────────────────────────────────
+// ── MP4 / uploaded video preview ──────────────────────────────────────────────
 function Mp4Preview({ src, onTimeUpdate, onLock }) {
   const videoRef = useRef(null);
   const lockedRef = useRef(false);
@@ -113,7 +122,6 @@ function Mp4Preview({ src, onTimeUpdate, onLock }) {
     }
   };
 
-  // Prevent seeking forward beyond the 60-second limit
   const handleSeeking = () => {
     if (!videoRef.current || lockedRef.current) return;
     if (videoRef.current.currentTime >= PREVIEW_SECONDS) {
@@ -135,8 +143,6 @@ function Mp4Preview({ src, onTimeUpdate, onLock }) {
 }
 
 // ── Google Drive iframe — wall-clock timer overlay ─────────────────────────────
-// Cross-origin restrictions prevent controlling Drive iframes from JS,
-// so we track elapsed wall-clock time since mount and lock at 60 seconds.
 function DrivePreview({ driveId, onTimeUpdate, onLock }) {
   const startRef = useRef(Date.now());
   const timerRef = useRef(null);
@@ -179,13 +185,12 @@ export default function CoursePreviewModal({ course, onClose, onPayNow }) {
     getPublicCourse(course._id, headers)
       .then(r => {
         if (r.data.success) {
-          // enrolled === true means the user has a verified paid enrollment
           setIsPaid(!!r.data.enrolled);
           const modules = r.data.data.modules || [];
           let first = null;
           for (const mod of modules) {
             for (const vid of mod.videos || []) {
-              if (vid.videoUrl) { first = vid; break; }
+              if (vid.videoUrl || vid.uploadedVideoPath) { first = vid; break; }
             }
             if (first) break;
           }
@@ -200,15 +205,16 @@ export default function CoursePreviewModal({ course, onClose, onPayNow }) {
   const handleLock = useCallback(() => setLocked(true), []);
 
   const remaining = Math.max(0, PREVIEW_SECONDS - elapsed);
-  const videoType = previewVideo ? getVideoType(previewVideo.videoUrl) : null;
+  const effectiveUrl = getEffectiveUrl(previewVideo);
+  const videoType = getVideoType(effectiveUrl);
 
   const renderVideo = () => {
-    if (!previewVideo) return null;
+    if (!previewVideo || !effectiveUrl) return null;
 
     if (isPaid) {
-      // Full access — plain iframe/video, no lock
+      // Full access — no lock
       if (videoType === 'youtube') {
-        const ytId = getYouTubeId(previewVideo.videoUrl);
+        const ytId = getYouTubeId(effectiveUrl);
         return (
           <iframe
             src={`https://www.youtube.com/embed/${ytId}?rel=0&autoplay=1`}
@@ -222,7 +228,7 @@ export default function CoursePreviewModal({ course, onClose, onPayNow }) {
       if (videoType === 'drive') {
         return (
           <iframe
-            src={`https://drive.google.com/file/d/${getDriveId(previewVideo.videoUrl)}/preview`}
+            src={`https://drive.google.com/file/d/${getDriveId(effectiveUrl)}/preview`}
             title={previewVideo.title}
             allowFullScreen
             allow="autoplay"
@@ -230,11 +236,12 @@ export default function CoursePreviewModal({ course, onClose, onPayNow }) {
           />
         );
       }
+      // MP4 or uploaded video
       return (
         <video
           controls
           autoPlay
-          src={previewVideo.videoUrl}
+          src={effectiveUrl}
           style={{ width: '100%', height: '100%', background: '#000', display: 'block' }}
         />
       );
@@ -244,7 +251,7 @@ export default function CoursePreviewModal({ course, onClose, onPayNow }) {
     if (videoType === 'youtube') {
       return (
         <YouTubePreview
-          videoId={getYouTubeId(previewVideo.videoUrl)}
+          videoId={getYouTubeId(effectiveUrl)}
           onTimeUpdate={handleTimeUpdate}
           onLock={handleLock}
         />
@@ -253,15 +260,16 @@ export default function CoursePreviewModal({ course, onClose, onPayNow }) {
     if (videoType === 'drive') {
       return (
         <DrivePreview
-          driveId={getDriveId(previewVideo.videoUrl)}
+          driveId={getDriveId(effectiveUrl)}
           onTimeUpdate={handleTimeUpdate}
           onLock={handleLock}
         />
       );
     }
+    // MP4 or uploaded video
     return (
       <Mp4Preview
-        src={previewVideo.videoUrl}
+        src={effectiveUrl}
         onTimeUpdate={handleTimeUpdate}
         onLock={handleLock}
       />
@@ -287,7 +295,7 @@ export default function CoursePreviewModal({ course, onClose, onPayNow }) {
             <div className="d-flex align-items-center justify-content-center" style={{ width: '100%', height: '100%', background: '#111' }}>
               <div className="spinner-border text-warning"></div>
             </div>
-          ) : !previewVideo ? (
+          ) : !previewVideo || !effectiveUrl ? (
             <div className="d-flex align-items-center justify-content-center flex-column gap-3"
               style={{ width: '100%', height: '100%', background: '#111', color: '#aaa', padding: 24 }}>
               <i className="fas fa-video-slash fa-3x" style={{ opacity: 0.35 }}></i>
@@ -303,7 +311,7 @@ export default function CoursePreviewModal({ course, onClose, onPayNow }) {
             <>
               {renderVideo()}
 
-              {/* Countdown badge — shown while preview is running */}
+              {/* Countdown badge */}
               {!isPaid && !locked && (
                 <div className="preview-timer-badge">
                   <i className="fas fa-eye me-1"></i>
@@ -311,7 +319,7 @@ export default function CoursePreviewModal({ course, onClose, onPayNow }) {
                 </div>
               )}
 
-              {/* Lock overlay — shown when 60s is up */}
+              {/* Lock overlay */}
               {locked && !isPaid && (
                 <div className="preview-lock-overlay">
                   <div className="preview-lock-modal">

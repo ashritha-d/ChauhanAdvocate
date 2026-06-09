@@ -1,13 +1,15 @@
 const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
 const UserNotification = require('../models/UserNotification');
+const path = require('path');
+const fs = require('fs');
 
 // ── Public ────────────────────────────────────────────────────────────────────
 
 exports.getPublicCourses = async (req, res) => {
   try {
     const courses = await Course.find({ isActive: true })
-      .select('-modules.videos.videoUrl')
+      .select('-modules.videos.videoUrl -modules.videos.uploadedVideoPath')
       .sort({ isFeatured: -1, createdAt: -1 });
     res.json({ success: true, data: courses });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
@@ -18,7 +20,6 @@ exports.getPublicCourse = async (req, res) => {
     const course = await Course.findOne({ _id: req.params.id, isActive: true });
     if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
 
-    // Hide video URLs for non-enrolled users
     const userId = req.user?._id;
     let enrollment = null;
     if (userId) {
@@ -27,17 +28,16 @@ exports.getPublicCourse = async (req, res) => {
 
     const courseObj = course.toObject();
     if (!enrollment) {
-      // For non-enrolled users: expose only the very first video URL as a
-      // free preview; all remaining videos are hidden until payment is made.
+      // Expose only the very first video (the free preview); hide everything else
       let firstVideoSeen = false;
       courseObj.modules = courseObj.modules.map(m => ({
         ...m,
         videos: m.videos.map(v => {
-          if (!firstVideoSeen && v.videoUrl) {
+          if (!firstVideoSeen && (v.videoUrl || v.uploadedVideoPath)) {
             firstVideoSeen = true;
-            return { ...v }; // first video — full URL for preview
+            return { ...v };
           }
-          return { ...v, videoUrl: null }; // all others hidden
+          return { ...v, videoUrl: null, uploadedVideoPath: null };
         }),
       }));
     }
@@ -98,7 +98,11 @@ exports.enrollCourse = async (req, res) => {
       });
     }
 
-    res.status(201).json({ success: true, message: course.price === 0 ? 'Enrolled successfully!' : 'Payment submitted for verification. Access will be granted after approval.', data: enrollment });
+    res.status(201).json({
+      success: true,
+      message: course.price === 0 ? 'Enrolled successfully!' : 'Payment submitted for verification. Access will be granted after approval.',
+      data: enrollment,
+    });
   } catch (e) {
     if (e.code === 11000) return res.status(409).json({ success: false, message: 'Already enrolled' });
     res.status(500).json({ success: false, message: e.message });
@@ -160,7 +164,18 @@ exports.updateCourse = async (req, res) => {
 
 exports.deleteCourse = async (req, res) => {
   try {
-    await Course.findByIdAndDelete(req.params.id);
+    const course = await Course.findByIdAndDelete(req.params.id);
+    // Clean up any uploaded video files belonging to this course
+    if (course) {
+      for (const mod of course.modules || []) {
+        for (const vid of mod.videos || []) {
+          if (vid.uploadedVideoPath) {
+            const full = path.join(__dirname, '..', vid.uploadedVideoPath);
+            if (fs.existsSync(full)) fs.unlinkSync(full);
+          }
+        }
+      }
+    }
     res.json({ success: true, message: 'Course deleted' });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 };
@@ -215,5 +230,33 @@ exports.updateEnrollment = async (req, res) => {
     }
 
     res.json({ success: true, data: enrollment });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+};
+
+// ── Video Upload ──────────────────────────────────────────────────────────────
+
+exports.uploadVideo = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'No video file provided' });
+    const sizeMB = (req.file.size / (1024 * 1024)).toFixed(1);
+    res.json({
+      success: true,
+      path: `/uploads/videos/${req.file.filename}`,
+      filename: req.file.filename,
+      size: `${sizeMB} MB`,
+    });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+};
+
+exports.deleteVideo = async (req, res) => {
+  try {
+    const { filename } = req.params;
+    // Prevent path traversal attacks
+    if (!filename || filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+      return res.status(400).json({ success: false, message: 'Invalid filename' });
+    }
+    const fullPath = path.join(__dirname, '../uploads/videos', filename);
+    if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+    res.json({ success: true });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 };

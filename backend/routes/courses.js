@@ -2,6 +2,7 @@ const router = require('express').Router();
 const c = require('../controllers/courseController');
 const { protect } = require('../middleware/auth');           // admin
 const { protectUser } = require('../middleware/userAuth');   // user
+const videoUpload = require('../middleware/videoUpload');
 
 // Public — no auth needed
 router.get('/public', c.getPublicCourses);
@@ -20,9 +21,15 @@ router.post('/enroll', protectUser, c.enrollCourse);
 router.get('/my-enrollments', protectUser, c.getMyEnrollments);
 router.post('/progress', protectUser, c.updateProgress);
 
-// Admin routes
+// Admin — video upload/delete (must come before /:id routes)
+router.post('/upload-video', protect, videoUpload.single('video'), c.uploadVideo);
+router.delete('/delete-video/:filename', protect, c.deleteVideo);
+
+// Admin — enrollment management
 router.get('/enrollments/all', protect, c.getAllEnrollments);
 router.put('/enrollments/:id', protect, c.updateEnrollment);
+
+// Admin — course CRUD
 router.get('/', protect, c.getAllCourses);
 router.post('/', protect, c.createCourse);
 router.put('/:id', protect, c.updateCourse);
