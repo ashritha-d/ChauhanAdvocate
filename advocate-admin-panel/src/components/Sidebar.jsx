@@ -8,7 +8,6 @@ const NAV = [
   ]},
   { label: 'Content', items: [
     { icon: 'fas fa-cog',            label: 'Site Settings',   page: 'settings' },
-    { icon: 'fas fa-image',          label: 'Hero Banners',    page: 'banners' },
     { icon: 'fas fa-briefcase',      label: 'Services',        page: 'services' },
     { icon: 'fas fa-rss',            label: 'Latest News',     page: 'news', badge: 'news' },
     { icon: 'fas fa-newspaper',      label: 'Blogs',           page: 'blogs' },
