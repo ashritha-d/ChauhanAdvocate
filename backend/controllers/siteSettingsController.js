@@ -86,7 +86,12 @@ exports.updateSettings = async (req, res) => {
 exports.seedSettings = async (req, res) => {
   try {
     for (const setting of DEFAULT_SETTINGS) {
-      await SiteSettings.findOneAndUpdate({ key: setting.key }, setting, { upsert: true, new: true });
+      // $setOnInsert: only writes values when creating a new document — never overwrites existing customized values
+      await SiteSettings.findOneAndUpdate(
+        { key: setting.key },
+        { $setOnInsert: setting },
+        { upsert: true, new: true }
+      );
     }
     res.json({ success: true, message: 'Default settings seeded' });
   } catch (error) {

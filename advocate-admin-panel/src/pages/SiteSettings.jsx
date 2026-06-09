@@ -105,7 +105,7 @@ export default function SiteSettings() {
         <div className="page-card-header">
           <h6 className="mb-0 fw-bold">Site Settings</h6>
           <div className="d-flex gap-2">
-            {Object.keys(form).length === 0 && <button className="btn btn-outline-secondary btn-sm" onClick={handleSeed}><i className="fas fa-database me-1"></i>Seed Defaults</button>}
+            <button className="btn btn-outline-secondary btn-sm" onClick={handleSeed}><i className="fas fa-database me-1"></i>Seed Defaults</button>
             <button className="btn btn-gold btn-sm" form="settings-form" type="submit" disabled={saving}>
               {saving ? <><i className="fas fa-spinner fa-spin me-1"></i>Saving...</> : <><i className="fas fa-save me-1"></i>Save All</>}
             </button>
