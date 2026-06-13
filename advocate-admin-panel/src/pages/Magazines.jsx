@@ -375,25 +375,26 @@ export default function Magazines() {
                       )}
                     </div>
 
-                    <div className="col-md-6">
-                      <label className="form-label">
-                        {form.type === 'free' ? 'Full PDF (for download)' : 'Preview PDF (first 3–5 pages)'}
-                      </label>
-                      <input type="file" className="form-control" accept=".pdf" ref={pdfRef} onChange={e => setPdfFile(e.target.files[0] || null)} />
-                      {pdfFile ? (
-                        <div className="mt-2 d-flex align-items-center gap-2">
-                          <small className="text-success"><i className="fas fa-file-pdf me-1"></i>{pdfFile.name}</small>
-                          <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => { setPdfFile(null); if (pdfRef.current) pdfRef.current.value = ''; }}><i className="fas fa-times"></i></button>
-                        </div>
-                      ) : existingPdf && (
-                        <div className="mt-2"><small className="text-success"><i className="fas fa-file-pdf me-1"></i>PDF attached</small><a className="ms-2 small" href={mediaUrl(existingPdf)} target="_blank" rel="noreferrer">View</a></div>
-                      )}
-                    </div>
+                    {/* pdfFile: only for FREE magazines */}
+                    {form.type === 'free' && (
+                      <div className="col-md-6">
+                        <label className="form-label">Full PDF <small className="text-muted fw-normal">(free download)</small></label>
+                        <input type="file" className="form-control" accept=".pdf" ref={pdfRef} onChange={e => setPdfFile(e.target.files[0] || null)} />
+                        {pdfFile ? (
+                          <div className="mt-2 d-flex align-items-center gap-2">
+                            <small className="text-success"><i className="fas fa-file-pdf me-1"></i>{pdfFile.name}</small>
+                            <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => { setPdfFile(null); if (pdfRef.current) pdfRef.current.value = ''; }}><i className="fas fa-times"></i></button>
+                          </div>
+                        ) : existingPdf && (
+                          <div className="mt-2"><small className="text-success"><i className="fas fa-file-pdf me-1"></i>PDF attached</small><a className="ms-2 small" href={mediaUrl(existingPdf)} target="_blank" rel="noreferrer">View</a></div>
+                        )}
+                      </div>
+                    )}
 
                     {form.type === 'paid' && (
                       <>
                         <div className="col-md-6">
-                          <label className="form-label">Preview PDF <small className="text-muted fw-normal">(optional override)</small></label>
+                          <label className="form-label">Preview PDF <small className="text-muted fw-normal">(first 3–5 pages, shown to guests)</small></label>
                           <input type="file" className="form-control" accept=".pdf" ref={previewPdfRef} onChange={e => setPreviewPdfFile(e.target.files[0] || null)} />
                           {previewPdfFile ? (
                             <div className="mt-2 d-flex gap-2"><small className="text-success"><i className="fas fa-file-pdf me-1"></i>{previewPdfFile.name}</small>
@@ -404,7 +405,7 @@ export default function Magazines() {
                           )}
                         </div>
                         <div className="col-md-6">
-                          <label className="form-label">Full PDF <span className="text-danger">*</span> <small className="text-muted fw-normal">(protected — paid only)</small></label>
+                          <label className="form-label">Full PDF <span className="text-danger">*</span> <small className="text-muted fw-normal">(protected — buyers only)</small></label>
                           <input type="file" className="form-control" accept=".pdf" ref={fullPdfRef} onChange={e => setFullPdfFile(e.target.files[0] || null)} />
                           {fullPdfFile ? (
                             <div className="mt-2 d-flex gap-2"><small className="text-warning"><i className="fas fa-lock me-1"></i>{fullPdfFile.name}</small>
