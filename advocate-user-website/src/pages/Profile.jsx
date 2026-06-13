@@ -7,7 +7,9 @@ import {
   getMyAppointments, getMyOrders, getNotifications,
   markNotificationRead, markAllNotificationsRead, getMyApplications,
   getMyEnrollments, getPublicCourse, updateCourseProgress,
+  getMyMagazinePurchases, downloadMagazineFull,
 } from '../api';
+import { mediaUrl } from '../utils/helpers';
 import AppointmentModal from '../components/AppointmentModal';
 
 const TABS = [
@@ -15,6 +17,7 @@ const TABS = [
   { id: 'appointments', icon: 'fa-calendar-alt', label: 'My Appointments' },
   { id: 'orders', icon: 'fa-book', label: 'My Orders' },
   { id: 'courses', icon: 'fa-graduation-cap', label: 'My Courses' },
+  { id: 'magazines', icon: 'fa-book-open', label: 'My Magazines' },
   { id: 'applications', icon: 'fa-user-tie', label: 'My Applications' },
   { id: 'notifications', icon: 'fa-bell', label: 'Notifications' },
   { id: 'settings', icon: 'fa-user-cog', label: 'Profile Settings' },
@@ -185,6 +188,7 @@ export default function Profile() {
   const [applications, setApplications] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [myMagazines, setMyMagazines] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const fileInputRef = useRef();
@@ -211,6 +215,7 @@ export default function Profile() {
     if (tab === 'appointments') loadAppointments();
     if (tab === 'orders') loadOrders();
     if (tab === 'courses') loadEnrollments();
+    if (tab === 'magazines') loadMyMagazines();
     if (tab === 'applications') loadApplications();
     if (tab === 'notifications') loadNotifications();
   }, [tab, user]);
@@ -254,6 +259,28 @@ export default function Profile() {
       if (r.data.success) setEnrollments(r.data.data);
     } catch { /* silent */ }
     setDataLoading(false);
+  };
+
+  const loadMyMagazines = async () => {
+    setDataLoading(true);
+    try {
+      const r = await getMyMagazinePurchases(authHeader());
+      if (r.data.success) setMyMagazines(r.data.data);
+    } catch {}
+    setDataLoading(false);
+  };
+
+  const handleMagazineDownload = async (magazineId, title) => {
+    try {
+      const r = await downloadMagazineFull(magazineId, authHeader());
+      if (r.data.success && r.data.url) {
+        const url = r.data.url.startsWith('http') ? r.data.url : `https://chauhanadvocate.onrender.com${r.data.url}`;
+        const a = document.createElement('a');
+        a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.click();
+      }
+    } catch (e) {
+      showAlert('danger', e.response?.data?.message || `Failed to download "${title}"`);
+    }
   };
 
   const loadNotifications = async () => {
@@ -715,6 +742,68 @@ export default function Profile() {
                                   onClose={() => setWatchingEnrollmentId(null)}
                                 />
                               )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )
+                  }
+                </div>
+              )}
+
+              {/* ── My Magazines ── */}
+              {tab === 'magazines' && (
+                <div>
+                  <div className="d-flex align-items-center justify-content-between mb-4">
+                    <h4 className="profile-section-title mb-0">My Magazines</h4>
+                    <button className="btn btn-gold btn-sm" onClick={() => goTo('magazines')}>
+                      <i className="fas fa-book-open me-1"></i>Browse Magazines
+                    </button>
+                  </div>
+                  {dataLoading
+                    ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
+                    : myMagazines.length === 0
+                    ? (
+                      <div className="profile-empty">
+                        <i className="fas fa-book-open"></i>
+                        <p>No purchased magazines yet</p>
+                        <button className="btn btn-gold btn-sm" onClick={() => goTo('magazines')}>Browse Magazines</button>
+                      </div>
+                    ) : (
+                      <div className="row g-3">
+                        {myMagazines.map(p => {
+                          const mag = p.magazineId;
+                          if (!mag) return null;
+                          return (
+                            <div className="col-md-6 col-lg-4" key={p._id}>
+                              <div className="profile-mag-card">
+                                <div className="profile-mag-cover-wrap">
+                                  <img
+                                    src={mag.coverImage ? mediaUrl(mag.coverImage) : `${import.meta.env.BASE_URL}placeholder-lawyer.svg`}
+                                    alt={mag.title}
+                                    className="profile-mag-cover"
+                                    onError={e => { e.target.src = `${import.meta.env.BASE_URL}placeholder-lawyer.svg`; }}
+                                  />
+                                  <span className="profile-mag-badge">PAID</span>
+                                </div>
+                                <div className="profile-mag-info">
+                                  <div className="profile-mag-title">{mag.title}</div>
+                                  {mag.issueNumber && <div className="profile-mag-issue">{mag.issueNumber}</div>}
+                                  {mag.category && <div className="profile-mag-cat">{mag.category}</div>}
+                                  <div className="profile-mag-meta">
+                                    <span><i className="fas fa-rupee-sign me-1"></i>₹{p.amount || mag.price}</span>
+                                    <span><i className="fas fa-calendar me-1"></i>{formatDate(p.purchaseDate)}</span>
+                                  </div>
+                                  {mag.allowDownload && (
+                                    <button
+                                      className="btn btn-gold btn-sm w-100 mt-2"
+                                      onClick={() => handleMagazineDownload(mag._id, mag.title)}
+                                    >
+                                      <i className="fas fa-download me-1"></i>Download PDF
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           );
                         })}

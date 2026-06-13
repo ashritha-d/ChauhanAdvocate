@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const paymentSchema = new mongoose.Schema({
-  type: { type: String, enum: ['appointment', 'book_order'], required: true },
+  type: { type: String, enum: ['appointment', 'book_order', 'magazine'], required: true },
   referenceId: { type: mongoose.Schema.Types.ObjectId },
   receiptId: { type: String, default: '' },
   transactionId: { type: String, default: '' },

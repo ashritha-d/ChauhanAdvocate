@@ -1,92 +1,123 @@
 import { useEffect, useRef, useState } from 'react';
-import { getMagazines, createMagazine, updateMagazine, deleteMagazine, bulkDeleteMagazines, bulkPublishMagazines } from '../api';
+import { getMagazines, createMagazine, updateMagazine, deleteMagazine, bulkDeleteMagazines, bulkPublishMagazines, getMagazineStats } from '../api';
 import ConfirmModal from '../components/ConfirmModal';
 import { mediaUrl, formatDate } from '../utils/helpers';
 
 const CATEGORIES = ['General', 'Law', 'Legal News', 'Case Studies', 'Criminal Law', 'Civil Law', 'Family Law', 'Corporate Law', 'Constitutional Law'];
-const EMPTY = { title: '', description: '', issueNumber: '', publishedDate: new Date().toISOString().split('T')[0], category: 'General', tags: '', featured: false, isActive: true, order: 0 };
+const EMPTY = {
+  title: '', description: '', issueNumber: '',
+  publishedDate: new Date().toISOString().split('T')[0],
+  category: 'General', tags: '', featured: false, isActive: true, order: 0,
+  type: 'free', price: '', purchaseButtonText: 'Purchase Now', allowDownload: true,
+};
 const LIMIT = 20;
 
+function StatCard({ icon, label, value, color, bg }) {
+  return (
+    <div className="col-sm-6 col-xl-3">
+      <div className="stat-card d-flex align-items-center gap-3">
+        <div className="stat-icon" style={{ background: bg, color }}><i className={icon}></i></div>
+        <div>
+          <div className="stat-value">{value ?? <span className="spinner-border spinner-border-sm text-muted"></span>}</div>
+          <div className="stat-label">{label}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Magazines() {
-  const [items, setItems]           = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [form, setForm]             = useState(EMPTY);
-  const [editing, setEditing]       = useState(null);
-  const [showForm, setShowForm]     = useState(false);
-  const [saving, setSaving]         = useState(false);
-  const [error, setError]           = useState('');
-  const [confirm, setConfirm]       = useState(null);
-  const [deleting, setDeleting]     = useState(false);
-  const [search, setSearch]         = useState('');
-  const [filterCat, setFilterCat]   = useState('');
+  const [items, setItems]       = useState([]);
+  const [stats, setStats]       = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [form, setForm]         = useState(EMPTY);
+  const [editing, setEditing]   = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving]     = useState(false);
+  const [error, setError]       = useState('');
+  const [confirm, setConfirm]   = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [search, setSearch]     = useState('');
+  const [filterCat, setFilterCat]     = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [selected, setSelected]     = useState([]);
+  const [filterType, setFilterType]   = useState('');
+  const [selected, setSelected] = useState([]);
   const [bulkLoading, setBulkLoading] = useState(false);
-  const [page, setPage]             = useState(1);
-  const [total, setTotal]           = useState(0);
-  const [alert, setAlert]           = useState(null);
-  const [coverFile, setCoverFile]   = useState(null);
+  const [page, setPage]         = useState(1);
+  const [total, setTotal]       = useState(0);
+  const [alert, setAlert]       = useState(null);
+
+  const [coverFile, setCoverFile]       = useState(null);
   const [coverPreview, setCoverPreview] = useState('');
-  const [pdfFile, setPdfFile]       = useState(null);
-  const [existingPdf, setExistingPdf] = useState('');
-  const coverRef = useRef();
-  const pdfRef   = useRef();
+  const [pdfFile, setPdfFile]           = useState(null);
+  const [previewPdfFile, setPreviewPdfFile] = useState(null);
+  const [fullPdfFile, setFullPdfFile]   = useState(null);
+  const [existingPdf, setExistingPdf]   = useState('');
+  const [existingPreviewPdf, setExistingPreviewPdf] = useState('');
+  const [existingFullPdf, setExistingFullPdf]       = useState('');
+
+  const coverRef      = useRef();
+  const pdfRef        = useRef();
+  const previewPdfRef = useRef();
+  const fullPdfRef    = useRef();
 
   const showToast = (type, msg) => { setAlert({ type, msg }); setTimeout(() => setAlert(null), 4000); };
 
-  const load = async (p = page, s = search, cat = filterCat, st = filterStatus) => {
+  const loadStats = async () => {
+    try { const r = await getMagazineStats(); if (r.data.success) setStats(r.data.data); } catch {}
+  };
+
+  const load = async (p = page, s = search, cat = filterCat, st = filterStatus, tp = filterType) => {
     setLoading(true);
     try {
       const params = { page: p, limit: LIMIT };
-      if (s) params.search = s;
+      if (s)   params.search   = s;
       if (cat) params.category = cat;
-      if (st) params.status = st;
+      if (st)  params.status   = st;
+      if (tp)  params.type     = tp;
       const r = await getMagazines(params);
-      const data = r.data.data || [];
-      console.log('Loaded Magazines:', data);
-      setItems(data);
+      setItems(r.data.data || []);
       setTotal(r.data.total || 0);
       setSelected([]);
     } catch { showToast('danger', 'Failed to load magazines'); }
     setLoading(false);
   };
 
-  useEffect(() => { load(page, search, filterCat, filterStatus); }, [page]);
+  useEffect(() => { load(page, search, filterCat, filterStatus, filterType); loadStats(); }, [page]);
 
-  const handleSearch = () => { setPage(1); load(1, search, filterCat, filterStatus); };
+  const handleSearch = () => { setPage(1); load(1, search, filterCat, filterStatus, filterType); };
 
   const openCreate = () => {
     setForm(EMPTY); setEditing(null); setError('');
-    setCoverFile(null); setCoverPreview(''); setPdfFile(null); setExistingPdf('');
+    setCoverFile(null); setCoverPreview('');
+    setPdfFile(null); setPreviewPdfFile(null); setFullPdfFile(null);
+    setExistingPdf(''); setExistingPreviewPdf(''); setExistingFullPdf('');
     setShowForm(true);
   };
 
   const openEdit = item => {
     setForm({
-      title:         item.title || '',
-      description:   item.description || '',
-      issueNumber:   item.issueNumber || '',
-      publishedDate: item.publishedDate ? item.publishedDate.split('T')[0] : new Date().toISOString().split('T')[0],
-      category:      item.category || 'General',
-      tags:          Array.isArray(item.tags) ? item.tags.join(', ') : (item.tags || ''),
-      featured:      !!item.featured,
-      isActive:      !!item.isActive,
-      order:         item.order ?? 0
+      title:              item.title || '',
+      description:        item.description || '',
+      issueNumber:        item.issueNumber || '',
+      publishedDate:      item.publishedDate ? item.publishedDate.split('T')[0] : new Date().toISOString().split('T')[0],
+      category:           item.category || 'General',
+      tags:               Array.isArray(item.tags) ? item.tags.join(', ') : (item.tags || ''),
+      featured:           !!item.featured,
+      isActive:           !!item.isActive,
+      order:              item.order ?? 0,
+      type:               item.type || 'free',
+      price:              item.price || '',
+      purchaseButtonText: item.purchaseButtonText || 'Purchase Now',
+      allowDownload:      item.allowDownload !== false,
     });
-    setEditing(item._id);
-    setError('');
+    setEditing(item._id); setError('');
     setCoverFile(null);
     setCoverPreview(item.coverImage ? mediaUrl(item.coverImage) : '');
-    setPdfFile(null);
-    setExistingPdf(item.pdfFile || '');
+    setPdfFile(null);        setExistingPdf(item.pdfFile || '');
+    setPreviewPdfFile(null); setExistingPreviewPdf(item.previewPdf || '');
+    setFullPdfFile(null);    setExistingFullPdf(item.fullPdf || '');
     setShowForm(true);
-  };
-
-  const handleCoverChange = e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setCoverFile(file);
-    setCoverPreview(URL.createObjectURL(file));
   };
 
   const handleSave = async e => {
@@ -94,20 +125,23 @@ export default function Magazines() {
     try {
       const fd = new FormData();
       Object.entries(form).forEach(([k, v]) => fd.append(k, v));
-      if (coverFile) fd.append('coverImage', coverFile);
-      if (pdfFile) fd.append('pdfFile', pdfFile);
+      if (coverFile)      fd.append('coverImage',  coverFile);
+      if (pdfFile)        fd.append('pdfFile',     pdfFile);
+      if (previewPdfFile) fd.append('previewPdf',  previewPdfFile);
+      if (fullPdfFile)    fd.append('fullPdf',     fullPdfFile);
       if (editing) await updateMagazine(editing, fd);
-      else await createMagazine(fd);
+      else         await createMagazine(fd);
       showToast('success', editing ? 'Magazine updated!' : 'Magazine created!');
       setShowForm(false);
-      load(page, search, filterCat, filterStatus);
+      load(page, search, filterCat, filterStatus, filterType);
+      loadStats();
     } catch (err) { setError(err.response?.data?.message || 'Save failed'); }
     setSaving(false);
   };
 
   const handleDelete = async () => {
     setDeleting(true);
-    try { await deleteMagazine(confirm); setConfirm(null); showToast('success', 'Magazine deleted'); load(page, search, filterCat, filterStatus); }
+    try { await deleteMagazine(confirm); setConfirm(null); showToast('success', 'Magazine deleted'); load(page, search, filterCat, filterStatus, filterType); loadStats(); }
     catch { showToast('danger', 'Delete failed'); }
     setDeleting(false);
   };
@@ -118,15 +152,15 @@ export default function Magazines() {
   const handleBulkDelete = async () => {
     if (!selected.length) return;
     setBulkLoading(true);
-    try { await bulkDeleteMagazines(selected); showToast('success', `${selected.length} magazines deleted`); load(page, search, filterCat, filterStatus); }
+    try { await bulkDeleteMagazines(selected); showToast('success', `${selected.length} deleted`); load(page, search, filterCat, filterStatus, filterType); loadStats(); }
     catch { showToast('danger', 'Bulk delete failed'); }
     setBulkLoading(false);
   };
 
-  const handleBulkPublish = async (isActive) => {
+  const handleBulkPublish = async isActive => {
     if (!selected.length) return;
     setBulkLoading(true);
-    try { await bulkPublishMagazines(selected, isActive); showToast('success', `${selected.length} magazines ${isActive ? 'published' : 'unpublished'}`); load(page, search, filterCat, filterStatus); }
+    try { await bulkPublishMagazines(selected, isActive); showToast('success', `${selected.length} ${isActive ? 'published' : 'unpublished'}`); load(page, search, filterCat, filterStatus, filterType); }
     catch { showToast('danger', 'Bulk update failed'); }
     setBulkLoading(false);
   };
@@ -143,6 +177,14 @@ export default function Magazines() {
         </div>
       )}
 
+      {/* Stats */}
+      <div className="row g-3 mb-4">
+        <StatCard icon="fas fa-book-open"   label="Total Magazines"  value={stats?.total}     color="#6a1b9a" bg="#f3e5f5" />
+        <StatCard icon="fas fa-unlock"      label="Free Magazines"   value={stats?.free}      color="#2e7d32" bg="#e8f5e9" />
+        <StatCard icon="fas fa-lock"        label="Paid Magazines"   value={stats?.paid}      color="#c9a84c" bg="#fff8e1" />
+        <StatCard icon="fas fa-rupee-sign"  label="Magazine Revenue" value={stats ? `₹${Number(stats.revenue).toLocaleString('en-IN')}` : null} color="#e65100" bg="#fff3e0" />
+      </div>
+
       <div className="page-card">
         <div className="page-card-header">
           <h6 className="mb-0 fw-bold">
@@ -150,25 +192,25 @@ export default function Magazines() {
             Magazines ({total})
           </h6>
           <div className="d-flex gap-2 flex-wrap align-items-center">
-            <input
-              className="search-input"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSearch()}
-              placeholder="Search magazines..."
-            />
+            <input className="search-input" value={search} onChange={e => setSearch(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSearch()} placeholder="Search..." />
+            <select className="form-select form-select-sm" style={{ width: 130 }} value={filterType}
+              onChange={e => { setFilterType(e.target.value); setPage(1); load(1, search, filterCat, filterStatus, e.target.value); }}>
+              <option value="">All Types</option>
+              <option value="free">Free</option>
+              <option value="paid">Paid</option>
+            </select>
             <select className="form-select form-select-sm" style={{ width: 150 }} value={filterCat}
-              onChange={e => { setFilterCat(e.target.value); setPage(1); load(1, search, e.target.value, filterStatus); }}>
+              onChange={e => { setFilterCat(e.target.value); setPage(1); load(1, search, e.target.value, filterStatus, filterType); }}>
               <option value="">All Categories</option>
               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <select className="form-select form-select-sm" style={{ width: 120 }} value={filterStatus}
-              onChange={e => { setFilterStatus(e.target.value); setPage(1); load(1, search, filterCat, e.target.value); }}>
+              onChange={e => { setFilterStatus(e.target.value); setPage(1); load(1, search, filterCat, e.target.value, filterType); }}>
               <option value="">All Status</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
-            <button className="btn btn-sm btn-outline-secondary" onClick={handleSearch}><i className="fas fa-search"></i></button>
             <button className="btn btn-gold btn-sm" onClick={openCreate}>
               <i className="fas fa-plus me-1"></i>Add Magazine
             </button>
@@ -178,18 +220,12 @@ export default function Magazines() {
         {selected.length > 0 && (
           <div className="d-flex align-items-center gap-2 px-3 py-2 bg-light border-bottom flex-wrap">
             <span className="fw-semibold small">{selected.length} selected</span>
-            <button className="btn btn-sm btn-success" onClick={() => handleBulkPublish(true)} disabled={bulkLoading}>
-              <i className="fas fa-eye me-1"></i>Publish
-            </button>
-            <button className="btn btn-sm btn-warning" onClick={() => handleBulkPublish(false)} disabled={bulkLoading}>
-              <i className="fas fa-eye-slash me-1"></i>Unpublish
-            </button>
+            <button className="btn btn-sm btn-success" onClick={() => handleBulkPublish(true)} disabled={bulkLoading}><i className="fas fa-eye me-1"></i>Publish</button>
+            <button className="btn btn-sm btn-warning" onClick={() => handleBulkPublish(false)} disabled={bulkLoading}><i className="fas fa-eye-slash me-1"></i>Unpublish</button>
             <button className="btn btn-sm btn-danger" onClick={handleBulkDelete} disabled={bulkLoading}>
               {bulkLoading ? <i className="fas fa-spinner fa-spin me-1"></i> : <i className="fas fa-trash me-1"></i>}Delete
             </button>
-            <button className="btn btn-sm btn-outline-secondary ms-auto" onClick={() => setSelected([])}>
-              Clear
-            </button>
+            <button className="btn btn-sm btn-outline-secondary ms-auto" onClick={() => setSelected([])}>Clear</button>
           </div>
         )}
 
@@ -197,84 +233,53 @@ export default function Magazines() {
           <table className="table admin-table">
             <thead>
               <tr>
-                <th style={{ width: 40 }}>
-                  <input type="checkbox" checked={items.length > 0 && selected.length === items.length} onChange={toggleAll} />
-                </th>
-                <th style={{ width: 70 }}>Cover</th>
+                <th style={{ width: 40 }}><input type="checkbox" checked={items.length > 0 && selected.length === items.length} onChange={toggleAll} /></th>
+                <th style={{ width: 60 }}>Cover</th>
                 <th>Title</th>
-                <th>Issue</th>
+                <th>Type</th>
                 <th>Category</th>
-                <th>Featured</th>
                 <th>Status</th>
                 <th>Date</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {loading && (
-                <tr><td colSpan="9" className="text-center py-4">
-                  <div className="spinner-border spinner-border-sm" style={{ color: '#c9a227' }}></div>
-                </td></tr>
-              )}
+              {loading && <tr><td colSpan="8" className="text-center py-4"><div className="spinner-border spinner-border-sm" style={{ color: '#c9a227' }}></div></td></tr>}
               {!loading && items.length === 0 && (
-                <tr><td colSpan="9" className="text-center py-5">
-                  <i className="fas fa-book-open fa-3x mb-3 d-block" style={{ color: '#dee2e6' }}></i>
-                  <span className="text-muted">No existing data found.</span>
-                </td></tr>
+                <tr><td colSpan="8" className="text-center py-5 text-muted">No magazines found.</td></tr>
               )}
               {items.map(item => (
                 <tr key={item._id} className={selected.includes(item._id) ? 'table-active' : ''}>
-                  <td>
-                    <input type="checkbox" checked={selected.includes(item._id)} onChange={() => toggleSelect(item._id)} />
-                  </td>
+                  <td><input type="checkbox" checked={selected.includes(item._id)} onChange={() => toggleSelect(item._id)} /></td>
                   <td>
                     {item.coverImage
-                      ? <img src={mediaUrl(item.coverImage)} alt="" style={{ width: 46, height: 62, objectFit: 'cover', borderRadius: 4, border: '1px solid #dee2e6' }} onError={e => { e.target.style.display = 'none'; }} />
-                      : <div style={{ width: 46, height: 62, background: '#f5f5f5', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <i className="fas fa-book text-muted"></i>
-                        </div>
+                      ? <img src={mediaUrl(item.coverImage)} alt="" style={{ width: 40, height: 55, objectFit: 'cover', borderRadius: 4, border: '1px solid #dee2e6' }} onError={e => { e.target.style.display = 'none'; }} />
+                      : <div style={{ width: 40, height: 55, background: '#f5f5f5', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="fas fa-book text-muted"></i></div>
                     }
                   </td>
                   <td>
                     <div className="fw-semibold">{item.title}</div>
-                    {item.description && (
-                      <small className="text-muted">{item.description.substring(0, 55)}{item.description.length > 55 ? '...' : ''}</small>
-                    )}
-                    {item.pdfFile && (
-                      <div><small className="text-success"><i className="fas fa-file-pdf me-1"></i>PDF</small></div>
-                    )}
+                    {item.issueNumber && <small className="text-muted">{item.issueNumber}</small>}
+                    <div className="d-flex gap-1 mt-1 flex-wrap">
+                      {item.pdfFile    && <small className="text-success"><i className="fas fa-file-pdf me-1"></i>PDF</small>}
+                      {item.previewPdf && <small className="text-info"><i className="fas fa-eye me-1"></i>Preview</small>}
+                      {item.fullPdf    && <small className="text-warning"><i className="fas fa-lock me-1"></i>Full PDF</small>}
+                      {item.featured   && <span className="badge" style={{ background: '#ffc107', color: '#000', fontSize: '.65rem' }}><i className="fas fa-star me-1"></i>Featured</span>}
+                    </div>
                   </td>
                   <td>
-                    <span className="badge bg-light text-dark border">{item.issueNumber || '—'}</span>
+                    {item.type === 'paid'
+                      ? <span className="badge" style={{ background: '#c9a84c', color: '#000' }}>PAID ₹{item.price}</span>
+                      : <span className="badge bg-success">FREE</span>}
                   </td>
-                  <td>
-                    <span className="badge bg-light text-dark border">{item.category || 'General'}</span>
-                  </td>
-                  <td>
-                    {item.featured
-                      ? <span className="badge" style={{ background: '#ffc107', color: '#000' }}><i className="fas fa-star me-1"></i>Featured</span>
-                      : <span className="text-muted small">—</span>
-                    }
-                  </td>
-                  <td>
-                    <span className={`status-badge ${item.isActive ? 'badge-active' : 'badge-inactive'}`}>
-                      {item.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
+                  <td><span className="badge bg-light text-dark border">{item.category || 'General'}</span></td>
+                  <td><span className={`status-badge ${item.isActive ? 'badge-active' : 'badge-inactive'}`}>{item.isActive ? 'Active' : 'Inactive'}</span></td>
                   <td>{formatDate(item.publishedDate || item.createdAt)}</td>
                   <td>
                     <div className="d-flex gap-1">
-                      {item.pdfFile && (
-                        <a className="btn btn-sm btn-outline-secondary" href={mediaUrl(item.pdfFile)} target="_blank" rel="noreferrer" title="View PDF">
-                          <i className="fas fa-file-pdf"></i>
-                        </a>
-                      )}
-                      <button className="btn btn-sm btn-outline-primary" onClick={() => openEdit(item)} title="Edit">
-                        <i className="fas fa-edit"></i>
-                      </button>
-                      <button className="btn btn-sm btn-outline-danger" onClick={() => setConfirm(item._id)} title="Delete">
-                        <i className="fas fa-trash"></i>
-                      </button>
+                      {item.pdfFile && <a className="btn btn-sm btn-outline-secondary" href={mediaUrl(item.pdfFile)} target="_blank" rel="noreferrer" title="View PDF"><i className="fas fa-file-pdf"></i></a>}
+                      <button className="btn btn-sm btn-outline-primary" onClick={() => openEdit(item)} title="Edit"><i className="fas fa-edit"></i></button>
+                      <button className="btn btn-sm btn-outline-danger" onClick={() => setConfirm(item._id)} title="Delete"><i className="fas fa-trash"></i></button>
                     </div>
                   </td>
                 </tr>
@@ -285,13 +290,9 @@ export default function Magazines() {
 
         {totalPages > 1 && (
           <div className="d-flex justify-content-center align-items-center gap-2 p-3 border-top">
-            <button className="btn btn-sm btn-outline-secondary" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
-              <i className="fas fa-chevron-left"></i>
-            </button>
+            <button className="btn btn-sm btn-outline-secondary" disabled={page <= 1} onClick={() => setPage(p => p - 1)}><i className="fas fa-chevron-left"></i></button>
             <span className="small text-muted">Page {page} of {totalPages}</span>
-            <button className="btn btn-sm btn-outline-secondary" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
-              <i className="fas fa-chevron-right"></i>
-            </button>
+            <button className="btn btn-sm btn-outline-secondary" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}><i className="fas fa-chevron-right"></i></button>
           </div>
         )}
       </div>
@@ -302,23 +303,22 @@ export default function Magazines() {
           <div className="modal-dialog modal-lg modal-dialog-scrollable">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">
-                  <i className="fas fa-book-open me-2" style={{ color: '#c9a227' }}></i>
-                  {editing ? 'Edit Magazine' : 'Add Magazine'}
-                </h5>
+                <h5 className="modal-title"><i className="fas fa-book-open me-2" style={{ color: '#c9a227' }}></i>{editing ? 'Edit' : 'Add'} Magazine</h5>
                 <button className="btn-close" onClick={() => setShowForm(false)}></button>
               </div>
               <form onSubmit={handleSave}>
                 <div className="modal-body">
                   {error && <div className="alert alert-danger py-2">{error}</div>}
                   <div className="row g-3">
+
+                    {/* Basic Info */}
                     <div className="col-md-8">
                       <label className="form-label">Magazine Title *</label>
                       <input className="form-control" value={form.title} onChange={set('title')} required placeholder="e.g. Legal Digest Vol. 12" />
                     </div>
                     <div className="col-md-4">
                       <label className="form-label">Issue Number</label>
-                      <input className="form-control" value={form.issueNumber} onChange={set('issueNumber')} placeholder="e.g. Issue #12" />
+                      <input className="form-control" value={form.issueNumber} onChange={set('issueNumber')} placeholder="Issue #12" />
                     </div>
                     <div className="col-md-6">
                       <label className="form-label">Category</label>
@@ -332,62 +332,110 @@ export default function Magazines() {
                     </div>
                     <div className="col-12">
                       <label className="form-label">Description</label>
-                      <textarea className="form-control" rows="3" value={form.description} onChange={set('description')} placeholder="Short description of this magazine issue..."></textarea>
+                      <textarea className="form-control" rows="2" value={form.description} onChange={set('description')} placeholder="Short description..."></textarea>
                     </div>
                     <div className="col-12">
                       <label className="form-label">Tags <small className="text-muted fw-normal">(comma separated)</small></label>
-                      <input className="form-control" value={form.tags} onChange={set('tags')} placeholder="law, criminal, advocacy, rights" />
+                      <input className="form-control" value={form.tags} onChange={set('tags')} placeholder="law, criminal, rights" />
                     </div>
 
-                    {/* Cover Image */}
+                    {/* Magazine Type & Pricing */}
+                    <div className="col-12"><hr className="my-1" /><small className="text-muted fw-semibold text-uppercase">Pricing</small></div>
+                    <div className="col-md-4">
+                      <label className="form-label">Magazine Type *</label>
+                      <select className="form-select" value={form.type} onChange={set('type')}>
+                        <option value="free">Free</option>
+                        <option value="paid">Paid</option>
+                      </select>
+                    </div>
+                    {form.type === 'paid' && (
+                      <>
+                        <div className="col-md-4">
+                          <label className="form-label">Price (₹) *</label>
+                          <input type="number" className="form-control" value={form.price} onChange={set('price')}
+                            min="1" step="1" required placeholder="99" />
+                        </div>
+                        <div className="col-md-4">
+                          <label className="form-label">Purchase Button Text</label>
+                          <input className="form-control" value={form.purchaseButtonText} onChange={set('purchaseButtonText')} placeholder="Purchase Now" />
+                        </div>
+                      </>
+                    )}
+
+                    {/* Files */}
+                    <div className="col-12"><hr className="my-1" /><small className="text-muted fw-semibold text-uppercase">Files</small></div>
                     <div className="col-md-6">
                       <label className="form-label">Cover Image</label>
-                      <input type="file" className="form-control" accept="image/*" ref={coverRef} onChange={handleCoverChange} />
+                      <input type="file" className="form-control" accept="image/*" ref={coverRef} onChange={e => { const f = e.target.files[0]; if (f) { setCoverFile(f); setCoverPreview(URL.createObjectURL(f)); }}} />
                       {coverPreview && (
                         <div className="mt-2 d-flex align-items-start gap-2">
                           <img src={coverPreview} alt="Cover" style={{ height: 110, width: 80, objectFit: 'cover', borderRadius: 4, border: '1px solid #dee2e6' }} />
-                          <button type="button" className="btn btn-sm btn-outline-danger"
-                            onClick={() => { setCoverFile(null); setCoverPreview(''); if (coverRef.current) coverRef.current.value = ''; }}>
-                            <i className="fas fa-times"></i>
-                          </button>
+                          <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => { setCoverFile(null); setCoverPreview(''); if (coverRef.current) coverRef.current.value = ''; }}><i className="fas fa-times"></i></button>
                         </div>
                       )}
                     </div>
 
-                    {/* PDF Upload */}
                     <div className="col-md-6">
-                      <label className="form-label">PDF File</label>
+                      <label className="form-label">
+                        {form.type === 'free' ? 'Full PDF (for download)' : 'Preview PDF (first 3–5 pages)'}
+                      </label>
                       <input type="file" className="form-control" accept=".pdf" ref={pdfRef} onChange={e => setPdfFile(e.target.files[0] || null)} />
-                      {pdfFile && (
+                      {pdfFile ? (
                         <div className="mt-2 d-flex align-items-center gap-2">
                           <small className="text-success"><i className="fas fa-file-pdf me-1"></i>{pdfFile.name}</small>
-                          <button type="button" className="btn btn-sm btn-outline-danger"
-                            onClick={() => { setPdfFile(null); if (pdfRef.current) pdfRef.current.value = ''; }}>
-                            <i className="fas fa-times"></i>
-                          </button>
+                          <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => { setPdfFile(null); if (pdfRef.current) pdfRef.current.value = ''; }}><i className="fas fa-times"></i></button>
                         </div>
-                      )}
-                      {!pdfFile && existingPdf && (
-                        <div className="mt-2">
-                          <small className="text-success"><i className="fas fa-file-pdf me-1"></i>PDF already attached</small>
-                          <a className="ms-2 small" href={mediaUrl(existingPdf)} target="_blank" rel="noreferrer">View</a>
-                        </div>
+                      ) : existingPdf && (
+                        <div className="mt-2"><small className="text-success"><i className="fas fa-file-pdf me-1"></i>PDF attached</small><a className="ms-2 small" href={mediaUrl(existingPdf)} target="_blank" rel="noreferrer">View</a></div>
                       )}
                     </div>
 
-                    <div className="col-md-4">
+                    {form.type === 'paid' && (
+                      <>
+                        <div className="col-md-6">
+                          <label className="form-label">Preview PDF <small className="text-muted fw-normal">(optional override)</small></label>
+                          <input type="file" className="form-control" accept=".pdf" ref={previewPdfRef} onChange={e => setPreviewPdfFile(e.target.files[0] || null)} />
+                          {previewPdfFile ? (
+                            <div className="mt-2 d-flex gap-2"><small className="text-success"><i className="fas fa-file-pdf me-1"></i>{previewPdfFile.name}</small>
+                              <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => { setPreviewPdfFile(null); if (previewPdfRef.current) previewPdfRef.current.value = ''; }}><i className="fas fa-times"></i></button>
+                            </div>
+                          ) : existingPreviewPdf && (
+                            <div className="mt-2"><small className="text-success"><i className="fas fa-eye me-1"></i>Preview PDF attached</small></div>
+                          )}
+                        </div>
+                        <div className="col-md-6">
+                          <label className="form-label">Full PDF <span className="text-danger">*</span> <small className="text-muted fw-normal">(protected — paid only)</small></label>
+                          <input type="file" className="form-control" accept=".pdf" ref={fullPdfRef} onChange={e => setFullPdfFile(e.target.files[0] || null)} />
+                          {fullPdfFile ? (
+                            <div className="mt-2 d-flex gap-2"><small className="text-warning"><i className="fas fa-lock me-1"></i>{fullPdfFile.name}</small>
+                              <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => { setFullPdfFile(null); if (fullPdfRef.current) fullPdfRef.current.value = ''; }}><i className="fas fa-times"></i></button>
+                            </div>
+                          ) : existingFullPdf && (
+                            <div className="mt-2"><small className="text-warning"><i className="fas fa-lock me-1"></i>Full PDF attached (protected)</small></div>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Options */}
+                    <div className="col-12"><hr className="my-1" /></div>
+                    <div className="col-md-3">
                       <label className="form-label">Display Order</label>
                       <input type="number" className="form-control" value={form.order} onChange={set('order')} min="0" />
                     </div>
-                    <div className="col-md-4 d-flex align-items-end">
+                    <div className="col-md-3 d-flex align-items-end">
                       <div className="form-check form-switch mb-2">
                         <input className="form-check-input" type="checkbox" id="mag-featured" checked={form.featured} onChange={set('featured')} />
-                        <label className="form-check-label" htmlFor="mag-featured">
-                          <i className="fas fa-star me-1 text-warning"></i>Featured
-                        </label>
+                        <label className="form-check-label" htmlFor="mag-featured"><i className="fas fa-star me-1 text-warning"></i>Featured</label>
                       </div>
                     </div>
-                    <div className="col-md-4 d-flex align-items-end">
+                    <div className="col-md-3 d-flex align-items-end">
+                      <div className="form-check form-switch mb-2">
+                        <input className="form-check-input" type="checkbox" id="mag-download" checked={form.allowDownload} onChange={set('allowDownload')} />
+                        <label className="form-check-label" htmlFor="mag-download"><i className="fas fa-download me-1"></i>Allow Download</label>
+                      </div>
+                    </div>
+                    <div className="col-md-3 d-flex align-items-end">
                       <div className="form-check form-switch mb-2">
                         <input className="form-check-input" type="checkbox" id="mag-active" checked={form.isActive} onChange={set('isActive')} />
                         <label className="form-check-label" htmlFor="mag-active">Active</label>
@@ -407,14 +455,9 @@ export default function Magazines() {
         </div>
       )}
 
-      <ConfirmModal
-        show={!!confirm}
-        title="Delete Magazine"
-        message="Are you sure you want to delete this magazine? This action cannot be undone."
-        onConfirm={handleDelete}
-        onCancel={() => setConfirm(null)}
-        loading={deleting}
-      />
+      <ConfirmModal show={!!confirm} title="Delete Magazine"
+        message="Delete this magazine? This cannot be undone."
+        onConfirm={handleDelete} onCancel={() => setConfirm(null)} loading={deleting} />
     </div>
   );
 }

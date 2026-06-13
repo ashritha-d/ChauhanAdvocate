@@ -103,8 +103,9 @@ export const getMagazines     = (params = {}) => api.get('/magazines/admin/all',
 export const createMagazine   = (data) => api.post('/magazines', data, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateMagazine   = (id, data) => api.put(`/magazines/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const deleteMagazine   = (id) => api.delete(`/magazines/${id}`);
-export const bulkDeleteMagazines = (ids) => api.post('/magazines/bulk-delete', { ids });
+export const bulkDeleteMagazines  = (ids) => api.post('/magazines/bulk-delete', { ids });
 export const bulkPublishMagazines = (ids, isActive) => api.post('/magazines/bulk-publish', { ids, isActive });
+export const getMagazineStats     = () => api.get('/magazines/stats');
 
 // Drafts
 export const getDrafts        = (params = {}) => api.get('/drafts/admin/all', { params });
