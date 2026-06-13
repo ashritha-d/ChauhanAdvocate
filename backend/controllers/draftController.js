@@ -32,7 +32,7 @@ exports.create = async (req, res) => {
     if (typeof data.contentDataJson === 'string') {
       try { data.contentDataJson = JSON.parse(data.contentDataJson); } catch { data.contentDataJson = {}; }
     }
-    if (req.file) data.thumbnail = `/uploads/${req.file.filename}`;
+    if (req.file) data.thumbnail = req.file.path;
     data.lastSavedAt = new Date();
     const item = await Draft.create(data);
     res.status(201).json({ success: true, data: item });
@@ -45,7 +45,7 @@ exports.update = async (req, res) => {
     if (typeof data.contentDataJson === 'string') {
       try { data.contentDataJson = JSON.parse(data.contentDataJson); } catch { data.contentDataJson = {}; }
     }
-    if (req.file) data.thumbnail = `/uploads/${req.file.filename}`;
+    if (req.file) data.thumbnail = req.file.path;
     data.lastSavedAt = new Date();
     const item = await Draft.findByIdAndUpdate(req.params.id, data, { new: true, runValidators: true });
     if (!item) return res.status(404).json({ success: false, message: 'Not found' });
@@ -57,10 +57,7 @@ exports.remove = async (req, res) => {
   try {
     const item = await Draft.findByIdAndDelete(req.params.id);
     if (!item) return res.status(404).json({ success: false, message: 'Not found' });
-    if (item.thumbnail) {
-      const filePath = path.join(__dirname, '..', item.thumbnail);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    }
+    // File stored on Cloudinary — no local cleanup needed
     res.json({ success: true, message: 'Deleted' });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 };

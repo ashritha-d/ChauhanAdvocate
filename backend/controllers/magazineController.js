@@ -76,10 +76,10 @@ exports.create = async (req, res) => {
   try {
     const data = parseFields({ ...req.body });
     if (req.files) {
-      if (req.files.coverImage)  data.coverImage  = `/uploads/${req.files.coverImage[0].filename}`;
-      if (req.files.pdfFile)     data.pdfFile     = `/uploads/${req.files.pdfFile[0].filename}`;
-      if (req.files.previewPdf)  data.previewPdf  = `/uploads/${req.files.previewPdf[0].filename}`;
-      if (req.files.fullPdf)     data.fullPdf     = `/uploads/${req.files.fullPdf[0].filename}`;
+      if (req.files.coverImage)  data.coverImage  = req.files.coverImage[0].path;
+      if (req.files.pdfFile)     data.pdfFile     = req.files.pdfFile[0].path;
+      if (req.files.previewPdf)  data.previewPdf  = req.files.previewPdf[0].path;
+      if (req.files.fullPdf)     data.fullPdf     = req.files.fullPdf[0].path;
     }
     const item = new Magazine(data);
     await item.save();
@@ -91,10 +91,10 @@ exports.update = async (req, res) => {
   try {
     const data = parseFields({ ...req.body });
     if (req.files) {
-      if (req.files.coverImage)  data.coverImage  = `/uploads/${req.files.coverImage[0].filename}`;
-      if (req.files.pdfFile)     data.pdfFile     = `/uploads/${req.files.pdfFile[0].filename}`;
-      if (req.files.previewPdf)  data.previewPdf  = `/uploads/${req.files.previewPdf[0].filename}`;
-      if (req.files.fullPdf)     data.fullPdf     = `/uploads/${req.files.fullPdf[0].filename}`;
+      if (req.files.coverImage)  data.coverImage  = req.files.coverImage[0].path;
+      if (req.files.pdfFile)     data.pdfFile     = req.files.pdfFile[0].path;
+      if (req.files.previewPdf)  data.previewPdf  = req.files.previewPdf[0].path;
+      if (req.files.fullPdf)     data.fullPdf     = req.files.fullPdf[0].path;
     }
     const item = await Magazine.findByIdAndUpdate(req.params.id, data, { new: true, runValidators: true });
     if (!item) return res.status(404).json({ success: false, message: 'Not found' });

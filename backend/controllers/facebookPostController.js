@@ -31,7 +31,7 @@ exports.create = async (req, res) => {
     const data = { ...req.body };
     delete data.thumbnailUrl;
     // File upload takes priority; fall back to pasted URL
-    if (req.file) data.thumbnail = `/uploads/${req.file.filename}`;
+    if (req.file) data.thumbnail = req.file.path;
     else if (thumbnailUrl) data.thumbnail = thumbnailUrl;
     const post = await FacebookPost.create(data);
     res.status(201).json({ success: true, data: post });
@@ -46,7 +46,7 @@ exports.update = async (req, res) => {
     }
     const data = { ...req.body };
     delete data.thumbnailUrl;
-    if (req.file) data.thumbnail = `/uploads/${req.file.filename}`;
+    if (req.file) data.thumbnail = req.file.path;
     else if (thumbnailUrl) data.thumbnail = thumbnailUrl;
     const post = await FacebookPost.findByIdAndUpdate(req.params.id, data, { new: true, runValidators: true });
     if (!post) return res.status(404).json({ success: false, message: 'Not found' });
@@ -58,10 +58,7 @@ exports.remove = async (req, res) => {
   try {
     const post = await FacebookPost.findByIdAndDelete(req.params.id);
     if (!post) return res.status(404).json({ success: false, message: 'Not found' });
-    if (post.thumbnail) {
-      const filePath = path.join(__dirname, '..', post.thumbnail);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    }
+    // File stored on Cloudinary — no local cleanup needed
     res.json({ success: true, message: 'Deleted' });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 };

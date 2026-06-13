@@ -1,32 +1,44 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const path   = require('path');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-    cb(null, uploadDir);
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    const mime = file.mimetype || '';
+    let resource_type = 'image';
+    if (mime.startsWith('video/'))  resource_type = 'video';
+    else if (mime === 'application/pdf' || mime.includes('word') || mime.includes('document')) {
+      resource_type = 'raw';
+    }
+    return {
+      folder:        'advocate-chauhan',
+      resource_type,
+      // For images, auto-optimize quality & format; skip for raw/video
+      ...(resource_type === 'image' ? { transformation: [{ quality: 'auto', fetch_format: 'auto' }] } : {}),
+    };
   },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedExts = /jpeg|jpg|png|gif|webp|svg|pdf|doc|docx/;
-  const allowedMimes = /image\/(jpeg|jpg|png|gif|webp|svg\+xml)|application\/(pdf|msword|vnd\.openxmlformats-officedocument\.wordprocessingml\.document)/;
-  const extname = allowedExts.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedMimes.test(file.mimetype);
-  if (extname && mimetype) return cb(null, true);
-  cb(new Error('Only images, PDFs, and Word documents are allowed'));
+  const ext  = path.extname(file.originalname).toLowerCase().replace('.', '');
+  const ok   = /^(jpeg|jpg|png|gif|webp|svg|pdf|mp4|mov|avi|doc|docx)$/.test(ext);
+  if (ok) return cb(null, true);
+  cb(new Error('File type not allowed'));
 };
 
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5 * 1024 * 1024 }
+  limits: { fileSize: parseInt(process.env.MAX_FILE_SIZE) || 20 * 1024 * 1024 },
 });
 
 module.exports = upload;
+module.exports.cloudinary = cloudinary;

@@ -241,7 +241,7 @@ exports.uploadVideo = async (req, res) => {
     const sizeMB = (req.file.size / (1024 * 1024)).toFixed(1);
     res.json({
       success: true,
-      path: `/uploads/videos/${req.file.filename}`,
+      path: req.file.path,
       filename: req.file.filename,
       size: `${sizeMB} MB`,
     });

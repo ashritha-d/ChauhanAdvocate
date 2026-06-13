@@ -19,7 +19,7 @@ exports.getAll = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     const data = { ...req.body };
-    if (req.file) data.image = `/uploads/${req.file.filename}`;
+    if (req.file) data.image = req.file.path;
     const item = await Book.create(data);
     res.status(201).json({ success: true, data: item });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
@@ -28,7 +28,7 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const data = { ...req.body };
-    if (req.file) data.image = `/uploads/${req.file.filename}`;
+    if (req.file) data.image = req.file.path;
     const item = await Book.findByIdAndUpdate(req.params.id, data, { new: true, runValidators: true });
     if (!item) return res.status(404).json({ success: false, message: 'Not found' });
     res.json({ success: true, data: item });
@@ -39,10 +39,7 @@ exports.remove = async (req, res) => {
   try {
     const item = await Book.findByIdAndDelete(req.params.id);
     if (!item) return res.status(404).json({ success: false, message: 'Not found' });
-    if (item.image) {
-      const filePath = path.join(__dirname, '..', item.image);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    }
+    // File stored on Cloudinary — no local cleanup needed
     res.json({ success: true, message: 'Deleted' });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 };

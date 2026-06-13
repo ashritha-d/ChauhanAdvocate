@@ -17,7 +17,7 @@ exports.getAll = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     const data = { ...req.body };
-    if (req.file) data.applyFile = `/uploads/${req.file.filename}`;
+    if (req.file) data.applyFile = req.file.path;
     const item = await JoinWithUs.create(data);
     res.status(201).json({ success: true, data: item });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
@@ -26,7 +26,7 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const data = { ...req.body };
-    if (req.file) data.applyFile = `/uploads/${req.file.filename}`;
+    if (req.file) data.applyFile = req.file.path;
     const item = await JoinWithUs.findByIdAndUpdate(req.params.id, data, { new: true, runValidators: true });
     if (!item) return res.status(404).json({ success: false, message: 'Not found' });
     res.json({ success: true, data: item });

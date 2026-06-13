@@ -2,8 +2,8 @@ const JrAdvocate = require('../models/JrAdvocate');
 
 exports.createJrAdvocate = async (req, res) => {
   try {
-    const resume = req.files?.resume?.[0] ? `/uploads/${req.files.resume[0].filename}` : '';
-    const passportPhoto = req.files?.passportPhoto?.[0] ? `/uploads/${req.files.passportPhoto[0].filename}` : '';
+    const resume = req.files?.resume?.[0] ? req.files.resume[0].path : '';
+    const passportPhoto = req.files?.passportPhoto?.[0] ? req.files.passportPhoto[0].path : '';
     const jrAdvocate = await JrAdvocate.create({ ...req.body, resume, passportPhoto });
     res.status(201).json({ success: true, message: 'Application submitted successfully!', data: jrAdvocate });
   } catch (error) {

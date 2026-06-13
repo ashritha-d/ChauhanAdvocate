@@ -227,8 +227,7 @@ exports.uploadPhoto = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
 
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const photoUrl = `${baseUrl}/uploads/avatars/${req.file.filename}`;
+    const photoUrl = req.file.path;
 
     const user = await User.findByIdAndUpdate(req.user._id, { profilePhoto: photoUrl }, { new: true });
     res.json({ success: true, message: 'Profile photo updated', photoUrl, user: sanitizeUser(user) });

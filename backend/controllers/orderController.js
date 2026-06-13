@@ -2,7 +2,7 @@ const Order = require('../models/Order');
 
 exports.createOrder = async (req, res) => {
   try {
-    const documents = req.files ? req.files.map(f => `/uploads/${f.filename}`) : [];
+    const documents = req.files ? req.files.map(f => f.path) : [];
     const order = await Order.create({ ...req.body, documents });
     res.status(201).json({ success: true, message: 'Order submitted successfully!', data: order });
   } catch (error) {
