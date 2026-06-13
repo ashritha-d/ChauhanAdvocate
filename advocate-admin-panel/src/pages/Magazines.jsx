@@ -299,15 +299,15 @@ export default function Magazines() {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="modal fade show d-block" style={{ background: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
-          <div className="modal-dialog modal-lg modal-dialog-scrollable">
-            <div className="modal-content">
-              <div className="modal-header">
+        <div className="modal fade show d-block" style={{ background: 'rgba(0,0,0,0.5)', zIndex: 1050, position: 'fixed', inset: 0, overflowY: 'auto', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 12px' }}>
+          <div className="modal-dialog modal-lg w-100 m-0" style={{ maxWidth: 800 }}>
+            <div className="modal-content" style={{ borderRadius: 12 }}>
+              <div className="modal-header" style={{ borderBottom: '1px solid #eee', position: 'sticky', top: 0, background: '#fff', zIndex: 1, borderRadius: '12px 12px 0 0' }}>
                 <h5 className="modal-title"><i className="fas fa-book-open me-2" style={{ color: '#c9a227' }}></i>{editing ? 'Edit' : 'Add'} Magazine</h5>
                 <button className="btn-close" onClick={() => setShowForm(false)}></button>
               </div>
               <form onSubmit={handleSave}>
-                <div className="modal-body">
+                <div className="modal-body" style={{ overflowY: 'visible' }}>
                   {error && <div className="alert alert-danger py-2">{error}</div>}
                   <div className="row g-3">
 
@@ -444,7 +444,7 @@ export default function Magazines() {
                     </div>
                   </div>
                 </div>
-                <div className="modal-footer">
+                <div className="modal-footer" style={{ borderTop: '1px solid #eee', borderRadius: '0 0 12px 12px', background: '#fff' }}>
                   <button type="button" className="btn btn-light" onClick={() => setShowForm(false)}>Cancel</button>
                   <button type="submit" className="btn btn-gold" disabled={saving}>
                     {saving ? <><i className="fas fa-spinner fa-spin me-1"></i>Saving...</> : 'Save Magazine'}
