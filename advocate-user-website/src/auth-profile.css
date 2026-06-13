@@ -260,30 +260,63 @@
 /* Responsive */
 @media (max-width: 991px) {
   .profile-layout { flex-direction: column; }
-  .profile-nav { width: 100%; position: static; display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; overflow: hidden; }
-  .profile-nav-item { flex: 1; min-width: 100px; justify-content: center; font-size: 0.8rem; padding: 9px 10px; }
+  /* Horizontal scrollable tab bar instead of wrapping icons */
+  .profile-nav {
+    width: 100%;
+    position: static;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 4px;
+    padding: 10px 12px;
+  }
+  .profile-nav::-webkit-scrollbar { display: none; }
+  .profile-nav-item {
+    flex: 0 0 auto;
+    min-width: 72px;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 10px;
+    font-size: 0.72rem;
+    min-height: 58px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+  .profile-nav-item i { width: auto; font-size: 1.05rem; margin-bottom: 2px; }
+  .profile-nav-item span { display: block; font-size: 0.68rem; line-height: 1.2; }
   .profile-content { min-width: 0; max-width: 100%; overflow: hidden; }
 }
 @media (max-width: 576px) {
   .auth-page { padding: 100px 12px 50px; }
   .auth-card { padding: 24px 16px; }
   .profile-page { overflow-x: hidden; }
-  .profile-top-bar { padding-top: 80px; }
+  /* 40px top-bar + ~76px navbar = 116px; use 112px for safety */
+  .profile-top-bar { padding-top: 112px; }
   .profile-top-bar-inner { flex-wrap: wrap; gap: 10px; padding: 12px 0; }
+  /* Stats: 2 equal columns on mobile */
   .profile-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .profile-nav-item { min-width: 80px; font-size: 0.75rem; padding: 8px 6px; }
-  .profile-nav-item span { display: none; }
-  .profile-nav-item i { width: auto; font-size: 1rem; }
   .profile-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .profile-table th, .profile-table td { padding: 8px 10px; font-size: 0.8rem; white-space: nowrap; }
   .notif-item { padding: 12px; gap: 10px; }
   .order-modal { padding: 20px 14px; border-radius: 16px; }
   .jr-modal-lg { padding: 20px 14px !important; }
+  /* Equal-height stat cards */
+  .profile-stat-card { height: 100%; display: flex; flex-direction: column; justify-content: center; }
+  .psc-value { font-size: 1.6rem; }
+  .psc-label { font-size: 0.75rem; }
+  .psc-icon { font-size: 1.5rem; }
 }
 @media (max-width: 375px) {
   .auth-card { padding: 20px 14px; }
   .profile-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .psc-value { font-size: 1.5rem; }
+  .psc-value { font-size: 1.4rem; }
+  .profile-top-bar { padding-top: 106px; }
 }
 
 /* ═══════════════════════════════════════════════════════════
