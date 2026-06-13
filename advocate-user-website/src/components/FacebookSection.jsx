@@ -20,12 +20,20 @@ export default function FacebookSection() {
     getFacebookPosts()
       .then(r => {
         if (r.data?.success && r.data.data.length) {
-          setPosts(r.data.data.map(p => ({
-            href:          p.facebookUrl || '#',
-            title:         p.title,
-            thumb:         p.thumbnail ? mediaUrl(p.thumbnail) : FB_THUMB,
-            fallbackThumb: FB_THUMB,
-          })));
+          setPosts(r.data.data.map(p => {
+            // Relative /uploads/ paths are from Render ephemeral storage (wiped on restart)
+            // Use FB_THUMB immediately rather than making a doomed network request
+            const isEphemeral = p.thumbnail && p.thumbnail.startsWith('/uploads/');
+            const thumb = (!p.thumbnail || isEphemeral)
+              ? FB_THUMB
+              : mediaUrl(p.thumbnail);
+            return {
+              href:          p.facebookUrl || '#',
+              title:         p.title,
+              thumb,
+              fallbackThumb: FB_THUMB,
+            };
+          }));
         }
       })
       .catch(() => {});
