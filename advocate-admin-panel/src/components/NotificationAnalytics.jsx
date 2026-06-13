@@ -124,6 +124,11 @@ export default function NotificationAnalytics({ onNavigate }) {
     if (!svgEl) return;
     const w = svgEl.clientWidth  || 500;
     const h = svgEl.clientHeight || 400;
+
+    // Inline all lazy-loaded images so they aren't missing in the canvas snapshot
+    const lazyImgs = svgEl.querySelectorAll('image[loading="lazy"]');
+    lazyImgs.forEach(el => el.removeAttribute('loading'));
+
     const serialized = new XMLSerializer().serializeToString(svgEl);
     const svgBlob = new Blob([serialized], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
