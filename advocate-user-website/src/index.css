@@ -1432,9 +1432,27 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .profile-mag-meta  { display: flex; gap: 12px; font-size: .75rem; color: #888; margin-top: 8px; }
 
 @media (max-width: 576px) {
-  .mag-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+  /* Horizontal scroll row instead of grid */
+  .mag-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    gap: 16px;
+    padding: 4px 4px 16px;
+    margin: 0 -4px;
+    scrollbar-width: none;
+  }
+  .mag-grid::-webkit-scrollbar { display: none; }
+  .mag-card {
+    flex: 0 0 200px;
+    min-width: 0;
+    scroll-snap-align: start;
+  }
   .mag-info { padding: 12px; }
-  .mag-title { font-size: .9rem; }
+  .mag-title { font-size: .88rem; }
   .mag-actions { flex-direction: column; }
   .mag-btn-preview, .mag-btn-download, .mag-btn-buy { flex: none; width: 100%; }
 }
