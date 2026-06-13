@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAppointments, getContacts, getServices, getBlogs } from '../api';
+import NotificationAnalytics from '../components/NotificationAnalytics';
 
 const StatCard = ({ icon, label, value, color, bg }) => (
   <div className="col-sm-6 col-xl-3">
@@ -15,7 +16,7 @@ const StatCard = ({ icon, label, value, color, bg }) => (
   </div>
 );
 
-export default function Dashboard() {
+export default function Dashboard({ onNavigate }) {
   const [stats, setStats] = useState({});
   const [recentAppts, setRecentAppts] = useState([]);
   const [recentContacts, setRecentContacts] = useState([]);
@@ -44,13 +45,18 @@ export default function Dashboard() {
 
   return (
     <div>
+      {/* ── Overview stat cards ── */}
       <div className="row g-4 mb-4">
         <StatCard icon="fas fa-calendar-alt" label="Total Appointments" value={stats.appointments} color="#1565c0" bg="#e3f2fd" />
-        <StatCard icon="fas fa-clock" label="Pending Appointments" value={stats.pending} color="#e65100" bg="#fff3e0" />
-        <StatCard icon="fas fa-envelope" label="Total Inquiries" value={stats.contacts} color="#2e7d32" bg="#e8f5e9" />
-        <StatCard icon="fas fa-briefcase" label="Active Services" value={stats.services} color="#6a1b9a" bg="#f3e5f5" />
+        <StatCard icon="fas fa-clock"        label="Pending Appointments" value={stats.pending}     color="#e65100" bg="#fff3e0" />
+        <StatCard icon="fas fa-envelope"     label="Total Inquiries"      value={stats.contacts}    color="#2e7d32" bg="#e8f5e9" />
+        <StatCard icon="fas fa-briefcase"    label="Active Services"       value={stats.services}   color="#6a1b9a" bg="#f3e5f5" />
       </div>
 
+      {/* ── Notification Analytics ── */}
+      <NotificationAnalytics onNavigate={onNavigate} />
+
+      {/* ── Recent activity tables ── */}
       <div className="row g-4">
         <div className="col-lg-7">
           <div className="page-card">

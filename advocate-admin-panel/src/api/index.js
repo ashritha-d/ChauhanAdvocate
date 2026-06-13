@@ -89,7 +89,8 @@ export const getPaymentRevenue = (from, to) => api.get(`/payments/revenue${from 
 export const exportPaymentsCsv = (status = '') => api.get(`/payments/export${status ? `?status=${status}` : ''}`, { responseType: 'blob' });
 
 // Notifications
-export const getNotificationCounts = () => api.get('/notifications/counts');
+export const getNotificationCounts    = ()           => api.get('/notifications/counts');
+export const getNotificationAnalytics = (params = '') => api.get(`/notifications/analytics${params ? `?${params}` : ''}`);
 
 // News
 export const getNews        = ()           => api.get('/news');

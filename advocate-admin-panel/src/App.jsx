@@ -44,7 +44,7 @@ function AdminApp() {
       <div className="admin-main">
         <Header page={page} onMenuClick={() => setMobileOpen(true)} onNavigate={setPage} />
         <div className="admin-content">
-          <PageComponent />
+          <PageComponent onNavigate={setPage} />
         </div>
       </div>
     </div>
