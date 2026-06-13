@@ -41,8 +41,6 @@ export default function VideoSlider({ id, label, title, subscribeHref, subscribe
                   <img
                     src={item.thumb}
                     alt={item.title}
-                    loading="lazy"
-                    decoding="async"
                     onError={e => {
                       const src = e.target.src;
                       // YouTube quality fallback chain
