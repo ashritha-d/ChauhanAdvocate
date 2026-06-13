@@ -3,7 +3,7 @@ import { getFacebookContent, createFacebookContent, updateFacebookContent, delet
 import ConfirmModal from '../components/ConfirmModal';
 
 const CATEGORIES = ['Video', 'Reel', 'Post', 'Live Video', 'Photo'];
-const EMPTY = { title: '', facebookUrl: '', description: '', category: 'Video', order: 0, isActive: true };
+const EMPTY = { title: '', facebookUrl: '', thumbnailUrl: '', description: '', category: 'Video', order: 0, isActive: true };
 const FB_PLACEHOLDER = 'https://placehold.co/320x180/1877f2/ffffff?text=Facebook+Post';
 const MEDIA_BASE = (import.meta.env.VITE_API_BASE || 'http://localhost:5000/api').replace('/api', '');
 
@@ -47,9 +47,18 @@ export default function FacebookContent() {
 
   const openEdit = p => {
     setEditing(p._id);
-    setForm({ title: p.title, facebookUrl: p.facebookUrl || '', description: p.description || '', category: p.category || 'Video', order: p.order ?? 0, isActive: p.isActive });
+    const isAbsolute = p.thumbnail && /^https?:\/\//i.test(p.thumbnail);
+    setForm({
+      title: p.title,
+      facebookUrl: p.facebookUrl || '',
+      thumbnailUrl: isAbsolute ? p.thumbnail : '',
+      description: p.description || '',
+      category: p.category || 'Video',
+      order: p.order ?? 0,
+      isActive: p.isActive,
+    });
     setThumbFile(null);
-    setThumbPreview(p.thumbnail ? MEDIA_BASE + p.thumbnail : '');
+    setThumbPreview(isAbsolute ? p.thumbnail : p.thumbnail ? MEDIA_BASE + p.thumbnail : '');
     setUrlError(''); setShowForm(true);
   };
 
@@ -84,6 +93,7 @@ export default function FacebookContent() {
       fd.append('order', form.order);
       fd.append('isActive', form.isActive);
       if (thumbFile) fd.append('thumbnail', thumbFile);
+      else if (form.thumbnailUrl) fd.append('thumbnailUrl', form.thumbnailUrl);
       if (editing) await updateFacebookContent(editing, fd);
       else await createFacebookContent(fd);
       showAlert('success', editing ? 'Content updated!' : 'Content added!');
@@ -99,7 +109,11 @@ export default function FacebookContent() {
     setConfirmId(null);
   };
 
-  const thumbUrl = p => p.thumbnail ? MEDIA_BASE + p.thumbnail : FB_PLACEHOLDER;
+  const thumbUrl = p => {
+    if (!p.thumbnail) return FB_PLACEHOLDER;
+    if (/^https?:\/\//i.test(p.thumbnail)) return p.thumbnail;
+    return MEDIA_BASE + p.thumbnail;
+  };
 
   if (loading) return <div className="text-center py-5"><div className="spinner-border" style={{ color: '#1877f2' }}></div></div>;
 
@@ -165,12 +179,30 @@ export default function FacebookContent() {
                 </div>
                 <div className="col-12">
                   <label className="form-label">Thumbnail Image <span className="text-muted fw-normal">(optional)</span></label>
+                  <div className="alert alert-warning py-2 px-3 mb-2" style={{ fontSize: '.82rem' }}>
+                    <i className="fas fa-exclamation-triangle me-1"></i>
+                    <strong>Use an image URL</strong> (recommended) — uploaded files are lost on server restarts. Paste a direct image link from Facebook, Imgur, Google Drive, etc.
+                  </div>
+                  <input
+                    type="url"
+                    className="form-control mb-2"
+                    placeholder="https://... (paste a direct image URL)"
+                    value={form.thumbnailUrl}
+                    onChange={e => {
+                      setForm(f => ({ ...f, thumbnailUrl: e.target.value }));
+                      setThumbPreview(e.target.value);
+                      setThumbFile(null);
+                      if (fileRef.current) fileRef.current.value = '';
+                    }}
+                  />
+                  <div className="text-muted small mb-2">— or upload a file —</div>
                   <input type="file" className="form-control" accept="image/*" ref={fileRef} onChange={handleThumbChange} />
                   {thumbPreview && (
                     <div className="mt-2">
-                      <img src={thumbPreview} alt="Preview" style={{ height: 100, objectFit: 'cover', borderRadius: 6, border: '1px solid #dee2e6' }} />
+                      <img src={thumbPreview} alt="Preview" style={{ height: 100, objectFit: 'cover', borderRadius: 6, border: '1px solid #dee2e6' }}
+                        onError={e => { e.target.style.display = 'none'; }} />
                       <button type="button" className="btn btn-sm btn-outline-danger ms-2 align-bottom"
-                        onClick={() => { setThumbFile(null); setThumbPreview(''); if (fileRef.current) fileRef.current.value = ''; }}>
+                        onClick={() => { setThumbFile(null); setThumbPreview(''); setForm(f => ({ ...f, thumbnailUrl: '' })); if (fileRef.current) fileRef.current.value = ''; }}>
                         <i className="fas fa-times"></i> Remove
                       </button>
                     </div>

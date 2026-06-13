@@ -2,8 +2,14 @@ export const API_BASE = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'h
 
 export const mediaUrl = (path) => {
   if (!path) return null;
+  // Already an absolute URL — return as-is (with https upgrade if needed)
+  if (/^https?:\/\//i.test(path)) {
+    if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+      return path.replace(/^http:\/\//, 'https://');
+    }
+    return path;
+  }
   const url = `${API_BASE}${path}`;
-  // Upgrade http → https when running on an https page (mixed content fix)
   if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
     return url.replace(/^http:\/\//, 'https://');
   }

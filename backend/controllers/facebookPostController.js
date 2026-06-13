@@ -24,12 +24,15 @@ exports.getAll = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { facebookUrl } = req.body;
+    const { facebookUrl, thumbnailUrl } = req.body;
     if (facebookUrl && !isValidFacebookUrl(facebookUrl)) {
       return res.status(400).json({ success: false, message: 'Invalid Facebook URL. Must be a facebook.com or fb.watch link.' });
     }
     const data = { ...req.body };
+    delete data.thumbnailUrl;
+    // File upload takes priority; fall back to pasted URL
     if (req.file) data.thumbnail = `/uploads/${req.file.filename}`;
+    else if (thumbnailUrl) data.thumbnail = thumbnailUrl;
     const post = await FacebookPost.create(data);
     res.status(201).json({ success: true, data: post });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
@@ -37,12 +40,14 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const { facebookUrl } = req.body;
+    const { facebookUrl, thumbnailUrl } = req.body;
     if (facebookUrl && !isValidFacebookUrl(facebookUrl)) {
       return res.status(400).json({ success: false, message: 'Invalid Facebook URL. Must be a facebook.com or fb.watch link.' });
     }
     const data = { ...req.body };
+    delete data.thumbnailUrl;
     if (req.file) data.thumbnail = `/uploads/${req.file.filename}`;
+    else if (thumbnailUrl) data.thumbnail = thumbnailUrl;
     const post = await FacebookPost.findByIdAndUpdate(req.params.id, data, { new: true, runValidators: true });
     if (!post) return res.status(404).json({ success: false, message: 'Not found' });
     res.json({ success: true, data: post });

@@ -44,14 +44,15 @@ export default function VideoSlider({ id, label, title, subscribeHref, subscribe
                     loading="lazy"
                     decoding="async"
                     onError={e => {
-                      // maxresdefault → sddefault → hqdefault → placeholder
                       const src = e.target.src;
+                      // YouTube quality fallback chain
                       if (src.includes('maxresdefault')) {
                         e.target.src = src.replace('maxresdefault', 'sddefault');
                       } else if (src.includes('sddefault')) {
                         e.target.src = src.replace('sddefault', 'hqdefault');
                       } else {
-                        e.target.src = 'https://placehold.co/320x180/1a1a2e/c9a84c?text=Video';
+                        // Hide broken img; the CSS fallback background will show instead
+                        e.target.style.display = 'none';
                       }
                     }}
                   />

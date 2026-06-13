@@ -428,7 +428,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .video-subscribe-btn:hover { opacity: 0.88; transform: translateY(-2px); color: #fff; }
 .video-card { min-width: 280px; max-width: 280px; text-decoration: none; display: block; border-radius: 12px; overflow: hidden; background: #1a1a1a; transition: transform 0.3s, box-shadow 0.3s; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
 .video-card:hover { transform: translateY(-5px); box-shadow: 0 14px 36px rgba(0,0,0,0.22); }
-.video-card-thumb { position: relative; aspect-ratio: 16/9; overflow: hidden; }
+.video-card-thumb { position: relative; aspect-ratio: 16/9; overflow: hidden; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%); }
 .video-card-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
 .video-card:hover .video-card-thumb img { transform: scale(1.06); }
 .video-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.28); }
