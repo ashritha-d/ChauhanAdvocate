@@ -21,9 +21,10 @@ export default function FacebookSection() {
       .then(r => {
         if (r.data?.success && r.data.data.length) {
           setPosts(r.data.data.map(p => ({
-            href: p.facebookUrl || '#',
-            title: p.title,
-            thumb: p.thumbnail ? mediaUrl(p.thumbnail) : FB_THUMB,
+            href:          p.facebookUrl || '#',
+            title:         p.title,
+            thumb:         p.thumbnail ? mediaUrl(p.thumbnail) : FB_THUMB,
+            fallbackThumb: FB_THUMB,
           })));
         }
       })

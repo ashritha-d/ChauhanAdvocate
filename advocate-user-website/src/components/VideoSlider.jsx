@@ -48,8 +48,9 @@ export default function VideoSlider({ id, label, title, subscribeHref, subscribe
                         e.target.src = src.replace('maxresdefault', 'sddefault');
                       } else if (src.includes('sddefault')) {
                         e.target.src = src.replace('sddefault', 'hqdefault');
+                      } else if (item.fallbackThumb && e.target.src !== item.fallbackThumb) {
+                        e.target.src = item.fallbackThumb;
                       } else {
-                        // Hide broken img; the CSS fallback background will show instead
                         e.target.style.display = 'none';
                       }
                     }}
