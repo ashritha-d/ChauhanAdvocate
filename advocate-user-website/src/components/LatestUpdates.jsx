@@ -103,7 +103,7 @@ export default function LatestUpdates() {
 
   const scroll = (dir) => trackRef.current?.scrollBy({ left: dir * 320, behavior: 'smooth' });
 
-  if (loading || items.length === 0) return null;
+  if (!loading && items.length === 0) return null;
 
   return (
     <section id="latest-updates" className="section-padding bg-light">
@@ -121,7 +121,16 @@ export default function LatestUpdates() {
         <div className="latest-slider-outer">
           <button className="slider-scroll-btn" onClick={() => scroll(-1)} aria-label="Scroll left">&#8249;</button>
           <div className="latest-scroll" ref={trackRef}>
-            {items.map((item, i) => {
+            {loading
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div className="skeleton-latest-card" key={i}>
+                    <div className="skeleton-shimmer skeleton-latest-img" />
+                    <div className="skeleton-shimmer skeleton-latest-line" style={{ width: '85%' }} />
+                    <div className="skeleton-shimmer skeleton-latest-line" style={{ width: '60%' }} />
+                    <div className="skeleton-shimmer skeleton-latest-btn" />
+                  </div>
+                ))
+              : items.map((item, i) => {
               const meta = TYPE_META[item.type];
               return (
                 <div className="latest-card" key={`${item.type}-${item.id}`} data-aos="fade-up" data-aos-delay={Math.min(i * 40, 200)}>

@@ -36,9 +36,6 @@ export default function Books() {
       .catch(() => setBooks([]));
   }, []);
 
-  // Hide section while in-flight so placeholder books never flash on first visit
-  if (books === null) return null;
-
   const handleOrderClick = (book) => {
     if (user) {
       setSelectedBook(book);
@@ -70,6 +67,7 @@ export default function Books() {
         title={<>Books for <span className="text-gold">Sale</span></>}
         description="Purchase our legal books and guides"
         items={items}
+        loading={books === null}
         bg="bg-white"
       />
 

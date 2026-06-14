@@ -1,6 +1,15 @@
 import { useRef } from 'react';
 
-export default function VideoSlider({ id, label, title, subscribeHref, subscribeText, subscribeIcon, subscribeColor, items, bg = 'bg-white' }) {
+function SkeletonVideoCards() {
+  return Array.from({ length: 4 }).map((_, i) => (
+    <div className="skeleton-video-card" key={i}>
+      <div className="skeleton-shimmer skeleton-video-thumb" />
+      <div className="skeleton-shimmer skeleton-video-title" />
+    </div>
+  ));
+}
+
+export default function VideoSlider({ id, label, title, subscribeHref, subscribeText, subscribeIcon, subscribeColor, items, loading = false, bg = 'bg-white' }) {
   const trackRef = useRef(null);
   const scroll = (dir) => trackRef.current?.scrollBy({ left: dir * 310, behavior: 'smooth' });
 
@@ -27,7 +36,7 @@ export default function VideoSlider({ id, label, title, subscribeHref, subscribe
         <div className="slider-outer">
           <button className="slider-scroll-btn" onClick={() => scroll(-1)} aria-label="Scroll left">&#8249;</button>
           <div className="slider-track" ref={trackRef}>
-            {items.map((item, i) => (
+            {loading ? <SkeletonVideoCards /> : items.map((item, i) => (
               <a
                 href={item.href}
                 target="_blank"

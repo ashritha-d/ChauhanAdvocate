@@ -1,6 +1,19 @@
 import { useRef } from 'react';
 
-export default function SliderSection({ id, label, title, description, items, bg = 'bg-white' }) {
+function SkeletonBookCards({ count = 3 }) {
+  return Array.from({ length: count }).map((_, i) => (
+    <div className="skeleton-book-card" key={i}>
+      <div className="skeleton-shimmer skeleton-book-img" />
+      <div className="skeleton-shimmer skeleton-book-line w90" />
+      <div className="skeleton-shimmer skeleton-book-line w65" />
+      <div className="skeleton-shimmer skeleton-book-line w80" />
+      <div className="skeleton-shimmer skeleton-book-line w50" />
+      <div className="skeleton-shimmer skeleton-book-btn" />
+    </div>
+  ));
+}
+
+export default function SliderSection({ id, label, title, description, items, loading = false, bg = 'bg-white' }) {
   const trackRef = useRef(null);
   const scroll = (dir) => trackRef.current?.scrollBy({ left: dir * 300, behavior: 'smooth' });
 
@@ -15,7 +28,7 @@ export default function SliderSection({ id, label, title, description, items, bg
         <div className="slider-outer">
           <button className="slider-scroll-btn" onClick={() => scroll(-1)} aria-label="Scroll left">&#8249;</button>
           <div className="slider-track" ref={trackRef}>
-            {items.map((item, i) => (
+            {loading ? <SkeletonBookCards /> : items.map((item, i) => (
               <div className="book-card" key={i} data-aos="fade-up" data-aos-delay={i * 60}>
                 <div className="book-card-img">
                   <img

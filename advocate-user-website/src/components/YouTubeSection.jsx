@@ -36,9 +36,6 @@ export default function YouTubeSection() {
       .catch(() => setVideos(FALLBACK));
   }, []);
 
-  // Hide section entirely while the API call is in-flight; avoids showing wrong videos
-  if (videos === null) return null;
-
   return (
     <VideoSlider
       id="youtube"
@@ -48,7 +45,8 @@ export default function YouTubeSection() {
       subscribeText="Subscribe for more"
       subscribeIcon="fab fa-youtube"
       subscribeColor="#ff0000"
-      items={videos}
+      items={videos || []}
+      loading={videos === null}
       bg="bg-light"
     />
   );

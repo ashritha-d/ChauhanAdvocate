@@ -41,9 +41,6 @@ export default function Drafts() {
       .catch(() => setItems([]));
   }, []);
 
-  // Hide section while in-flight so placeholder legal drafts never appear on first visit
-  if (items === null) return null;
-
   const fallback = [
     { img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`, title: 'Rental Agreement Draft', description: 'Standard rental agreement template for residential properties.', buttonText: 'Not Available', isButton: true, onClick: () => alert('This draft is not available yet. Please contact us.') },
     { img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`, title: 'Employment Contract Draft', description: 'Comprehensive employment contract template for employers.', buttonText: 'Not Available', isButton: true, onClick: () => alert('This draft is not available yet. Please contact us.') },
@@ -56,7 +53,8 @@ export default function Drafts() {
       label="Legal Templates"
       title={<>Legal <span className="text-gold">Drafts</span></>}
       description="Download ready-to-use legal draft templates"
-      items={items.length ? items : fallback}
+      items={items !== null && items.length ? items : fallback}
+      loading={items === null}
       bg="bg-light"
     />
   );
