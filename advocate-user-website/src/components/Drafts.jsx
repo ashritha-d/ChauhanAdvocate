@@ -19,7 +19,8 @@ function handleDownload(href, title) {
 }
 
 export default function Drafts() {
-  const [items, setItems] = useState([]);
+  // null = still fetching; avoids flashing placeholder drafts on first load
+  const [items, setItems] = useState(null);
 
   useEffect(() => {
     getDrafts()
@@ -33,10 +34,15 @@ export default function Drafts() {
             isButton: true,
             onClick: () => handleDownload(d.file ? mediaUrl(d.file) : null, d.title),
           })));
+        } else {
+          setItems([]);
         }
       })
-      .catch(() => {});
+      .catch(() => setItems([]));
   }, []);
+
+  // Hide section while in-flight so placeholder legal drafts never appear on first visit
+  if (items === null) return null;
 
   const fallback = [
     { img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`, title: 'Rental Agreement Draft', description: 'Standard rental agreement template for residential properties.', buttonText: 'Not Available', isButton: true, onClick: () => alert('This draft is not available yet. Please contact us.') },

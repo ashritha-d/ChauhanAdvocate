@@ -19,15 +19,25 @@ const FALLBACK = [
 export default function Books() {
   const { user } = useUserAuth();
   const navigate = useNavigate();
-  const [books, setBooks] = useState([]);
+  // null = still fetching; never show FALLBACK until the API call resolves
+  const [books, setBooks] = useState(null);
   const [selectedBook, setSelectedBook] = useState(null);
   const [gateBook, setGateBook] = useState(null);
 
   useEffect(() => {
     getBooks()
-      .then(r => { if (r.data?.success && r.data.data.length) setBooks(r.data.data); })
-      .catch(() => {});
+      .then(r => {
+        if (r.data?.success && r.data.data.length) {
+          setBooks(r.data.data);
+        } else {
+          setBooks([]);
+        }
+      })
+      .catch(() => setBooks([]));
   }, []);
+
+  // Hide section while in-flight so placeholder books never flash on first visit
+  if (books === null) return null;
 
   const handleOrderClick = (book) => {
     if (user) {
@@ -38,7 +48,7 @@ export default function Books() {
     }
   };
 
-  const items = books.length
+  const items = books && books.length
     ? books.map(b => ({
         img: b.image ? mediaUrl(b.image) : `${BASE}advc.jpeg`,
         title: b.name,

@@ -17,7 +17,8 @@ const FALLBACK = [
 }));
 
 export default function YouTubeSection() {
-  const [videos, setVideos] = useState(FALLBACK);
+  // null = still fetching; never pre-populate with FALLBACK so demo videos never flash on first load
+  const [videos, setVideos] = useState(null);
 
   useEffect(() => {
     getYouTubeVideos()
@@ -28,10 +29,15 @@ export default function YouTubeSection() {
             href: `https://youtu.be/${v.videoId}`,
             title: v.title,
           })));
+        } else {
+          setVideos(FALLBACK);
         }
       })
-      .catch(() => {});
+      .catch(() => setVideos(FALLBACK));
   }, []);
+
+  // Hide section entirely while the API call is in-flight; avoids showing wrong videos
+  if (videos === null) return null;
 
   return (
     <VideoSlider
