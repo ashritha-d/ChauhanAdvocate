@@ -14,16 +14,16 @@ const FALLBACK = [
 ];
 
 export default function Services() {
-  const [services, setServices] = useState([]);
-  const [loading, setLoading]   = useState(true);
+  // Start with FALLBACK so cards are visible immediately even while the server wakes up.
+  // Real data silently replaces them once the API responds.
+  const [services, setServices] = useState(FALLBACK);
   const trackRef = useRef(null);
   const scroll = (dir) => trackRef.current?.scrollBy({ left: dir * 300, behavior: 'smooth' });
 
   useEffect(() => {
     getServices()
-      .then(r => setServices(r.data.success && r.data.data.length ? r.data.data : FALLBACK))
-      .catch(() => setServices(FALLBACK))
-      .finally(() => setLoading(false));
+      .then(r => { if (r.data.success && r.data.data.length) setServices(r.data.data); })
+      .catch(() => {});
   }, []);
 
   return (
@@ -35,30 +35,24 @@ export default function Services() {
           <p className="section-subtitle">Comprehensive legal services across multiple areas of law</p>
         </div>
 
-        {loading ? (
-          <div className="text-center py-5">
-            <div className="spinner-border spinner-gold" role="status"></div>
+        <div className="slider-outer">
+          <button className="slider-scroll-btn" onClick={() => scroll(-1)} aria-label="Scroll left">&#8249;</button>
+          <div className="slider-track" ref={trackRef}>
+            {services.map((s, i) => (
+              <div className="service-card service-card-slide" key={s._id} data-aos="fade-up" data-aos-delay={i * 70}>
+                <div className="service-icon"><i className={s.icon || 'fas fa-balance-scale'}></i></div>
+                <h5>{s.title}</h5>
+                <p>{s.shortDescription || (s.description ? s.description.substring(0, 120) + '...' : '')}</p>
+                {s.features?.length > 0 && (
+                  <ul className="service-features mt-3">
+                    {s.features.map(f => <li key={f}>{f}</li>)}
+                  </ul>
+                )}
+              </div>
+            ))}
           </div>
-        ) : (
-          <div className="slider-outer">
-            <button className="slider-scroll-btn" onClick={() => scroll(-1)} aria-label="Scroll left">&#8249;</button>
-            <div className="slider-track" ref={trackRef}>
-              {services.map((s, i) => (
-                <div className="service-card service-card-slide" key={s._id} data-aos="fade-up" data-aos-delay={i * 70}>
-                  <div className="service-icon"><i className={s.icon || 'fas fa-balance-scale'}></i></div>
-                  <h5>{s.title}</h5>
-                  <p>{s.shortDescription || (s.description ? s.description.substring(0, 120) + '...' : '')}</p>
-                  {s.features?.length > 0 && (
-                    <ul className="service-features mt-3">
-                      {s.features.map(f => <li key={f}>{f}</li>)}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
-            <button className="slider-scroll-btn" onClick={() => scroll(1)} aria-label="Scroll right">&#8250;</button>
-          </div>
-        )}
+          <button className="slider-scroll-btn" onClick={() => scroll(1)} aria-label="Scroll right">&#8250;</button>
+        </div>
       </div>
     </section>
   );

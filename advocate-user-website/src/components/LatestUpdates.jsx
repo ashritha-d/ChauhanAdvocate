@@ -86,9 +86,13 @@ function buildItems(results) {
 export default function LatestUpdates() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [allFailed, setAllFailed] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
   const trackRef = useRef(null);
 
   useEffect(() => {
+    setLoading(true);
+    setAllFailed(false);
     Promise.allSettled([
       getYouTubeVideos(),
       getFacebookPosts(),
@@ -96,14 +100,43 @@ export default function LatestUpdates() {
       getDrafts(),
       getBooks(),
     ])
-      .then(results => setItems(buildItems(results)))
-      .catch(() => {})
+      .then(results => {
+        const built = buildItems(results);
+        setItems(built);
+        // All 5 sources rejected → server was unreachable (cold start / timeout)
+        if (built.length === 0 && results.every(r => r.status === 'rejected')) {
+          setAllFailed(true);
+        }
+      })
       .finally(() => setLoading(false));
-  }, []);
+  }, [retryKey]);
 
   const scroll = (dir) => trackRef.current?.scrollBy({ left: dir * 320, behavior: 'smooth' });
 
-  if (!loading && items.length === 0) return null;
+  // Genuinely no content in DB — hide section
+  if (!loading && items.length === 0 && !allFailed) return null;
+
+  // Server unreachable — keep section visible with a retry prompt
+  if (!loading && allFailed) {
+    return (
+      <section id="latest-updates" className="section-padding bg-light">
+        <div className="container-fluid px-3 px-md-4">
+          <div className="latest-header mb-4" data-aos="fade-right">
+            <span className="latest-badge">LATEST</span>
+            <h2 className="section-title d-inline ms-3 mb-0">
+              Latest <span className="text-gold">Updates</span>
+            </h2>
+          </div>
+          <div className="text-center py-4">
+            <p className="text-muted mb-3">Could not load latest updates — the server may still be starting up.</p>
+            <button className="btn btn-gold btn-sm" onClick={() => setRetryKey(k => k + 1)}>
+              <i className="fas fa-redo me-2"></i>Try Again
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="latest-updates" className="section-padding bg-light">
