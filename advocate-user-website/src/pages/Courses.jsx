@@ -20,15 +20,30 @@ export default function Courses() {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [slowLoad, setSlowLoad] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [previewCourse, setPreviewCourse] = useState(null);
 
-  useEffect(() => {
+  const fetchCourses = () => {
+    setLoading(true);
+    setSlowLoad(false);
+    const slowTimer = setTimeout(() => setSlowLoad(true), 5000);
     getPublicCourses()
       .then(r => { if (r.data.success) setCourses(r.data.data); })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+      .catch(() => {
+        // Auto-retry once after 10 seconds on failure (Render cold start)
+        setTimeout(() => {
+          getPublicCourses()
+            .then(r => { if (r.data.success) setCourses(r.data.data); })
+            .catch(() => {})
+            .finally(() => setLoading(false));
+        }, 10000);
+        return;
+      })
+      .finally(() => { clearTimeout(slowTimer); setLoading(false); });
+  };
+
+  useEffect(() => { fetchCourses(); }, []);
 
   const handleEnroll = (course) => {
     if (!user) {
@@ -58,6 +73,14 @@ export default function Courses() {
         {loading ? (
           <div className="text-center py-5">
             <div className="spinner-border" style={{ color: 'var(--gold)' }}></div>
+            {slowLoad && (
+              <div className="mt-3">
+                <p className="text-muted small mb-2">Server is starting up, please wait a moment…</p>
+                <button className="btn btn-sm btn-outline-secondary" onClick={fetchCourses}>
+                  <i className="fas fa-redo me-1"></i>Retry Now
+                </button>
+              </div>
+            )}
           </div>
         ) : courses.length === 0 ? (
           <div className="text-center py-5">
