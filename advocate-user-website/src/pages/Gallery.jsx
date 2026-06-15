@@ -65,10 +65,8 @@ export default function Gallery() {
                     key={img.filename}
                     className="gallery-item"
                     onClick={() => setLightbox(i)}
-                    data-aos="fade-up"
-                    data-aos-delay={Math.min(i * 40, 400)}
                   >
-                    <img src={img.url} alt={img.filename} loading="lazy" />
+                    <img src={img.url} alt={img.filename} loading="eager" />
                     <div className="gallery-item-overlay">
                       <i className="fas fa-expand-alt"></i>
                     </div>
