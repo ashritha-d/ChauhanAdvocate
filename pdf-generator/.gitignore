@@ -1,0 +1,5 @@
+node_modules/
+screenshots/
+guide.html
+*.pdf
+package-lock.json
