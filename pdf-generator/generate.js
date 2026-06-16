@@ -2,626 +2,795 @@ const puppeteer = require('puppeteer-core');
 const fs = require('fs');
 const path = require('path');
 
-const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-const BASE_URL = 'https://ashritha-d.github.io/ChauhanAdvocate';
-const OUT_DIR = path.join(__dirname, 'screenshots');
+const CHROME  = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const BASE    = 'https://ashritha-d.github.io/ChauhanAdvocate';
+const API     = 'https://chauhanadvocate.onrender.com/api';
+const SHOTS   = path.join(__dirname, 'screenshots');
 const PDF_OUT = path.join(__dirname, 'AdvocateChauhan_UserGuide.pdf');
 
-if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR);
+// Test account used only for capturing logged-in screenshots
+const TEST_USER = { name: 'PDF Guide', email: 'pdfguide2026@gmail.com', mobile: '9876543210', password: 'PdfGuide@2026' };
 
-async function shot(page, url, file, opts = {}) {
-  console.log(`  Screenshotting: ${url}`);
-  await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 }).catch(() =>
-    page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 })
-  );
-  await new Promise(r => setTimeout(r, 2500));
-  if (opts.scrollTo) await page.evaluate(y => window.scrollTo(0, y), opts.scrollTo);
-  await new Promise(r => setTimeout(r, 800));
-  const clip = opts.clip || null;
-  const p = path.join(OUT_DIR, file);
-  await page.screenshot({ path: p, fullPage: !clip, ...(clip ? { clip } : {}) });
+if (!fs.existsSync(SHOTS)) fs.mkdirSync(SHOTS, { recursive: true });
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ── Navigation ─────────────────────────────────────────────────────────────────
+async function goto(page, url) {
+  await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 })
+    .catch(() => page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 }));
+  await sleep(2500);
+}
+
+// ── Screenshot ─────────────────────────────────────────────────────────────────
+async function shot(page, name, opts = {}) {
+  const p = path.join(SHOTS, name);
+  await page.screenshot({ path: p, fullPage: !opts.clip && !opts.viewport, ...(opts.clip ? { clip: opts.clip } : {}), ...(opts.viewport ? { fullPage: false } : {}) });
+  console.log('  ✓', name);
   return p;
 }
 
-function img(filePath, caption = '', width = '100%') {
-  const rel = path.relative(__dirname, filePath).replace(/\\/g, '/');
-  const data = fs.readFileSync(filePath).toString('base64');
-  return `
-    <div class="screenshot-wrap">
-      <img src="data:image/png;base64,${data}" style="width:${width};border-radius:8px;border:1px solid #ddd;box-shadow:0 2px 12px rgba(0,0,0,.12);" />
-      ${caption ? `<p class="caption">${caption}</p>` : ''}
-    </div>`;
+// ── Scroll to section by ID ────────────────────────────────────────────────────
+async function scrollTo(page, id) {
+  await page.evaluate(id => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+  }, id);
+  await sleep(1000);
 }
 
-function section(num, title, color = '#1a1a2e') {
-  return `<div class="section-header" style="background:${color}">
-    <span class="sec-num">${num}</span>
-    <h2>${title}</h2>
-  </div>`;
+// ── Highlight button/element before screenshot ─────────────────────────────────
+async function highlight(page, selector, color = '#e74c3c') {
+  await page.evaluate((sel, c) => {
+    document.querySelectorAll('.__hl').forEach(e => e.remove());
+    const el = document.querySelector(sel);
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const ov = document.createElement('div');
+    ov.className = '__hl';
+    ov.style.cssText = `position:fixed;top:${r.top - 3}px;left:${r.left - 3}px;width:${r.width + 6}px;height:${r.height + 6}px;border:3px solid ${c};border-radius:6px;box-shadow:0 0 0 5px ${c}33;pointer-events:none;z-index:999999;`;
+    document.body.appendChild(ov);
+    // Arrow label
+    const lbl = document.createElement('div');
+    lbl.className = '__hl';
+    lbl.style.cssText = `position:fixed;top:${r.top - 30}px;left:${r.left}px;background:${c};color:#fff;font-size:12px;font-weight:700;padding:3px 10px;border-radius:4px;pointer-events:none;z-index:999999;font-family:sans-serif;`;
+    lbl.textContent = '▼ Click Here';
+    document.body.appendChild(lbl);
+  }, selector, color);
 }
 
-function tip(text) {
-  return `<div class="tip"><span class="tip-icon">💡</span> <strong>Tip:</strong> ${text}</div>`;
+async function clearHL(page) {
+  await page.evaluate(() => document.querySelectorAll('.__hl').forEach(e => e.remove()));
 }
 
-function note(text) {
-  return `<div class="note"><span>ℹ️</span> ${text}</div>`;
+// ── Open modal by clicking button with text ────────────────────────────────────
+async function clickText(page, text) {
+  await page.evaluate(txt => {
+    const el = Array.from(document.querySelectorAll('button,a,.btn')).find(e => e.textContent.trim().toLowerCase().includes(txt.toLowerCase()));
+    if (el) el.click();
+  }, text);
+  await sleep(1800);
 }
+
+// ── Auth: Register then Login using React-compatible input dispatch ────────────
+async function setReactInput(page, selector, value) {
+  await page.evaluate((sel, val) => {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(el, val);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }, selector, value);
+}
+
+async function authUser(page) {
+  console.log('\n── Authenticating ────────────────────────────────────────');
+
+  // Try register first
+  await goto(page, `${BASE}/register`);
+  await page.waitForSelector('.auth-input', { timeout: 8000 }).catch(() => {});
+  const regInputs = await page.$$('.auth-input');
+  if (regInputs.length >= 4) {
+    await setReactInput(page, '.auth-input:nth-of-type(1)', TEST_USER.name);
+    // set by index via evaluate
+    await page.evaluate((u) => {
+      const ins = document.querySelectorAll('.auth-input');
+      const set = (el, v) => {
+        if (!el) return;
+        Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set.call(el, v);
+        el.dispatchEvent(new Event('input',{bubbles:true}));
+      };
+      set(ins[0], u.name);
+      set(ins[1], u.email);
+      set(ins[2], u.mobile);
+      set(ins[3], u.password);
+      if (ins[4]) set(ins[4], u.password);
+    }, TEST_USER);
+    await sleep(300);
+    await page.click('button[type="submit"]');
+    await sleep(4000);
+    const token = await page.evaluate(() => localStorage.getItem('userToken'));
+    if (token) { console.log('  ✓ Registered & logged in'); await goto(page, `${BASE}/`); return; }
+  }
+
+  // Login with email identifier
+  await goto(page, `${BASE}/login`);
+  await page.waitForSelector('.auth-input', { timeout: 8000 }).catch(() => {});
+  await page.evaluate((u) => {
+    const ins = document.querySelectorAll('.auth-input');
+    const set = (el, v) => {
+      if (!el) return;
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set.call(el, v);
+      el.dispatchEvent(new Event('input',{bubbles:true}));
+    };
+    set(ins[0], u.email);   // use email as identifier
+    set(ins[1], u.password);
+  }, TEST_USER);
+  await sleep(300);
+  await page.click('button[type="submit"]');
+  await sleep(4000);
+  const token = await page.evaluate(() => localStorage.getItem('userToken'));
+  if (token) {
+    console.log('  ✓ Logged in successfully');
+  } else {
+    // Try with mobile as identifier
+    await goto(page, `${BASE}/login`);
+    await page.waitForSelector('.auth-input', { timeout: 5000 }).catch(() => {});
+    await page.evaluate((u) => {
+      const ins = document.querySelectorAll('.auth-input');
+      const set = (el, v) => {
+        if (!el) return;
+        Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set.call(el, v);
+        el.dispatchEvent(new Event('input',{bubbles:true}));
+      };
+      set(ins[0], u.mobile);
+      set(ins[1], u.password);
+    }, TEST_USER);
+    await sleep(300);
+    await page.click('button[type="submit"]');
+    await sleep(4000);
+    const token2 = await page.evaluate(() => localStorage.getItem('userToken'));
+    if (token2) { console.log('  ✓ Logged in (mobile)'); }
+    else { console.log('  ! Auth failed — showing public view screenshots'); }
+  }
+
+  await goto(page, `${BASE}/`);
+}
+
+// ── Embed image as base64 ──────────────────────────────────────────────────────
+function img(p, caption = '', width = '100%') {
+  if (!p || !fs.existsSync(p)) return '';
+  const b64 = fs.readFileSync(p).toString('base64');
+  return `<div class="sw"><img src="data:image/png;base64,${b64}" style="width:${width};max-width:100%;border-radius:8px;border:1px solid #ddd;box-shadow:0 2px 10px rgba(0,0,0,.1);"/>${caption ? `<p class="cap">${caption}</p>` : ''}</div>`;
+}
+
+function img2(p1, c1, p2, c2) {
+  return `<div class="sw2">${img(p1, c1, '100%')}${img(p2, c2, '100%')}</div>`;
+}
+
+// ── HTML helpers ───────────────────────────────────────────────────────────────
+const PB  = () => `<div class="pb"></div>`;
+const sec = (n, t) => `<div class="sh"><div class="sn">${n}</div><h2>${t}</h2></div>`;
+const h3  = t => `<h3>${t}</h3>`;
+const p   = t => `<p>${t}</p>`;
+const tip = t => `<div class="tip">💡 <strong>Tip:</strong> ${t}</div>`;
+const note= t => `<div class="note">ℹ️ ${t}</div>`;
 
 function steps(items) {
   return `<ol class="steps">${items.map(i => `<li>${i}</li>`).join('')}</ol>`;
 }
 
-function faq(q, a) {
-  return `<div class="faq-item"><div class="faq-q">❓ ${q}</div><div class="faq-a">${a}</div></div>`;
+function flow(...labels) {
+  return `<div class="flow">${labels.map((l,i) => `<span class="fs">${l}</span>${i < labels.length - 1 ? '<span class="fa">→</span>' : ''}`).join('')}</div>`;
 }
 
+function faq(q, a) {
+  return `<div class="faq"><div class="fq">❓ ${q}</div><div class="fa_">${a}</div></div>`;
+}
+
+function statusTable(rows) {
+  return `<table class="st"><tr><th>Status</th><th>Meaning</th></tr>${rows.map((r,i) => `<tr${i%2?' style="background:#f8f9fa"':''}><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>`;
+}
+
+function grid(...cards) {
+  return `<div class="g2">${cards.map(c => `<div class="gc"><div class="gi">${c.icon}</div><h4>${c.title}</h4><p>${c.desc}</p></div>`).join('')}</div>`;
+}
+
+function contact(...cards) {
+  return `<div class="cg">${cards.map(c => `<div class="cc"><div class="ci">${c.icon}</div><h4>${c.title}</h4><p>${c.text}</p></div>`).join('')}</div>`;
+}
+
+// ── CSS ────────────────────────────────────────────────────────────────────────
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', sans-serif; color: #222; background: #fff; font-size: 13px; line-height: 1.65; }
-  h1,h2,h3,h4 { font-family: 'Playfair Display', serif; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;color:#222;background:#fff;font-size:13px;line-height:1.65;}
+  h1,h2,h3{font-family:'Playfair Display',serif;}
+
+  /* Page breaks */
+  .pb{break-before:page;page-break-before:always;height:0;display:block;}
 
   /* Cover */
-  .cover { page-break-after: always; min-height: 100vh; background: linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:60px 40px; }
-  .cover .logo-circle { width:120px;height:120px;background:linear-gradient(135deg,#c9a84c,#a8893a);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 30px;font-size:52px; }
-  .cover h1 { color:#c9a84c; font-size:36px; margin-bottom:12px; line-height:1.2; }
-  .cover h2 { color:#fff; font-size:20px; font-weight:300; margin-bottom:30px; }
-  .cover .divider { width:80px;height:3px;background:#c9a84c;margin:20px auto; }
-  .cover p { color:rgba(255,255,255,.75); font-size:14px; max-width:480px; }
-  .cover .badge { display:inline-block;background:rgba(201,168,76,.15);border:1px solid #c9a84c;color:#c9a84c;padding:6px 20px;border-radius:20px;font-size:13px;margin-top:40px; }
+  .cover{min-height:100vh;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 40px;}
+  .lc{width:110px;height:110px;background:linear-gradient(135deg,#c9a84c,#a8893a);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 28px;font-size:48px;}
+  .cover h1{color:#c9a84c;font-size:36px;margin-bottom:10px;line-height:1.2;}
+  .cover h2{color:#fff;font-size:19px;font-weight:300;margin-bottom:28px;}
+  .cover .dv{width:70px;height:3px;background:#c9a84c;margin:18px auto;}
+  .cover p{color:rgba(255,255,255,.75);font-size:13px;max-width:480px;}
+  .cover .badge{display:inline-block;background:rgba(201,168,76,.15);border:1px solid #c9a84c;color:#c9a84c;padding:5px 18px;border-radius:20px;font-size:12px;margin-top:36px;}
 
   /* TOC */
-  .toc { padding: 50px 60px; }
-  .toc h2 { font-size:28px;color:#1a1a2e;border-bottom:3px solid #c9a84c;padding-bottom:12px;margin-bottom:30px; }
-  .toc ol { list-style:none;padding:0; }
-  .toc ol li { display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed #e0e0e0;font-size:14px; }
-  .toc ol li span.toc-title { color:#1a1a2e;font-weight:500; }
-  .toc ol li span.toc-pg { color:#c9a84c;font-weight:600; }
-  .toc ol li .toc-num { background:#1a1a2e;color:#c9a84c;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-right:14px;flex-shrink:0; }
+  .toc{padding:48px 55px;}
+  .toc h2{font-size:26px;color:#1a1a2e;border-bottom:3px solid #c9a84c;padding-bottom:12px;margin-bottom:26px;}
+  .ti{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed #e0e0e0;font-size:13px;}
+  .tl{display:flex;align-items:center;gap:10px;}
+  .tn{background:#1a1a2e;color:#c9a84c;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+  .tp{color:#c9a84c;font-weight:700;font-size:14px;}
 
   /* Pages */
-  .page { padding: 40px 55px; page-break-before: always; }
-  .page:first-of-type { page-break-before: avoid; }
+  .page{padding:36px 52px;}
 
   /* Section header */
-  .section-header { display:flex;align-items:center;gap:16px;padding:20px 24px;border-radius:10px;margin-bottom:24px; }
-  .section-header h2 { color:#fff;font-size:22px;margin:0; }
-  .sec-num { background:#c9a84c;color:#1a1a2e;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0; }
+  .sh{display:flex;align-items:center;gap:14px;padding:18px 22px;border-radius:10px;margin-bottom:22px;background:#1a1a2e;}
+  .sh h2{color:#fff;font-size:21px;margin:0;}
+  .sn{background:#c9a84c;color:#1a1a2e;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;}
 
-  /* Content */
-  p { margin-bottom:12px;color:#444; }
-  h3 { color:#1a1a2e;font-size:16px;margin:20px 0 10px;border-left:4px solid #c9a84c;padding-left:12px; }
-  h4 { color:#c9a84c;font-size:14px;margin:16px 0 8px;text-transform:uppercase;letter-spacing:.5px; }
+  /* Typography */
+  p{margin-bottom:11px;color:#444;}
+  h3{color:#1a1a2e;font-size:14px;margin:18px 0 9px;border-left:4px solid #c9a84c;padding-left:11px;font-family:'Playfair Display',serif;}
+  h4{color:#1a1a2e;font-size:13px;margin:12px 0 6px;font-weight:600;}
 
   /* Steps */
-  .steps { padding-left:0;list-style:none;counter-reset:step;margin:16px 0; }
-  .steps li { counter-increment:step;display:flex;align-items:flex-start;gap:14px;margin-bottom:12px;padding:12px 16px;background:#f8f9fa;border-radius:8px;border-left:3px solid #c9a84c; }
-  .steps li::before { content:counter(step);background:#1a1a2e;color:#c9a84c;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0; }
+  .steps{padding-left:0;list-style:none;counter-reset:step;margin:14px 0;}
+  .steps li{counter-increment:step;display:flex;align-items:flex-start;gap:12px;margin-bottom:9px;padding:10px 14px;background:#f8f9fa;border-radius:8px;border-left:3px solid #c9a84c;}
+  .steps li::before{content:counter(step);background:#1a1a2e;color:#c9a84c;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
 
   /* Screenshot */
-  .screenshot-wrap { margin:20px 0;text-align:center; }
-  .caption { font-size:12px;color:#888;margin-top:8px;font-style:italic; }
+  .sw{margin:14px 0;text-align:center;}
+  .sw2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;}
+  .cap{font-size:11px;color:#888;margin-top:6px;font-style:italic;}
 
   /* Tip / Note */
-  .tip { background:#fffbea;border-left:4px solid #c9a84c;padding:12px 16px;border-radius:6px;margin:16px 0;font-size:13px;color:#555; }
-  .tip-icon { font-size:16px; }
-  .note { background:#e8f4fd;border-left:4px solid #1a6fc4;padding:12px 16px;border-radius:6px;margin:16px 0;font-size:13px;color:#1a3a5c; }
+  .tip{background:#fffbea;border-left:4px solid #c9a84c;padding:10px 14px;border-radius:6px;margin:13px 0;font-size:12px;color:#555;}
+  .note{background:#e8f4fd;border-left:4px solid #1a6fc4;padding:10px 14px;border-radius:6px;margin:13px 0;font-size:12px;color:#1a3a5c;}
 
-  /* Feature grid */
-  .feature-grid { display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0; }
-  .feature-card { background:#f8f9fa;border-radius:10px;padding:16px;border-top:3px solid #c9a84c; }
-  .feature-card .icon { font-size:24px;margin-bottom:8px; }
-  .feature-card h4 { color:#1a1a2e;margin:0 0 6px;font-size:13px;text-transform:none; }
-  .feature-card p { font-size:12px;color:#666;margin:0; }
+  /* Flow strip */
+  .flow{display:flex;align-items:center;gap:6px;margin:13px 0;flex-wrap:wrap;}
+  .fs{background:#1a1a2e;color:#c9a84c;padding:5px 12px;border-radius:16px;font-size:11px;font-weight:600;}
+  .fa{color:#c9a84c;font-weight:700;}
+
+  /* Grid */
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;}
+  .gc{background:#f8f9fa;border-radius:10px;padding:14px;border-top:3px solid #c9a84c;}
+  .gi{font-size:20px;margin-bottom:7px;}
+  .gc h4{color:#1a1a2e;margin:0 0 5px;font-size:13px;}
+  .gc p{font-size:12px;color:#666;margin:0;}
+
+  /* Status table */
+  .st{width:100%;border-collapse:collapse;margin:12px 0;font-size:12px;}
+  .st th{background:#1a1a2e;color:#c9a84c;padding:9px 10px;text-align:left;}
+  .st td{padding:8px 10px;border-bottom:1px solid #eee;}
 
   /* FAQ */
-  .faq-item { margin-bottom:20px; }
-  .faq-q { font-weight:600;color:#1a1a2e;margin-bottom:6px;font-size:14px; }
-  .faq-a { color:#555;padding-left:20px;border-left:2px solid #c9a84c; }
+  .faq{margin-bottom:16px;}
+  .fq{font-weight:600;color:#1a1a2e;margin-bottom:5px;font-size:13px;}
+  .fa_{color:#555;padding-left:16px;border-left:2px solid #c9a84c;font-size:12px;}
 
   /* Contact */
-  .contact-grid { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0; }
-  .contact-card { background:#1a1a2e;color:#fff;border-radius:10px;padding:20px;text-align:center; }
-  .contact-card .icon { font-size:28px;margin-bottom:10px; }
-  .contact-card h4 { color:#c9a84c;margin-bottom:6px;font-size:13px;text-transform:none; }
-  .contact-card p { font-size:13px;color:rgba(255,255,255,.8);margin:0; }
+  .cg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;}
+  .cc{background:#1a1a2e;color:#fff;border-radius:10px;padding:16px;text-align:center;}
+  .ci{font-size:24px;margin-bottom:7px;}
+  .cc h4{color:#c9a84c;margin-bottom:4px;font-size:12px;}
+  .cc p{font-size:12px;color:rgba(255,255,255,.8);margin:0;}
+
+  /* Footer */
+  .foot{margin-top:22px;padding-top:9px;border-top:1px solid #eee;display:flex;justify-content:space-between;color:#aaa;font-size:10px;}
 
   /* Thank you */
-  .thankyou { page-break-before:always;min-height:60vh;background:linear-gradient(135deg,#1a1a2e,#0f3460);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px;border-radius:0; }
-  .thankyou h1 { color:#c9a84c;font-size:32px;margin-bottom:16px; }
-  .thankyou p { color:rgba(255,255,255,.85);font-size:15px;max-width:500px;line-height:1.8; }
-  .thankyou .seal { font-size:60px;margin-bottom:20px; }
+  .ty{min-height:70vh;background:linear-gradient(135deg,#1a1a2e,#0f3460);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px;}
+  .ty h1{color:#c9a84c;font-size:30px;margin-bottom:12px;}
+  .ty p{color:rgba(255,255,255,.85);font-size:14px;max-width:500px;line-height:1.8;}
+  .ty .seal{font-size:56px;margin-bottom:18px;}
 
-  /* Footer on each page */
-  .page-footer { margin-top:30px;padding-top:12px;border-top:1px solid #eee;display:flex;justify-content:space-between;color:#aaa;font-size:11px; }
-
-  @media print {
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .page { page-break-before: always; }
-    .cover { page-break-after: always; }
-  }
+  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
 `;
 
+// ── MAIN ───────────────────────────────────────────────────────────────────────
 async function main() {
-  console.log('Launching browser...');
+  console.log('Launching Chrome...');
   const browser = await puppeteer.launch({
-    executablePath: CHROME_PATH,
+    executablePath: CHROME,
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1280,900'],
+    args: ['--no-sandbox','--disable-setuid-sandbox','--window-size=1280,900'],
   });
 
   const page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 900 });
-
-  const shots = {};
+  const S = {};
 
   try {
-    console.log('\nTaking screenshots...');
+    console.log('\n── Homepage ──────────────────────────────────────────────');
+    await goto(page, `${BASE}/`);
+    S.hero   = await shot(page, 'hero.png',   { clip: { x:0, y:0, width:1280, height:700 } });
+    S.home   = await shot(page, 'home.png');
 
-    shots.home = await shot(page, `${BASE_URL}/`, 'home.png');
-    shots.homeHero = await shot(page, `${BASE_URL}/`, 'home_hero.png', { clip: { x: 0, y: 0, width: 1280, height: 600 } });
-    shots.login = await shot(page, `${BASE_URL}/login`, 'login.png');
-    shots.register = await shot(page, `${BASE_URL}/register`, 'register.png');
-    shots.courses = await shot(page, `${BASE_URL}/courses`, 'courses.png');
-    shots.gallery = await shot(page, `${BASE_URL}/gallery`, 'gallery.png');
-    shots.news = await shot(page, `${BASE_URL}/news`, 'news.png');
+    // ── Login so modals show the actual forms ────────────────────────────────
+    await authUser(page);
 
-    // Scroll to appointments section on home
-    await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {});
-    await new Promise(r => setTimeout(r, 2000));
+    // ── Appointment section card ─────────────────────────────────────────────
+    console.log('\n── Appointment Section ───────────────────────────────────');
+    await goto(page, `${BASE}/`);
+    await scrollTo(page, 'appointment');
+    S.apptSection = await shot(page, 'appt_section.png', { viewport: true });
+
+    // Highlight the "Proceed to Payment" / book button
+    await highlight(page, '.btn-gold');
+    S.apptSectionHL = await shot(page, 'appt_section_hl.png', { viewport: true });
+    await clearHL(page);
+
+    // Open appointment modal via header button
+    await goto(page, `${BASE}/`);
+    await sleep(1000);
     await page.evaluate(() => {
-      const el = document.querySelector('#appointment') || document.querySelector('[id*="appoint"]') || document.querySelector('section:nth-of-type(4)');
-      if (el) el.scrollIntoView({ behavior: 'instant' });
+      const btn = Array.from(document.querySelectorAll('button,.btn')).find(e =>
+        e.textContent.trim().toLowerCase().includes('book an appointment'));
+      if (btn) btn.click();
     });
-    await new Promise(r => setTimeout(r, 1000));
-    shots.appt = await page.screenshot({ path: path.join(OUT_DIR, 'appointment.png') });
-    shots.appt = path.join(OUT_DIR, 'appointment.png');
+    await page.waitForSelector('.appointment-modal, .appt-modal, [class*="appointment"]', { timeout: 6000 }).catch(() => sleep(2000));
+    await sleep(800);
+    S.apptModal = await shot(page, 'appt_modal.png', { viewport: true });
 
-    // Books section
-    await page.evaluate(() => {
-      const el = document.querySelector('#books') || document.querySelector('[id*="book"]') || document.querySelector('section:nth-of-type(6)');
-      if (el) el.scrollIntoView({ behavior: 'instant' });
-    });
-    await new Promise(r => setTimeout(r, 1000));
-    shots.books = await page.screenshot({ path: path.join(OUT_DIR, 'books.png') });
-    shots.books = path.join(OUT_DIR, 'books.png');
+    // Highlight the service dropdown inside modal
+    await highlight(page, '.appt-type-card, select, .form-select', '#c9a84c');
+    S.apptModalHL = await shot(page, 'appt_modal_hl.png', { viewport: true });
+    await clearHL(page);
 
-    // Contact section
+    // ── Books section ────────────────────────────────────────────────────────
+    console.log('\n── Books Section ─────────────────────────────────────────');
+    await goto(page, `${BASE}/`);
+    await scrollTo(page, 'books');
+    // Wait for book cards to load
+    await page.waitForSelector('.book-card', { timeout: 10000 }).catch(() => {});
+    await sleep(1000);
+    S.booksSection = await shot(page, 'books_section.png', { viewport: true });
+
+    // Highlight "Order Now" on first available book card
+    await highlight(page, '.book-card .btn-gold:not([disabled])');
+    S.bookCardHL = await shot(page, 'book_card_hl.png', { viewport: true });
+    await clearHL(page);
+
+    // Click Order Now — wait for .order-modal to appear
     await page.evaluate(() => {
-      const el = document.querySelector('#contact') || document.querySelector('[id*="contact"]');
-      if (el) el.scrollIntoView({ behavior: 'instant' });
+      const btn = document.querySelector('.book-card .btn-gold:not([disabled])');
+      if (btn) btn.click();
     });
-    await new Promise(r => setTimeout(r, 1000));
-    shots.contact = await page.screenshot({ path: path.join(OUT_DIR, 'contact.png') });
-    shots.contact = path.join(OUT_DIR, 'contact.png');
+    await page.waitForSelector('.order-modal', { timeout: 8000 }).catch(() => sleep(2000));
+    await sleep(800);
+    S.orderModal = await shot(page, 'order_modal.png', { viewport: true });
+
+    // ── Courses page ─────────────────────────────────────────────────────────
+    console.log('\n── Courses Page ──────────────────────────────────────────');
+    await goto(page, `${BASE}/courses`);
+    S.coursesPage = await shot(page, 'courses_page.png', { viewport: true });
+    S.coursesFull = await shot(page, 'courses_full.png');
+
+    // Highlight Enroll button
+    await highlight(page, '.course-card-footer .btn-gold, .course-card .btn-gold');
+    S.courseCardHL = await shot(page, 'course_card_hl.png', { viewport: true });
+    await clearHL(page);
+
+    // Click Enroll to open enroll modal
+    await clickText(page, 'Enroll');
+    await sleep(2000);
+    S.enrollModal = await shot(page, 'enroll_modal.png', { viewport: true });
+
+    // ── Login / Register pages ───────────────────────────────────────────────
+    console.log('\n── Auth Pages ────────────────────────────────────────────');
+    await goto(page, `${BASE}/login`);
+    S.login = await shot(page, 'login.png');
+
+    await goto(page, `${BASE}/register`);
+    S.register = await shot(page, 'register.png');
+
+    // ── Gallery / News / Contact ─────────────────────────────────────────────
+    console.log('\n── Other Pages ───────────────────────────────────────────');
+    await goto(page, `${BASE}/gallery`);
+    S.gallery = await shot(page, 'gallery.png', { viewport: true });
+
+    await goto(page, `${BASE}/news`);
+    S.news = await shot(page, 'news.png', { viewport: true });
+
+    await goto(page, `${BASE}/`);
+    await page.evaluate(() => {
+      const el = document.getElementById('contact') || Array.from(document.querySelectorAll('section')).find(s => s.textContent.toLowerCase().includes('contact us'));
+      if (el) el.scrollIntoView({ behavior:'instant', block:'start' });
+    });
+    await sleep(1000);
+    S.contact = await shot(page, 'contact.png', { viewport: true });
 
   } catch (e) {
-    console.error('Screenshot error:', e.message);
+    console.error('\nScreenshot error:', e.message);
   }
 
-  console.log('\nGenerating HTML...');
+  // ── Build HTML ───────────────────────────────────────────────────────────────
+  console.log('\nBuilding HTML...');
 
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Advocate Chauhan - User Guide</title>
+<title>Advocate Chauhan — User Guide</title>
 <style>${CSS}</style>
 </head>
 <body>
 
-<!-- COVER PAGE -->
+<!-- ═══════════════════════ COVER ═══════════════════════ -->
 <div class="cover">
-  <div class="logo-circle">⚖️</div>
+  <div class="lc">⚖️</div>
   <h1>Website User Manual &amp;<br/>Getting Started Guide</h1>
   <h2>Advocate Chauhan — Expert Legal Services</h2>
-  <div class="divider"></div>
-  <p>A complete guide to help you book appointments, order books, enroll in courses, and manage your account on our platform.</p>
-  <div class="badge">Version 1.0 &nbsp;•&nbsp; June 2026</div>
+  <div class="dv"></div>
+  <p>A complete step-by-step guide for booking appointments, ordering books, enrolling in courses, and managing your account.</p>
+  <div class="badge">Version 2.0 &nbsp;•&nbsp; June 2026</div>
 </div>
 
-<!-- TABLE OF CONTENTS -->
+${PB()}
+
+<!-- ═══════════════════════ TOC ═══════════════════════ -->
 <div class="toc">
   <h2>Table of Contents</h2>
-  <ol>
-    <li><span><span class="toc-num">1</span><span class="toc-title">Welcome &amp; Introduction</span></span><span class="toc-pg">3</span></li>
-    <li><span><span class="toc-num">2</span><span class="toc-title">User Registration</span></span><span class="toc-pg">4</span></li>
-    <li><span><span class="toc-num">3</span><span class="toc-title">User Login</span></span><span class="toc-pg">5</span></li>
-    <li><span><span class="toc-num">4</span><span class="toc-title">Dashboard Overview</span></span><span class="toc-pg">6</span></li>
-    <li><span><span class="toc-num">5</span><span class="toc-title">Book an Appointment</span></span><span class="toc-pg">7</span></li>
-    <li><span><span class="toc-num">6</span><span class="toc-title">Order Books</span></span><span class="toc-pg">9</span></li>
-    <li><span><span class="toc-num">7</span><span class="toc-title">Enroll in Courses</span></span><span class="toc-pg">11</span></li>
-    <li><span><span class="toc-num">8</span><span class="toc-title">Payments</span></span><span class="toc-pg">12</span></li>
-    <li><span><span class="toc-num">9</span><span class="toc-title">Profile Management</span></span><span class="toc-pg">13</span></li>
-    <li><span><span class="toc-num">10</span><span class="toc-title">Notifications &amp; Status Tracking</span></span><span class="toc-pg">14</span></li>
-    <li><span><span class="toc-num">11</span><span class="toc-title">Frequently Asked Questions</span></span><span class="toc-pg">15</span></li>
-    <li><span><span class="toc-num">12</span><span class="toc-title">Contact Support</span></span><span class="toc-pg">16</span></li>
-  </ol>
+  ${[
+    ['1','Welcome & Introduction','3'],
+    ['2','User Registration','4'],
+    ['3','User Login','5'],
+    ['4','Dashboard Overview','6'],
+    ['5','Book an Appointment','7'],
+    ['6','Order Books','9'],
+    ['7','Enroll in Courses','11'],
+    ['8','Payments','13'],
+    ['9','Profile Management','14'],
+    ['10','Notifications & Tracking','15'],
+    ['11','Frequently Asked Questions','16'],
+    ['12','Contact Support','17'],
+  ].map(([n,t,pg]) => `<div class="ti"><div class="tl"><span class="tn">${n}</span><span>${t}</span></div><span class="tp">${pg}</span></div>`).join('')}
 </div>
 
-<!-- SECTION 1: WELCOME -->
+${PB()}
+
+<!-- ═══════════════════════ S1: WELCOME ═══════════════════════ -->
 <div class="page">
-  ${section(1, 'Welcome &amp; Introduction')}
-  <p>Welcome to <strong>Advocate Chauhan's official website</strong> — your trusted online platform for expert legal services, legal education, and professional support. This guide will walk you through every feature of the platform so you can get started quickly and easily.</p>
-  ${shots.homeHero ? img(shots.homeHero, 'Homepage — Advocate Chauhan') : ''}
-  <h3>What You Can Do on This Platform</h3>
-  <div class="feature-grid">
-    <div class="feature-card">
-      <div class="icon">📅</div>
-      <h4>Book Appointments</h4>
-      <p>Schedule in-person or online legal consultations with Advocate Chauhan at your preferred date and time.</p>
-    </div>
-    <div class="feature-card">
-      <div class="icon">📚</div>
-      <h4>Order Legal Books</h4>
-      <p>Browse and purchase legal books and study materials authored or recommended by the advocate.</p>
-    </div>
-    <div class="feature-card">
-      <div class="icon">🎓</div>
-      <h4>Enroll in Courses</h4>
-      <p>Access online legal courses, video lectures, and downloadable study resources.</p>
-    </div>
-    <div class="feature-card">
-      <div class="icon">🔔</div>
-      <h4>Track Everything</h4>
-      <p>Monitor appointment status, order delivery, and course progress from one unified dashboard.</p>
-    </div>
-  </div>
-  ${tip('Bookmark the website so you can easily return: <strong>https://ashritha-d.github.io/ChauhanAdvocate/</strong>')}
-  <div class="page-footer"><span>Advocate Chauhan — User Guide</span><span>Page 3</span></div>
+  ${sec(1,'Welcome &amp; Introduction')}
+  ${p('Welcome to <strong>Advocate Chauhan\'s official website</strong> — your trusted platform for expert legal consultations, legal education, and professional support. This guide walks you through every feature so you can get started quickly.')}
+  ${S.hero ? img(S.hero,'Homepage — Advocate Chauhan. Your Trusted Legal Partner Since 2009') : ''}
+  ${h3('What You Can Do on This Platform')}
+  ${grid(
+    {icon:'📅',title:'Book Appointments',desc:'Schedule online or in-person legal consultations at your preferred date and time.'},
+    {icon:'📚',title:'Order Legal Books',desc:'Browse and purchase legal books and study materials.'},
+    {icon:'🎓',title:'Enroll in Courses',desc:'Access online legal courses with video lectures and downloadable resources.'},
+    {icon:'🔔',title:'Track Everything',desc:'Monitor appointment status, orders, and courses from one dashboard.'},
+  )}
+  ${tip('Bookmark the website: <strong>https://ashritha-d.github.io/ChauhanAdvocate/</strong>')}
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 3</span></div>
 </div>
 
-<!-- SECTION 2: REGISTRATION -->
+${PB()}
+
+<!-- ═══════════════════════ S2: REGISTRATION ═══════════════════════ -->
 <div class="page">
-  ${section(2, 'User Registration')}
-  <p>Creating an account is free and takes less than 2 minutes. You need an account to book appointments, order books, and enroll in courses.</p>
-  ${shots.register ? img(shots.register, 'Registration Page') : ''}
-  <h3>Step-by-Step Registration</h3>
+  ${sec(2,'User Registration')}
+  ${p('Creating an account is free and takes less than 2 minutes. You need an account to book appointments, order books, and enroll in courses.')}
+  ${S.register ? img(S.register,'Registration Page — fill in your details to create a free account') : ''}
+  ${h3('Step-by-Step Registration')}
   ${steps([
-    'Open the website and click the <strong>"Register"</strong> or <strong>"Sign Up"</strong> button in the top navigation bar.',
-    'Enter your <strong>Full Name</strong> as you want it to appear on your profile and receipts.',
-    'Enter your <strong>Email Address</strong> — this will be used for login and notifications.',
-    'Enter your <strong>Mobile Number</strong> — used for WhatsApp appointment notifications.',
-    'Create a strong <strong>Password</strong> (minimum 6 characters — mix letters and numbers).',
-    'Click <strong>"Create Account"</strong> to complete registration.',
-    'You will be automatically logged in and redirected to the dashboard.',
+    'Open the website and click <strong>"Register"</strong> in the top navigation bar.',
+    'Enter your <strong>Full Name</strong> as it should appear on receipts.',
+    'Enter your <strong>Email Address</strong> — used for login and email receipts.',
+    'Enter your <strong>Mobile Number</strong> — used for WhatsApp notifications.',
+    'Create a <strong>Password</strong> (minimum 6 characters).',
+    'Click <strong>"Create Account"</strong>.',
+    'You are automatically logged in and redirected to the dashboard.',
   ])}
-  ${tip('Use a mobile number that has WhatsApp — you will receive appointment confirmations and updates via WhatsApp.')}
-  ${note('Your information is kept private and secure. We do not share personal data with third parties.')}
-  <div class="page-footer"><span>Advocate Chauhan — User Guide</span><span>Page 4</span></div>
+  ${tip('Use a mobile number that has WhatsApp — you will receive real-time appointment confirmations and order updates there.')}
+  ${note('Your personal information is kept private and secure. We never share it with third parties.')}
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 4</span></div>
 </div>
 
-<!-- SECTION 3: LOGIN -->
+${PB()}
+
+<!-- ═══════════════════════ S3: LOGIN ═══════════════════════ -->
 <div class="page">
-  ${section(3, 'User Login')}
-  <p>Once registered, you can log in anytime to access your dashboard, appointments, orders, and courses.</p>
-  ${shots.login ? img(shots.login, 'Login Page') : ''}
-  <h3>Step-by-Step Login</h3>
+  ${sec(3,'User Login')}
+  ${p('Once registered, log in anytime to access your dashboard, appointments, orders, and courses.')}
+  ${S.login ? img(S.login,'Login Page — enter your registered email and password') : ''}
+  ${h3('Step-by-Step Login')}
   ${steps([
     'Click <strong>"Login"</strong> in the top navigation bar.',
-    'Enter your registered <strong>Email Address</strong> or <strong>Mobile Number</strong>.',
+    'Enter your registered <strong>Email Address</strong>.',
     'Enter your <strong>Password</strong>.',
-    'Click <strong>"Login"</strong> — you will be redirected to your personal dashboard.',
+    'Click <strong>"Login"</strong> — you are redirected to your dashboard.',
   ])}
-  <h3>Forgot Your Password?</h3>
+  ${h3('Forgot Your Password?')}
   ${steps([
     'Click <strong>"Forgot Password?"</strong> on the login page.',
-    'Enter your registered email address.',
-    'Click <strong>"Send Reset Link"</strong>.',
-    'Check your email inbox and follow the link to create a new password.',
+    'Enter your registered email and click <strong>"Send Reset Link"</strong>.',
+    'Check your inbox and follow the link to set a new password.',
   ])}
-  ${tip('Stay logged in by checking "Remember me" so you do not have to log in every time.')}
-  <div class="page-footer"><span>Advocate Chauhan — User Guide</span><span>Page 5</span></div>
+  ${tip('Check "Remember me" to stay logged in so you don\'t need to log in every visit.')}
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 5</span></div>
 </div>
 
-<!-- SECTION 4: DASHBOARD -->
+${PB()}
+
+<!-- ═══════════════════════ S4: DASHBOARD ═══════════════════════ -->
 <div class="page">
-  ${section(4, 'Dashboard Overview')}
-  <p>After logging in, you land on your personal dashboard — the central hub for all your activities on the platform.</p>
-  <h3>Dashboard Sections</h3>
-  <div class="feature-grid">
-    <div class="feature-card">
-      <div class="icon">👤</div>
-      <h4>Profile</h4>
-      <p>View and update your personal information, photo, and password.</p>
-    </div>
-    <div class="feature-card">
-      <div class="icon">📅</div>
-      <h4>My Appointments</h4>
-      <p>See all your booked appointments with status updates (Pending / Confirmed / Completed).</p>
-    </div>
-    <div class="feature-card">
-      <div class="icon">📦</div>
-      <h4>My Orders</h4>
-      <p>Track all book orders and their delivery status.</p>
-    </div>
-    <div class="feature-card">
-      <div class="icon">🎓</div>
-      <h4>My Courses</h4>
-      <p>Access enrolled courses and continue learning from where you left off.</p>
-    </div>
-    <div class="feature-card">
-      <div class="icon">🔔</div>
-      <h4>Notifications</h4>
-      <p>View all system alerts — appointment updates, order status, payment confirmations.</p>
-    </div>
-    <div class="feature-card">
-      <div class="icon">🚪</div>
-      <h4>Logout</h4>
-      <p>Securely sign out from your account when done.</p>
-    </div>
-  </div>
-  ${tip('Check the Notifications bell icon regularly to stay updated on your appointment and order status.')}
-  <div class="page-footer"><span>Advocate Chauhan — User Guide</span><span>Page 6</span></div>
+  ${sec(4,'Dashboard Overview')}
+  ${p('After logging in you land on your personal dashboard — the central hub for all your activity on the platform.')}
+  ${h3('Dashboard Sections at a Glance')}
+  ${grid(
+    {icon:'👤',title:'Profile',desc:'View and update your personal info, password, and profile photo.'},
+    {icon:'📅',title:'My Appointments',desc:'See all booked appointments with real-time status updates.'},
+    {icon:'📦',title:'My Orders',desc:'Track all book orders and their delivery status.'},
+    {icon:'🎓',title:'My Courses',desc:'Access enrolled courses and continue where you left off.'},
+    {icon:'🔔',title:'Notifications',desc:'View all alerts — appointment updates, payments, order changes.'},
+    {icon:'🚪',title:'Logout',desc:'Securely sign out when you are done.'},
+  )}
+  ${note('The bell icon (🔔) in the top navigation bar shows unread notification count. Check it regularly to stay updated.')}
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 6</span></div>
 </div>
 
-<!-- SECTION 5: BOOK APPOINTMENT -->
+${PB()}
+
+<!-- ═══════════════════════ S5: APPOINTMENT ═══════════════════════ -->
 <div class="page">
-  ${section(5, 'Book an Appointment')}
-  <p>You can book an in-person (<strong>Offline</strong>) or virtual (<strong>Online</strong>) consultation with Advocate Chauhan directly from the website.</p>
-  ${shots.appt ? img(shots.appt, 'Appointment Booking Section') : ''}
-  <h3>Step-by-Step Appointment Booking</h3>
+  ${sec(5,'Book an Appointment')}
+  ${p('You can book an in-person (<strong>Offline</strong>) or virtual (<strong>Online</strong>) consultation with Advocate Chauhan directly from the website.')}
+  ${flow('Homepage','Scroll to Appointment','Fill Form','Proceed to Payment','Confirmation')}
+  ${h3('Step 1 — Find the Appointment Section')}
+  ${p('Scroll down the homepage until you see the <strong>Book an Appointment</strong> section, or click the <strong>"Book an Appointment"</strong> button in the navigation bar.')}
+  ${S.apptSection ? img(S.apptSection,'Appointment section on the homepage — login to access the booking form') : ''}
+  ${S.apptSectionHL ? img(S.apptSectionHL,'The highlighted button opens the booking form') : ''}
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 7</span></div>
+</div>
+
+${PB()}
+
+<div class="page">
+  ${h3('Step 2 — Fill in the Booking Form')}
+  ${p('After logging in, the appointment form appears. Fill in all required details.')}
+  ${S.apptModal ? img(S.apptModal,'Appointment Booking Form — enter your name, phone, service, date and time') : ''}
+  ${S.apptModalHL ? img(S.apptModalHL,'Select your preferred date and time slot — only available slots are shown') : ''}
+  ${h3('Step 3 — Complete the Flow')}
   ${steps([
-    'On the homepage, scroll to the <strong>"Book Appointment"</strong> section, or click <strong>"Appointments"</strong> in the navigation.',
     'Select your preferred <strong>Service</strong> (e.g., Civil Litigation, Property Law, Family Law).',
-    'Choose <strong>Offline</strong> (in-person visit) or <strong>Online</strong> (video/phone call).',
-    'Pick your preferred <strong>Date</strong> from the calendar — only available dates are shown.',
-    'Select a <strong>Time Slot</strong> — only open slots are shown (booked slots are greyed out).',
-    'Fill in your <strong>Name, Mobile Number, and Email</strong>.',
-    'Click <strong>"Book Appointment"</strong> to proceed.',
-    'Complete the <strong>payment</strong> if required (Razorpay / UPI / Card).',
-    'You will receive a <strong>WhatsApp confirmation</strong> with your Appointment ID.',
+    'Choose <strong>Offline</strong> (visit office) or <strong>Online</strong> (call/video) mode.',
+    'Pick an available <strong>Date</strong> and <strong>Time Slot</strong>.',
+    'Enter your <strong>Name, Mobile Number</strong>, and optionally your email.',
+    'Add a brief <strong>Case Description</strong> (optional but helpful).',
+    'Click <strong>"Proceed to Payment"</strong> to pay and confirm.',
+    'After payment you receive an <strong>Appointment ID</strong> and WhatsApp confirmation.',
   ])}
-  ${tip('You will receive real-time WhatsApp notifications for every status change — Booked, Confirmed, Rescheduled, or Completed.')}
-  <h3>Appointment Status Meanings</h3>
-  <table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;">
-    <tr style="background:#1a1a2e;color:#c9a84c;">
-      <th style="padding:10px;text-align:left;border-radius:6px 0 0 0;">Status</th>
-      <th style="padding:10px;text-align:left;">Meaning</th>
-    </tr>
-    <tr style="background:#f8f9fa;"><td style="padding:10px;border-bottom:1px solid #eee;">⏳ Pending</td><td style="padding:10px;border-bottom:1px solid #eee;">Booking received, waiting for confirmation</td></tr>
-    <tr><td style="padding:10px;border-bottom:1px solid #eee;">✅ Confirmed</td><td style="padding:10px;border-bottom:1px solid #eee;">Advocate has confirmed your appointment</td></tr>
-    <tr style="background:#f8f9fa;"><td style="padding:10px;border-bottom:1px solid #eee;">🔄 Rescheduled</td><td style="padding:10px;border-bottom:1px solid #eee;">Appointment date/time has been changed</td></tr>
-    <tr><td style="padding:10px;border-bottom:1px solid #eee;">✔️ Completed</td><td style="padding:10px;border-bottom:1px solid #eee;">Consultation is done</td></tr>
-    <tr style="background:#f8f9fa;"><td style="padding:10px;">❌ Cancelled</td><td style="padding:10px;">Appointment was cancelled</td></tr>
-  </table>
-  <div class="page-footer"><span>Advocate Chauhan — User Guide</span><span>Page 7–8</span></div>
+  ${tip('You will receive WhatsApp notifications for every status change — Booked, Confirmed, Rescheduled, Completed.')}
+  ${statusTable([
+    ['⏳ Pending','Booking received, awaiting advocate confirmation'],
+    ['✅ Confirmed','Advocate has confirmed your appointment'],
+    ['🔄 Rescheduled','Appointment moved to a new date/time'],
+    ['✔️ Completed','Consultation completed successfully'],
+    ['❌ Cancelled','Appointment was cancelled'],
+  ])}
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 8</span></div>
 </div>
 
-<!-- SECTION 6: ORDER BOOKS -->
+${PB()}
+
+<!-- ═══════════════════════ S6: BOOKS ═══════════════════════ -->
 <div class="page">
-  ${section(6, 'Order Books')}
-  <p>Browse and purchase legal books, study materials, and publications from the Books section on the homepage.</p>
-  ${shots.books ? img(shots.books, 'Books Section') : ''}
-  <h3>Step-by-Step Book Ordering</h3>
-  ${steps([
-    'On the homepage, scroll down to the <strong>"Books"</strong> section.',
-    'Browse the available books — each card shows the title, description, and price.',
-    'Click on a book to view its full details.',
-    'Click <strong>"Order Now"</strong> or <strong>"Add to Cart"</strong>.',
-    'Enter your <strong>Name, Phone Number, and Delivery Address</strong>.',
-    'Select your <strong>Payment Method</strong> (Razorpay / UPI / Manual payment).',
-    'Complete payment and receive an <strong>Order Confirmation</strong> with a unique Order ID.',
-    'Track your order status in the <strong>Dashboard → My Orders</strong> section.',
-  ])}
-  <h3>Order Status Meanings</h3>
-  <table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;">
-    <tr style="background:#1a1a2e;color:#c9a84c;">
-      <th style="padding:10px;text-align:left;">Status</th>
-      <th style="padding:10px;text-align:left;">Meaning</th>
-    </tr>
-    <tr style="background:#f8f9fa;"><td style="padding:10px;border-bottom:1px solid #eee;">📋 Pending</td><td style="padding:10px;border-bottom:1px solid #eee;">Order placed, awaiting confirmation</td></tr>
-    <tr><td style="padding:10px;border-bottom:1px solid #eee;">✅ Confirmed</td><td style="padding:10px;border-bottom:1px solid #eee;">Order confirmed by the team</td></tr>
-    <tr style="background:#f8f9fa;"><td style="padding:10px;border-bottom:1px solid #eee;">⚙️ Processing</td><td style="padding:10px;border-bottom:1px solid #eee;">Book is being packed and prepared for shipping</td></tr>
-    <tr><td style="padding:10px;border-bottom:1px solid #eee;">🚚 Shipped</td><td style="padding:10px;border-bottom:1px solid #eee;">Book is on its way to you</td></tr>
-    <tr style="background:#f8f9fa;"><td style="padding:10px;border-bottom:1px solid #eee;">📦 Delivered</td><td style="padding:10px;border-bottom:1px solid #eee;">Book delivered successfully</td></tr>
-    <tr><td style="padding:10px;">❌ Cancelled</td><td style="padding:10px;">Order was cancelled</td></tr>
-  </table>
-  ${tip('You will receive WhatsApp updates at every stage — when your order is confirmed, shipped, and delivered.')}
-  <div class="page-footer"><span>Advocate Chauhan — User Guide</span><span>Page 9–10</span></div>
+  ${sec(6,'Order Books')}
+  ${p('Browse and purchase legal books, study materials, and publications directly from the website.')}
+  ${flow('Homepage','Scroll to Books','Click Order Now','Fill Details','Payment','Confirmation')}
+  ${h3('Step 1 — Browse the Books Section')}
+  ${p('Scroll down the homepage to the <strong>Books</strong> section. Each card shows the book title, author, price, and description.')}
+  ${S.booksSection ? img(S.booksSection,'Books Section — browse available legal books and publications') : ''}
+  ${h3('Step 2 — Click "Order Now"')}
+  ${p('Click the <strong>Order Now</strong> button (highlighted below) on any book card to start your order.')}
+  ${S.bookCardHL ? img(S.bookCardHL,'Click the highlighted "Order Now" button on a book card') : ''}
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 9</span></div>
 </div>
 
-<!-- SECTION 7: COURSES -->
+${PB()}
+
 <div class="page">
-  ${section(7, 'Enroll in Courses')}
-  <p>Access professional legal training courses designed by Advocate Chauhan. Learn at your own pace with video lectures and downloadable resources.</p>
-  ${shots.courses ? img(shots.courses, 'Courses Page') : ''}
-  <h3>Step-by-Step Course Enrollment</h3>
+  ${h3('Step 3 — Complete the Order Form')}
+  ${S.orderModal ? img(S.orderModal,'Order Form — enter your delivery details and proceed to payment') : ''}
   ${steps([
-    'Click <strong>"Courses"</strong> in the top navigation menu.',
-    'Browse the available courses — each shows title, duration, and fee.',
-    'Click on a course to view full details, syllabus, and instructor info.',
-    'Click <strong>"Enroll Now"</strong>.',
-    'Complete the payment (if the course is paid).',
+    'Click <strong>"Order Now"</strong> on your chosen book card.',
+    'The order form opens — enter your <strong>Name, Phone Number</strong>, and <strong>Delivery Address</strong>.',
+    'Select your <strong>Payment Method</strong> (Razorpay / UPI).',
+    'Click <strong>"Place Order"</strong> and complete the payment.',
+    'You receive an <strong>Order ID</strong> and WhatsApp confirmation.',
+    'Track your order in <strong>Dashboard → My Orders</strong>.',
+  ])}
+  ${statusTable([
+    ['📋 Pending','Order placed, awaiting confirmation'],
+    ['✅ Confirmed','Order confirmed by the team'],
+    ['⚙️ Processing','Book being packed for shipment'],
+    ['🚚 Shipped','Book dispatched — tracking info sent via WhatsApp'],
+    ['📦 Delivered','Book delivered successfully'],
+    ['❌ Cancelled','Order was cancelled'],
+  ])}
+  ${tip('You receive WhatsApp updates at every stage — confirmed, shipped, and delivered.')}
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 10</span></div>
+</div>
+
+${PB()}
+
+<!-- ═══════════════════════ S7: COURSES ═══════════════════════ -->
+<div class="page">
+  ${sec(7,'Enroll in Courses')}
+  ${p('Access professional legal training courses designed by Advocate Chauhan. Learn at your own pace with video lectures and downloadable resources.')}
+  ${flow('Courses Page','Browse Cards','Click Enroll','Payment','Start Learning')}
+  ${h3('Step 1 — Open the Courses Page')}
+  ${p('Click <strong>"Courses"</strong> in the top navigation. You will see all available courses as cards.')}
+  ${S.coursesPage ? img(S.coursesPage,'Courses Page — browse all available legal training courses') : ''}
+  ${h3('Step 2 — Choose a Course &amp; Click Enroll')}
+  ${S.courseCardHL ? img(S.courseCardHL,'Click the highlighted "Enroll Now" or "Enroll Free" button on a course card') : ''}
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 11</span></div>
+</div>
+
+${PB()}
+
+<div class="page">
+  ${h3('Step 3 — Enrollment &amp; Payment')}
+  ${S.enrollModal ? img(S.enrollModal,'Course Enrollment — confirm enrollment and complete payment if required') : ''}
+  ${steps([
+    'Click <strong>"Courses"</strong> in the top navigation.',
+    'Browse available courses — each shows title, level, duration, and price.',
+    'Click <strong>"Enroll Now"</strong> (paid) or <strong>"Enroll Free"</strong> (free courses).',
+    'Confirm enrollment in the popup window.',
+    'Complete payment for paid courses via Razorpay.',
     'Once enrolled, the course appears in <strong>Dashboard → My Courses</strong>.',
     'Click <strong>"Start Learning"</strong> to watch video lectures and download resources.',
   ])}
-  ${tip('Enrolled courses are available to you lifetime — you can revisit them anytime from your dashboard.')}
-  ${note('Some courses may include free preview videos so you can assess the content before purchasing.')}
-  <div class="page-footer"><span>Advocate Chauhan — User Guide</span><span>Page 11</span></div>
+  ${tip('Enrolled courses are available to you for life — revisit them anytime from your dashboard.')}
+  ${note('Some courses include free preview videos. Click <strong>"Watch Preview"</strong> to assess content before purchasing.')}
+  ${h3('Course Badge Levels')}
+  <table class="st"><tr><th>Badge</th><th>Level</th></tr>
+    <tr><td>🟢 Beginner</td><td>Suitable for those new to legal concepts</td></tr>
+    <tr style="background:#f8f9fa"><td>🟡 Intermediate</td><td>Requires basic legal knowledge</td></tr>
+    <tr><td>🔴 Advanced</td><td>For experienced legal professionals</td></tr>
+  </table>
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 12</span></div>
 </div>
 
-<!-- SECTION 8: PAYMENTS -->
+${PB()}
+
+<!-- ═══════════════════════ S8: PAYMENTS ═══════════════════════ -->
 <div class="page">
-  ${section(8, 'Payments')}
-  <p>All payments on the platform are secure and processed through trusted payment gateways. Your financial data is never stored on our servers.</p>
-  <h3>Available Payment Methods</h3>
-  <div class="feature-grid">
-    <div class="feature-card">
-      <div class="icon">💳</div>
-      <h4>Credit / Debit Card</h4>
-      <p>Visa, Mastercard, RuPay — all major cards accepted via Razorpay.</p>
-    </div>
-    <div class="feature-card">
-      <div class="icon">📱</div>
-      <h4>UPI</h4>
-      <p>Pay using Google Pay, PhonePe, Paytm, or any UPI app instantly.</p>
-    </div>
-    <div class="feature-card">
-      <div class="icon">🏦</div>
-      <h4>Net Banking</h4>
-      <p>Supported for all major Indian banks through the Razorpay gateway.</p>
-    </div>
-    <div class="feature-card">
-      <div class="icon">📷</div>
-      <h4>QR Code / Manual UPI</h4>
-      <p>Scan QR code and pay, then upload payment screenshot for manual verification.</p>
-    </div>
-  </div>
-  <h3>Payment Process</h3>
+  ${sec(8,'Payments')}
+  ${p('All payments are secure and processed through Razorpay — a trusted, PCI-DSS compliant payment gateway. Your financial data is never stored on our servers.')}
+  ${h3('Available Payment Methods')}
+  ${grid(
+    {icon:'💳',title:'Credit / Debit Card',desc:'Visa, Mastercard, RuPay — all major cards accepted.'},
+    {icon:'📱',title:'UPI',desc:'Google Pay, PhonePe, Paytm, or any UPI app.'},
+    {icon:'🏦',title:'Net Banking',desc:'All major Indian banks supported via Razorpay.'},
+    {icon:'📷',title:'QR Code / Manual UPI',desc:'Scan QR code and pay — upload screenshot for verification.'},
+  )}
+  ${h3('Payment Flow')}
   ${steps([
-    'After selecting service/book/course, click <strong>"Proceed to Pay"</strong>.',
-    'A secure Razorpay payment window opens.',
-    'Choose your preferred payment method and complete payment.',
-    'You will be redirected back with a <strong>Payment Confirmation</strong> screen.',
-    'A receipt with Transaction ID and Receipt ID is generated automatically.',
-    'Receipt details are sent to your registered email and WhatsApp.',
+    'Select your service / book / course and click <strong>"Proceed to Pay"</strong>.',
+    'A secure Razorpay window opens — choose your payment method.',
+    'Complete the payment.',
+    'A <strong>Payment Confirmation</strong> screen is shown with Transaction ID and Receipt ID.',
+    'Receipt is sent to your registered email and WhatsApp.',
   ])}
-  <h3>Download Your Receipt</h3>
-  <p>After payment, a receipt page is shown with all details. Click <strong>"Download Receipt"</strong> or take a screenshot for your records. Your receipt includes:</p>
-  <ul style="padding-left:20px;color:#444;line-height:2;">
-    <li>Appointment/Order ID</li>
-    <li>Transaction ID &amp; Receipt ID</li>
-    <li>Amount Paid &amp; Payment Method</li>
-    <li>Date, Time, and Service details</li>
-    <li>Status confirmation</li>
-  </ul>
-  ${tip('If a payment fails but amount is deducted, contact us immediately with your Transaction ID — refunds are processed within 5–7 business days.')}
-  <div class="page-footer"><span>Advocate Chauhan — User Guide</span><span>Page 12</span></div>
+  ${h3('Download Your Receipt')}
+  ${p('After payment, a receipt is generated with all details. Save or download it for your records. It includes: Appointment/Order ID, Transaction ID, Receipt ID, Amount, Service, Date, and Payment Method.')}
+  ${tip('If payment fails but amount is deducted, contact us with your Transaction ID — refunds are processed within 5–7 business days.')}
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 13</span></div>
 </div>
 
-<!-- SECTION 9: PROFILE -->
+${PB()}
+
+<!-- ═══════════════════════ S9: PROFILE ═══════════════════════ -->
 <div class="page">
-  ${section(9, 'Profile Management')}
-  <p>Your profile stores all your personal details and activity history. Keeping it updated ensures you receive accurate notifications and receipts.</p>
-  <h3>Update Personal Information</h3>
+  ${sec(9,'Profile Management')}
+  ${p('Your profile stores personal details and activity history. Keeping it updated ensures you receive accurate notifications and receipts.')}
+  ${h3('Update Personal Information')}
   ${steps([
     'Log in and go to <strong>Dashboard → Profile</strong> tab.',
     'Click <strong>"Edit Profile"</strong>.',
-    'Update your Name, Email, Mobile Number, or Address.',
+    'Update your Name, Email, or Mobile Number.',
     'Click <strong>"Save Changes"</strong>.',
   ])}
-  <h3>Change Password</h3>
+  ${h3('Change Your Password')}
   ${steps([
-    'Go to <strong>Profile → Security</strong> section.',
+    'Go to Profile → Security section.',
     'Enter your <strong>Current Password</strong>.',
     'Enter and confirm your <strong>New Password</strong>.',
     'Click <strong>"Update Password"</strong>.',
   ])}
-  <h3>Upload Profile Photo</h3>
+  ${h3('Upload Profile Photo')}
   ${steps([
     'Go to your <strong>Profile</strong> page.',
-    'Click on the profile photo / avatar.',
+    'Click on your profile photo / avatar.',
     'Select a photo from your device (JPG or PNG, max 5MB).',
     'Click <strong>"Upload"</strong> — your photo updates immediately.',
   ])}
-  <h3>View Purchase History</h3>
-  <p>All your past appointments, book orders, and course enrollments are stored in your dashboard under their respective tabs — <strong>My Appointments</strong>, <strong>My Orders</strong>, and <strong>My Courses</strong>.</p>
-  ${tip('Keep your mobile number updated so you receive WhatsApp notifications for all your bookings and orders.')}
-  <div class="page-footer"><span>Advocate Chauhan — User Guide</span><span>Page 13</span></div>
+  ${tip('Keep your mobile number updated to receive WhatsApp notifications for all your bookings and orders.')}
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 14</span></div>
 </div>
 
-<!-- SECTION 10: NOTIFICATIONS -->
+${PB()}
+
+<!-- ═══════════════════════ S10: NOTIFICATIONS ═══════════════════════ -->
 <div class="page">
-  ${section(10, 'Notifications &amp; Status Tracking')}
-  <p>The platform keeps you informed at every step through in-app notifications and WhatsApp messages.</p>
-  <h3>Types of Notifications You Receive</h3>
-  <div class="feature-grid">
-    <div class="feature-card">
-      <div class="icon">📅</div>
-      <h4>Appointment Updates</h4>
-      <p>Booked → Confirmed → Rescheduled → Completed notifications with Appointment ID and details.</p>
-    </div>
-    <div class="feature-card">
-      <div class="icon">📦</div>
-      <h4>Order Tracking</h4>
-      <p>Order Placed → Confirmed → Processing → Shipped → Delivered notifications with tracking info.</p>
-    </div>
-    <div class="feature-card">
-      <div class="icon">🎓</div>
-      <h4>Course Notifications</h4>
-      <p>Enrollment confirmation and new content availability alerts for your courses.</p>
-    </div>
-    <div class="feature-card">
-      <div class="icon">💰</div>
-      <h4>Payment Confirmations</h4>
-      <p>Instant payment receipt with Transaction ID, amount, and service details sent via WhatsApp and email.</p>
-    </div>
-  </div>
-  <h3>Where to See Notifications</h3>
-  <ul style="padding-left:20px;color:#444;line-height:2.2;">
-    <li><strong>🔔 Bell icon</strong> (top right) — in-app notifications with unread count badge</li>
+  ${sec(10,'Notifications &amp; Status Tracking')}
+  ${p('The platform keeps you informed at every step through in-app notifications and WhatsApp messages.')}
+  ${grid(
+    {icon:'📅',title:'Appointment Updates',desc:'Booked → Confirmed → Rescheduled → Completed — each stage notified.'},
+    {icon:'📦',title:'Order Tracking',desc:'Placed → Confirmed → Processing → Shipped → Delivered.'},
+    {icon:'🎓',title:'Course Alerts',desc:'Enrollment confirmation and new content availability alerts.'},
+    {icon:'💰',title:'Payment Confirmations',desc:'Instant receipt with Transaction ID, amount, and service details.'},
+  )}
+  ${h3('Where to See Notifications')}
+  <ul style="padding-left:18px;color:#444;line-height:2.2;">
+    <li><strong>🔔 Bell icon</strong> (top right) — in-app notifications with unread badge count</li>
     <li><strong>📱 WhatsApp</strong> — real-time messages from the official business number</li>
-    <li><strong>📧 Email</strong> — receipts and confirmation emails to your registered address</li>
+    <li><strong>📧 Email</strong> — receipts and confirmations to your registered address</li>
     <li><strong>📋 Dashboard tabs</strong> — full history in Appointments, Orders, and Courses sections</li>
   </ul>
-  ${note('WhatsApp notifications are sent from our official number. Save it as "Advocate Chauhan" in your contacts to avoid missing messages.')}
-  <div class="page-footer"><span>Advocate Chauhan — User Guide</span><span>Page 14</span></div>
+  ${note('Save the WhatsApp business number as "Advocate Chauhan" in your contacts so you never miss a notification.')}
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 15</span></div>
 </div>
 
-<!-- SECTION 11: FAQ -->
+${PB()}
+
+<!-- ═══════════════════════ S11: FAQ ═══════════════════════ -->
 <div class="page">
-  ${section(11, 'Frequently Asked Questions')}
-  ${faq('How do I reset my password?', 'Click "Forgot Password?" on the Login page, enter your registered email address, and follow the link sent to your inbox to create a new password.')}
-  ${faq('How can I cancel an appointment?', 'Contact us via WhatsApp or email with your Appointment ID. Cancellations requested more than 24 hours before the appointment are processed without penalty.')}
-  ${faq('How do I access purchased courses?', 'Log in and go to Dashboard → My Courses. All enrolled courses appear here. Click "Start Learning" on any course to begin.')}
-  ${faq('How can I track my book order?', 'Go to Dashboard → My Orders. Each order shows its current status (Pending / Confirmed / Processing / Shipped / Delivered). You also receive WhatsApp updates for every status change.')}
-  ${faq('What if my payment failed but money was deducted?', 'This can sometimes happen due to network issues. Contact our support team immediately with your Transaction ID and amount. Refunds are processed within 5–7 business days.')}
-  ${faq('Can I reschedule my appointment?', 'Yes. Contact us via WhatsApp or email with your Appointment ID and preferred new date and time. Rescheduling is subject to availability.')}
-  ${faq('How do I contact support?', 'You can reach us via WhatsApp, phone, or email. Contact details are on the website\'s Contact section and on the last page of this guide.')}
-  ${faq('Is my personal information safe?', 'Yes. All data is encrypted and stored securely. We do not share your personal information with any third parties. Payments are processed by Razorpay — a PCI-DSS compliant gateway.')}
-  ${faq('Can I book an appointment without creating an account?', 'You can fill the appointment form without logging in, but creating an account lets you track status, receive notifications, and view your history.')}
-  <div class="page-footer"><span>Advocate Chauhan — User Guide</span><span>Page 15</span></div>
+  ${sec(11,'Frequently Asked Questions')}
+  ${faq('How do I reset my password?','Click "Forgot Password?" on the Login page → enter your registered email → follow the reset link sent to your inbox.')}
+  ${faq('How can I cancel an appointment?','Contact us via WhatsApp or email with your Appointment ID. Cancellations more than 24 hours before the appointment are processed without charge.')}
+  ${faq('How do I access purchased courses?','Log in → Dashboard → My Courses. All enrolled courses appear here. Click "Start Learning" on any course.')}
+  ${faq('How can I track my book order?','Go to Dashboard → My Orders. Each order shows its current status. You also receive WhatsApp updates for every status change.')}
+  ${faq('My payment failed but money was deducted — what do I do?','This can happen due to network issues. Contact our support team immediately with your Transaction ID and amount paid. Refunds are processed within 5–7 business days.')}
+  ${faq('Can I reschedule my appointment?','Yes. Contact us via WhatsApp or email with your Appointment ID and preferred new date/time. Rescheduling is subject to availability.')}
+  ${faq('Can I book an appointment without creating an account?','You need to log in to book an appointment. Registration is free and takes under 2 minutes.')}
+  ${faq('Is my personal information safe?','Yes. All data is encrypted and stored securely. Payments are processed by Razorpay — PCI-DSS compliant. We do not share your data with third parties.')}
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 16</span></div>
 </div>
 
-<!-- SECTION 12: CONTACT -->
+${PB()}
+
+<!-- ═══════════════════════ S12: CONTACT ═══════════════════════ -->
 <div class="page">
-  ${section(12, 'Contact Support')}
-  <p>Our team is available to help you with any questions, issues, or assistance you need. Reach us through any of the channels below.</p>
-  ${shots.contact ? img(shots.contact, 'Contact Section on Website') : ''}
-  <div class="contact-grid">
-    <div class="contact-card">
-      <div class="icon">📧</div>
-      <h4>Email Support</h4>
-      <p>Send us your query and we'll respond within 24 hours</p>
-    </div>
-    <div class="contact-card">
-      <div class="icon">📱</div>
-      <h4>WhatsApp Support</h4>
-      <p>Chat with us directly on WhatsApp for quick help</p>
-    </div>
-    <div class="contact-card">
-      <div class="icon">📞</div>
-      <h4>Phone</h4>
-      <p>Call us during business hours (Mon–Sat, 9 AM – 6 PM)</p>
-    </div>
-    <div class="contact-card">
-      <div class="icon">🌐</div>
-      <h4>Website</h4>
-      <p>Fill the contact form on the website's Contact section</p>
-    </div>
-  </div>
-  ${note('For appointment cancellations or reschedules, always include your <strong>Appointment ID</strong> in your message for faster resolution.')}
-  <h3>Business Hours</h3>
-  <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:12px;">
-    <tr style="background:#1a1a2e;color:#c9a84c;"><th style="padding:10px;text-align:left;">Day</th><th style="padding:10px;text-align:left;">Hours</th></tr>
-    <tr style="background:#f8f9fa;"><td style="padding:10px;border-bottom:1px solid #eee;">Monday – Friday</td><td style="padding:10px;border-bottom:1px solid #eee;">9:00 AM – 6:00 PM</td></tr>
-    <tr><td style="padding:10px;border-bottom:1px solid #eee;">Saturday</td><td style="padding:10px;border-bottom:1px solid #eee;">9:00 AM – 2:00 PM</td></tr>
-    <tr style="background:#f8f9fa;"><td style="padding:10px;">Sunday</td><td style="padding:10px;">Closed</td></tr>
+  ${sec(12,'Contact Support')}
+  ${p('Our team is available to help with any questions or issues. Reach us through any of the channels below.')}
+  ${S.contact ? img(S.contact,'Contact Section — find us on the website homepage') : ''}
+  ${contact(
+    {icon:'📧',title:'Email Support',text:'Send your query and we\'ll respond within 24 hours'},
+    {icon:'📱',title:'WhatsApp Support',text:'Chat with us directly for quick help'},
+    {icon:'📞',title:'Phone',text:'Call us Mon–Sat, 9 AM – 6 PM'},
+    {icon:'🌐',title:'Website Contact Form',text:'Fill the form on the Contact section of the homepage'},
+  )}
+  ${h3('Business Hours')}
+  <table class="st"><tr><th>Day</th><th>Hours</th></tr>
+    <tr><td>Monday – Friday</td><td>9:00 AM – 6:00 PM</td></tr>
+    <tr style="background:#f8f9fa"><td>Saturday</td><td>9:00 AM – 2:00 PM</td></tr>
+    <tr><td>Sunday</td><td>Closed</td></tr>
   </table>
-  <div class="page-footer"><span>Advocate Chauhan — User Guide</span><span>Page 16</span></div>
+  ${note('Always include your <strong>Appointment ID</strong> or <strong>Order ID</strong> when contacting support for faster resolution.')}
+  <div class="foot"><span>Advocate Chauhan — User Guide v2.0</span><span>Page 17</span></div>
 </div>
 
-<!-- THANK YOU -->
-<div class="thankyou">
+${PB()}
+
+<!-- ═══════════════════════ THANK YOU ═══════════════════════ -->
+<div class="ty">
   <div class="seal">⚖️</div>
   <h1>Thank You for Using Our Platform</h1>
-  <div style="width:60px;height:3px;background:#c9a84c;margin:16px auto;"></div>
+  <div style="width:60px;height:3px;background:#c9a84c;margin:14px auto;"></div>
   <p>"We are committed to providing seamless legal services, educational resources, and professional support. Your trust is our greatest responsibility."</p>
   <p style="margin-top:24px;color:#c9a84c;font-family:'Playfair Display',serif;font-size:17px;">— Advocate Chauhan</p>
-  <p style="margin-top:32px;font-size:12px;color:rgba(255,255,255,.5);">Advocate Chauhan — Expert Legal Services &nbsp;•&nbsp; v1.0 — June 2026</p>
+  <p style="margin-top:30px;font-size:11px;color:rgba(255,255,255,.4);">Advocate Chauhan — Expert Legal Services &nbsp;•&nbsp; User Guide v2.0 — June 2026</p>
 </div>
 
 </body>
@@ -629,28 +798,24 @@ async function main() {
 
   const htmlPath = path.join(__dirname, 'guide.html');
   fs.writeFileSync(htmlPath, html);
-  console.log('HTML written to:', htmlPath);
+  console.log('HTML written.');
 
-  console.log('\nConverting to PDF...');
+  console.log('\nGenerating PDF...');
   const pdfPage = await browser.newPage();
-  await pdfPage.goto(`file:///${htmlPath.replace(/\\/g, '/')}`, { waitUntil: 'networkidle0', timeout: 60000 });
-  await new Promise(r => setTimeout(r, 3000));
+  await pdfPage.goto(`file:///${htmlPath.replace(/\\/g,'/')}`, { waitUntil:'networkidle0', timeout:60000 });
+  await sleep(4000);
 
   await pdfPage.pdf({
     path: PDF_OUT,
     format: 'A4',
     printBackground: true,
-    margin: { top: '0mm', right: '0mm', bottom: '0mm', left: '0mm' },
+    margin: { top:'0mm', right:'0mm', bottom:'0mm', left:'0mm' },
   });
 
   await browser.close();
 
-  console.log('\n✅ PDF generated successfully!');
-  console.log('📄 Output:', PDF_OUT);
-  console.log('📊 File size:', (fs.statSync(PDF_OUT).size / 1024 / 1024).toFixed(2), 'MB');
+  const mb = (fs.statSync(PDF_OUT).size / 1024 / 1024).toFixed(2);
+  console.log(`\n✅ Done! ${PDF_OUT}\n📊 ${mb} MB`);
 }
 
-main().catch(e => {
-  console.error('Fatal error:', e);
-  process.exit(1);
-});
+main().catch(e => { console.error('Fatal:', e); process.exit(1); });
