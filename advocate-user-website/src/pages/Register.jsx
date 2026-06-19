@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import SEOHead from '../components/SEOHead';
 import { userRegister } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
 
@@ -50,6 +51,7 @@ export default function Register() {
 
   return (
     <div className="auth-page">
+      <SEOHead title="Create Account" description="Register for an Advocate Chauhan account to book appointments, purchase legal books, and access exclusive legal resources." canonical="/register" noindex />
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-logo">

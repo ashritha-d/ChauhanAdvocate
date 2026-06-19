@@ -1,8 +1,14 @@
 import { Link } from 'react-router-dom';
+import SEOHead from '../components/SEOHead';
 
 export default function PrivacyPolicy() {
   return (
     <>
+      <SEOHead
+        title="Privacy Policy"
+        description="Privacy policy for the Advocate Chauhan website. Learn how we collect, use, and protect your personal information."
+        canonical="/privacy-policy"
+      />
       <div className="privacy-hero text-white">
         <div className="container">
           <h1 className="display-5 fw-bold">Privacy <span className="text-gold">Policy</span></h1>

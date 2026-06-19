@@ -1,3 +1,4 @@
+import SEOHead from '../components/SEOHead';
 import Hero from '../components/Hero';
 import Services from '../components/Services';
 import LatestUpdates from '../components/LatestUpdates';
@@ -33,6 +34,11 @@ export default function Home() {
 
   return (
     <>
+      <SEOHead
+        title="Expert Legal Services in Hyderabad"
+        description="Advocate Chauhan – Balu Law Chamber, Hasthinapuram, LB Nagar. 15+ years expertise in criminal, civil, family, corporate, and property law. 500+ cases won. Book a consultation today."
+        canonical="/"
+      />
       <Hero />
       <Services />
       <LatestUpdates />

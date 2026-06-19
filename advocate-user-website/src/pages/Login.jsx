@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import SEOHead from '../components/SEOHead';
 import { userLogin } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
 
@@ -34,6 +35,7 @@ export default function Login() {
 
   return (
     <div className="auth-page">
+      <SEOHead title="Login" description="Log in to your Advocate Chauhan account to manage appointments, orders, and profile." canonical="/login" noindex />
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-logo">

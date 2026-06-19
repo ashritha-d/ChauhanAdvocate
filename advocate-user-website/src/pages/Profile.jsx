@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import SEOHead from '../components/SEOHead';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 import { useSite } from '../context/SiteContext';
@@ -383,6 +384,7 @@ export default function Profile() {
 
   return (
     <div className="profile-page">
+      <SEOHead title="My Profile" description="Manage your Advocate Chauhan account – appointments, orders, notifications, and profile settings." canonical="/profile" noindex />
       {/* Hidden file input for photo upload (used in Settings tab) */}
       <input ref={fileInputRef} type="file" accept="image/*" className="d-none" onChange={handlePhotoChange} />
 

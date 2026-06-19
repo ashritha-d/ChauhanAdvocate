@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { SiteProvider } from './context/SiteContext';
 import { UserAuthProvider } from './context/UserAuthContext';
 import TopBar from './components/TopBar';
@@ -67,8 +68,87 @@ function AuthLayout({ children }) {
   );
 }
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Attorney',
+      '@id': 'https://ashritha-d.github.io/ChauhanAdvocate/#attorney',
+      name: 'Advocate Chauhan',
+      alternateName: 'Balu Law Chamber',
+      description:
+        'Expert legal representation in criminal, civil, family, corporate, property, and constitutional law. Serving Hyderabad since 2009.',
+      url: 'https://ashritha-d.github.io/ChauhanAdvocate/',
+      telephone: '+91-93925-38226',
+      image: 'https://ashritha-d.github.io/ChauhanAdvocate/advocate.jpeg',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Balu Law Chamber, Hasthinapuram',
+        addressLocality: 'LB Nagar',
+        addressRegion: 'Telangana',
+        addressCountry: 'IN',
+        postalCode: '500079',
+      },
+      areaServed: [
+        { '@type': 'City', name: 'Hyderabad' },
+        { '@type': 'State', name: 'Telangana' },
+      ],
+      knowsAbout: [
+        'Criminal Law',
+        'Civil Law',
+        'Family Law',
+        'Corporate Law',
+        'Property Law',
+        'Constitutional Law',
+        'Intellectual Property Law',
+      ],
+      foundingDate: '2009',
+      numberOfEmployees: { '@type': 'QuantitativeValue', value: 5 },
+      sameAs: [
+        'https://www.youtube.com/@vakeelchauhan2024',
+        'https://www.facebook.com/advocatechauhan',
+        'https://www.instagram.com/advocatechauhan',
+      ],
+    },
+    {
+      '@type': 'LocalBusiness',
+      '@id': 'https://ashritha-d.github.io/ChauhanAdvocate/#localbusiness',
+      name: 'Balu Law Chamber',
+      url: 'https://ashritha-d.github.io/ChauhanAdvocate/',
+      telephone: '+91-93925-38226',
+      priceRange: '₹₹',
+      image: 'https://ashritha-d.github.io/ChauhanAdvocate/advocate.jpeg',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Hasthinapuram',
+        addressLocality: 'LB Nagar, Hyderabad',
+        addressRegion: 'Telangana',
+        addressCountry: 'IN',
+        postalCode: '500079',
+      },
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: 17.3387,
+        longitude: 78.5579,
+      },
+      openingHoursSpecification: [
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+          opens: '09:00',
+          closes: '19:00',
+        },
+      ],
+    },
+  ],
+};
+
 export default function App() {
   return (
+    <HelmetProvider>
+    <Helmet>
+      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+    </Helmet>
     <SiteProvider>
       <UserAuthProvider>
         <BrowserRouter basename="/ChauhanAdvocate">
@@ -128,5 +208,6 @@ export default function App() {
         </BrowserRouter>
       </UserAuthProvider>
     </SiteProvider>
+    </HelmetProvider>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import SEOHead from '../components/SEOHead';
 import { getNewsPage } from '../api';
 
 function fmt(d) {
@@ -40,6 +41,11 @@ export default function NewsPage() {
 
   return (
     <section className="news-page-section section-padding">
+      <SEOHead
+        title="Legal News & Updates"
+        description="Stay informed with the latest legal news, landmark judgements, and law updates from Advocate Chauhan. Covering criminal, civil, family, and corporate law developments in India."
+        canonical="/news"
+      />
       {/* Page Header */}
       <div className="news-page-hero">
         <div className="container">

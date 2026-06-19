@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import SEOHead from '../components/SEOHead';
 import { userForgotPassword, userVerifyOTP, userResetPassword } from '../api';
 
 const STEPS = { EMAIL: 'email', OTP: 'otp', RESET: 'reset', DONE: 'done' };
@@ -80,6 +81,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="auth-page">
+      <SEOHead title="Reset Password" description="Reset your Advocate Chauhan account password." canonical="/forgot-password" noindex />
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-logo">

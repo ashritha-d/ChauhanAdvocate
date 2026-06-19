@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import SEOHead from '../components/SEOHead';
 import { useNavigate } from 'react-router-dom';
 import { getPublicCourses } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
@@ -63,6 +64,11 @@ export default function Courses() {
 
   return (
     <section id="courses" className="section-padding bg-light">
+      <SEOHead
+        title="Junior Advocate Practice Classes"
+        description="Enroll in professional legal training courses by Advocate Chauhan. Practical guidance for aspiring and junior advocates in criminal, civil, and corporate law – based in Hyderabad."
+        canonical="/courses"
+      />
       <div className="container">
         <div className="text-center mb-5" data-aos="fade-up">
           <div className="section-label">Learn from Experts</div>

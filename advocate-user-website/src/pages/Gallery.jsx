@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import SEOHead from '../components/SEOHead';
 
 const BASE = import.meta.env.BASE_URL;
 const STATIC_IMAGES = [
@@ -29,6 +30,11 @@ export default function Gallery() {
 
   return (
     <div className="gallery-page">
+      <SEOHead
+        title="Photo Gallery"
+        description="Browse the photo gallery of Advocate Chauhan – Balu Law Chamber. Court proceedings, client events, and legal milestones captured over 15+ years of practice in Hyderabad."
+        canonical="/gallery"
+      />
       {/* Hero */}
       <div className="gallery-hero">
         <div className="container text-center">
