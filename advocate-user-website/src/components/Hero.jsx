@@ -46,10 +46,6 @@ export default function Hero() {
         <div className="row align-items-center">
 
           <div className="col-lg-7" data-aos="fade-right" data-aos-duration="1000">
-            <div className="hero-badge mb-3">
-              <i className="fas fa-gavel me-2"></i>
-              <span>Trusted Legal Partner Since 2009</span>
-            </div>
             <h1 className="hero-title display-3 fw-bold mb-4">
               {s.hero_title || 'Your Trusted'} <span className="text-gold">Legal Advocate</span>
             </h1>
