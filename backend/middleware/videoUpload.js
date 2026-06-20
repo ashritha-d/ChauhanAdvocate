@@ -1,26 +1,29 @@
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 
-const ALLOWED_EXTS = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
-const MAX_SIZE = parseInt(process.env.MAX_VIDEO_SIZE) || 500 * 1024 * 1024; // 500 MB
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '../uploads/videos');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, 'video-' + unique + path.extname(file.originalname).toLowerCase());
+const ALLOWED_EXTS = ['mp4', 'mov', 'avi', 'webm', 'mkv'];
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'advocate-chauhan/videos',
+    resource_type: 'video',
+    allowed_formats: ALLOWED_EXTS,
   },
 });
 
 const fileFilter = (req, file, cb) => {
-  const ext = path.extname(file.originalname).toLowerCase();
+  const ext = file.originalname.split('.').pop().toLowerCase();
   if (ALLOWED_EXTS.includes(ext)) return cb(null, true);
   cb(new Error('Unsupported format. Allowed: MP4, MOV, AVI, WEBM, MKV'));
 };
 
-module.exports = multer({ storage, fileFilter, limits: { fileSize: MAX_SIZE } });
+module.exports = multer({ storage, fileFilter });
+module.exports.cloudinary = cloudinary;

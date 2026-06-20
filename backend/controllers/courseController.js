@@ -3,6 +3,7 @@ const Enrollment = require('../models/Enrollment');
 const UserNotification = require('../models/UserNotification');
 const path = require('path');
 const fs = require('fs');
+const { cloudinary } = require('../middleware/videoUpload');
 
 // ── Public ────────────────────────────────────────────────────────────────────
 
@@ -238,12 +239,14 @@ exports.updateEnrollment = async (req, res) => {
 exports.uploadVideo = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'No video file provided' });
-    const sizeMB = (req.file.size / (1024 * 1024)).toFixed(1);
+    // req.file.path  = Cloudinary secure_url
+    // req.file.filename = Cloudinary public_id
+    const sizeMB = req.file.size ? (req.file.size / (1024 * 1024)).toFixed(1) + ' MB' : '';
     res.json({
       success: true,
-      path: req.file.path,
-      filename: req.file.filename,
-      size: `${sizeMB} MB`,
+      path: req.file.path,       // Cloudinary URL — saved as uploadedVideoPath
+      filename: req.file.filename, // Cloudinary public_id
+      size: sizeMB,
     });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 };
@@ -251,10 +254,17 @@ exports.uploadVideo = async (req, res) => {
 exports.deleteVideo = async (req, res) => {
   try {
     const { filename } = req.params;
-    // Prevent path traversal attacks
-    if (!filename || filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+    if (!filename || filename.includes('..')) {
       return res.status(400).json({ success: false, message: 'Invalid filename' });
     }
+    // Derive Cloudinary public_id from filename (strip extension)
+    const publicId = 'advocate-chauhan/videos/' + filename.replace(/\.[^.]+$/, '');
+    try {
+      await cloudinary.uploader.destroy(publicId, { resource_type: 'video' });
+    } catch (_) {
+      // File may not exist on Cloudinary (legacy local upload) — ignore
+    }
+    // Also clean up any legacy local file
     const fullPath = path.join(__dirname, '../uploads/videos', filename);
     if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
     res.json({ success: true });

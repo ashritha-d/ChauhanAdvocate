@@ -99,7 +99,10 @@ function VideoUploadZone({ videoPath, videoSize, onUploaded, onRemove }) {
     setTimeout(() => fileRef.current?.click(), 50);
   };
 
-  const thumbSrc = localThumb || (videoPath ? MEDIA_BASE + videoPath : '');
+  const resolvedVideoUrl = videoPath
+    ? (videoPath.startsWith('http') ? videoPath : MEDIA_BASE + videoPath)
+    : '';
+  const thumbSrc = localThumb || resolvedVideoUrl;
   const filename = videoPath ? videoPath.split('/').pop() : '';
 
   // ── Uploaded state ──

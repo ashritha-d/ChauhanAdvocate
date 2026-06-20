@@ -9,7 +9,11 @@ const MEDIA_BASE = API_BASE.replace('/api', '');
 function getEffectiveUrl(video) {
   if (!video) return null;
   if (video.videoSourceType === 'upload' || (!video.videoUrl && video.uploadedVideoPath)) {
-    return video.uploadedVideoPath ? MEDIA_BASE + video.uploadedVideoPath : null;
+    if (!video.uploadedVideoPath) return null;
+    // Cloudinary URLs are absolute; legacy local paths need the server base prepended
+    return video.uploadedVideoPath.startsWith('http')
+      ? video.uploadedVideoPath
+      : MEDIA_BASE + video.uploadedVideoPath;
   }
   return video.videoUrl || null;
 }
