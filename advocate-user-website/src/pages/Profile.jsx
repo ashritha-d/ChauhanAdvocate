@@ -800,34 +800,38 @@ export default function Profile() {
                           const mag = p.magazineId;
                           if (!mag) return null;
                           return (
-                            <div className="col-md-6 col-lg-4" key={p._id}>
-                              <div className="profile-mag-card">
-                                <div className="profile-mag-cover-wrap">
+                            <div className="col-md-6" key={p._id}>
+                              <div className="profile-course-card">
+                                <div className="profile-course-header">
+                                  <div className="profile-course-title">{mag.title}</div>
+                                  <span className="badge bg-success">Purchased</span>
+                                </div>
+                                {mag.issueNumber && <div className="text-muted small mb-1"><i className="fas fa-hashtag me-1"></i>{mag.issueNumber}</div>}
+                                {mag.category && <div className="text-muted small mb-2"><i className="fas fa-tag me-1"></i>{mag.category}</div>}
+                                <div className="d-flex justify-content-between small mb-3" style={{ color: '#888' }}>
+                                  <span><i className="fas fa-rupee-sign me-1"></i>₹{p.amount || mag.price}</span>
+                                  <span><i className="fas fa-calendar me-1"></i>{formatDate(p.purchaseDate)}</span>
+                                </div>
+                                {mag.coverImage && (
                                   <img
-                                    src={mag.coverImage ? mediaUrl(mag.coverImage) : `${import.meta.env.BASE_URL}placeholder-lawyer.svg`}
+                                    src={mediaUrl(mag.coverImage)}
                                     alt={mag.title}
-                                    className="profile-mag-cover"
-                                    onError={e => { e.target.src = `${import.meta.env.BASE_URL}placeholder-lawyer.svg`; }}
+                                    style={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 8, marginBottom: 12 }}
+                                    onError={e => { e.target.style.display = 'none'; }}
                                   />
-                                  <span className="profile-mag-badge">PAID</span>
-                                </div>
-                                <div className="profile-mag-info">
-                                  <div className="profile-mag-title">{mag.title}</div>
-                                  {mag.issueNumber && <div className="profile-mag-issue">{mag.issueNumber}</div>}
-                                  {mag.category && <div className="profile-mag-cat">{mag.category}</div>}
-                                  <div className="profile-mag-meta">
-                                    <span><i className="fas fa-rupee-sign me-1"></i>₹{p.amount || mag.price}</span>
-                                    <span><i className="fas fa-calendar me-1"></i>{formatDate(p.purchaseDate)}</span>
-                                  </div>
-                                  {mag.allowDownload && (
-                                    <button
-                                      className="btn btn-gold btn-sm w-100 mt-2"
-                                      onClick={() => handleMagazineDownload(mag._id, mag.title)}
-                                    >
-                                      <i className="fas fa-download me-1"></i>Download PDF
-                                    </button>
-                                  )}
-                                </div>
+                                )}
+                                {mag.allowDownload ? (
+                                  <button
+                                    className="btn btn-gold btn-sm w-100"
+                                    onClick={() => handleMagazineDownload(mag._id, mag.title)}
+                                  >
+                                    <i className="fas fa-download me-1"></i>Download PDF
+                                  </button>
+                                ) : (
+                                  <button className="btn btn-outline-secondary btn-sm w-100" disabled>
+                                    <i className="fas fa-eye me-1"></i>Download Not Available
+                                  </button>
+                                )}
                               </div>
                             </div>
                           );
@@ -841,26 +845,30 @@ export default function Profile() {
               {/* ── Drafts ── */}
               {tab === 'drafts' && (
                 <div>
-                  <h4 className="profile-section-title">Legal Drafts</h4>
+                  <div className="d-flex align-items-center justify-content-between mb-4">
+                    <h4 className="profile-section-title mb-0">Legal Drafts</h4>
+                    <button className="btn btn-gold btn-sm" onClick={() => goTo('drafts')}>
+                      <i className="fas fa-file-alt me-1"></i>Browse Drafts
+                    </button>
+                  </div>
                   {dataLoading || myDrafts === null
                     ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
                     : (
                       <div className="row g-3">
                         {myDrafts.map((d, i) => (
-                          <div className="col-md-6 col-lg-4" key={d._id || i}>
-                            <div className="profile-card h-100 d-flex flex-column">
-                              <div className="d-flex align-items-start gap-3 mb-3">
-                                <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(201,168,76,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                  <i className="fas fa-file-pdf" style={{ color: 'var(--gold)', fontSize: '1.2rem' }}></i>
-                                </div>
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div className="fw-bold text-dark" style={{ fontSize: '0.9rem', lineHeight: 1.3 }}>{d.title}</div>
-                                  {d.category && <span className="badge bg-secondary mt-1" style={{ fontSize: '0.7rem' }}>{d.category}</span>}
-                                </div>
+                          <div className="col-md-6" key={d._id || i}>
+                            <div className="profile-course-card">
+                              <div className="profile-course-header">
+                                <div className="profile-course-title">{d.title}</div>
+                                {d.category && <span className="badge bg-warning text-dark">{d.category}</span>}
                               </div>
-                              {d.description && <p className="text-muted small mb-3" style={{ flex: 1 }}>{d.description}</p>}
+                              <div className="text-muted small mb-2">
+                                <i className="fas fa-file-pdf me-1" style={{ color: 'var(--gold)' }}></i>
+                                Legal Document Template
+                              </div>
+                              {d.description && <p className="text-muted small mb-3">{d.description}</p>}
                               <button
-                                className="btn btn-gold btn-sm w-100 mt-auto"
+                                className={`btn btn-sm w-100 ${d.file ? 'btn-gold' : 'btn-outline-secondary'}`}
                                 onClick={() => {
                                   if (!d.file) { alert(`"${d.title}" is not available for download yet.`); return; }
                                   const a = document.createElement('a');
@@ -869,7 +877,7 @@ export default function Profile() {
                                 }}
                               >
                                 <i className={`fas ${d.file ? 'fa-download' : 'fa-lock'} me-1`}></i>
-                                {d.file ? 'Download PDF' : 'Not Available'}
+                                {d.file ? 'Download PDF' : 'Not Available Yet'}
                               </button>
                             </div>
                           </div>
