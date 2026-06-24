@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
 import Hero from '../components/Hero';
 import Services from '../components/Services';
@@ -20,7 +22,12 @@ import { useUserAuth } from '../context/UserAuthContext';
 import { clearPendingAction } from '../utils/pendingAction';
 
 export default function Home() {
-  const { activeModal, modalData, closeModal } = useUserAuth();
+  const { user, loading: authLoading, activeModal, modalData, closeModal } = useUserAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authLoading && user) navigate('/profile', { replace: true });
+  }, [user, authLoading, navigate]);
 
   const handleModalSuccess = () => {
     clearPendingAction();
