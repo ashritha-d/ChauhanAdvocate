@@ -90,8 +90,6 @@ export default function Navbar() {
   const isActive = ({ id, page }) => {
     if (!page) return false;
     if (id === 'dashboard') return location.pathname.startsWith('/profile');
-    if (id === 'magazines') return location.pathname === '/magazines' || (location.pathname === '/profile' && location.search.includes('magazines'));
-    if (id === 'drafts') return location.pathname === '/drafts' || (location.pathname === '/profile' && location.search.includes('drafts'));
     return location.pathname === page;
   };
 

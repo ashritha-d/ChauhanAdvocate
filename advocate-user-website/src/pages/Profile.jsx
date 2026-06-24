@@ -781,7 +781,7 @@ export default function Profile() {
                 <div>
                   <div className="d-flex align-items-center justify-content-between mb-4">
                     <h4 className="profile-section-title mb-0">My Magazines</h4>
-                    <button className="btn btn-gold btn-sm" onClick={() => goTo('magazines')}>
+                    <button className="btn btn-gold btn-sm" onClick={() => navigate('/magazines')}>
                       <i className="fas fa-book-open me-1"></i>Browse Magazines
                     </button>
                   </div>
@@ -792,7 +792,7 @@ export default function Profile() {
                       <div className="profile-empty">
                         <i className="fas fa-book-open"></i>
                         <p>No purchased magazines yet</p>
-                        <button className="btn btn-gold btn-sm" onClick={() => goTo('magazines')}>Browse Magazines</button>
+                        <button className="btn btn-gold btn-sm" onClick={() => navigate('/magazines')}>Browse Magazines</button>
                       </div>
                     ) : (
                       <div className="row g-3">
@@ -847,7 +847,7 @@ export default function Profile() {
                 <div>
                   <div className="d-flex align-items-center justify-content-between mb-4">
                     <h4 className="profile-section-title mb-0">Legal Drafts</h4>
-                    <button className="btn btn-gold btn-sm" onClick={() => goTo('drafts')}>
+                    <button className="btn btn-gold btn-sm" onClick={() => navigate('/drafts')}>
                       <i className="fas fa-file-alt me-1"></i>Browse Drafts
                     </button>
                   </div>

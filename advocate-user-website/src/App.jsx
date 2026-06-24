@@ -17,6 +17,8 @@ import ForgotPassword from './pages/ForgotPassword';
 import Profile from './pages/Profile';
 import Gallery from './pages/Gallery';
 import Courses from './pages/Courses';
+import MagazinesPage from './pages/Magazines';
+import DraftsPage from './pages/Drafts';
 import NewsPage from './pages/News';
 import Payment from './pages/Payment';
 import NewsTicker from './components/NewsTicker';
@@ -226,10 +228,12 @@ export default function App() {
               </AppLayout>
             } />
 
+            {/* Standalone content pages */}
+            <Route path="/magazines" element={<AppLayout><MagazinesPage /></AppLayout>} />
+            <Route path="/drafts"    element={<AppLayout><DraftsPage /></AppLayout>} />
+
             {/* Tab shortcut redirects */}
             <Route path="/appointments"  element={<Navigate to="/profile?tab=appointments"  replace />} />
-            <Route path="/magazines"     element={<Navigate to="/profile?tab=magazines"     replace />} />
-            <Route path="/drafts"        element={<Navigate to="/profile?tab=drafts"        replace />} />
             <Route path="/notifications" element={<Navigate to="/profile?tab=notifications" replace />} />
             <Route path="/settings"      element={<Navigate to="/profile?tab=settings"      replace />} />
           </Routes>
