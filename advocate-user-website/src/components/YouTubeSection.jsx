@@ -40,7 +40,7 @@ export default function YouTubeSection() {
     <VideoSlider
       id="youtube"
       label="Watch & Learn"
-      title={<>Legal Insights <span className="text-gold">&amp; Updates</span></>}
+      title={<>Social Media Legal Insights <span className="text-gold">&amp; Updates</span></>}
       subscribeHref={YT_CHANNEL}
       subscribeText="Subscribe for more"
       subscribeIcon="fab fa-youtube"
