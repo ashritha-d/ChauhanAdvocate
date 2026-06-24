@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { SiteProvider } from './context/SiteContext';
 import { UserAuthProvider } from './context/UserAuthContext';
@@ -20,6 +20,7 @@ import Courses from './pages/Courses';
 import NewsPage from './pages/News';
 import Payment from './pages/Payment';
 import NewsTicker from './components/NewsTicker';
+import Contact from './components/Contact';
 
 function ScrollToHash() {
   const location = useLocation();
@@ -204,6 +205,18 @@ export default function App() {
                 <Payment />
               </AppLayout>
             } />
+            <Route path="/contact" element={
+              <AppLayout>
+                <Contact />
+              </AppLayout>
+            } />
+
+            {/* Tab shortcut redirects */}
+            <Route path="/appointments"  element={<Navigate to="/profile?tab=appointments"  replace />} />
+            <Route path="/magazines"     element={<Navigate to="/profile?tab=magazines"     replace />} />
+            <Route path="/drafts"        element={<Navigate to="/profile?tab=drafts"        replace />} />
+            <Route path="/notifications" element={<Navigate to="/profile?tab=notifications" replace />} />
+            <Route path="/settings"      element={<Navigate to="/profile?tab=settings"      replace />} />
           </Routes>
         </BrowserRouter>
       </UserAuthProvider>

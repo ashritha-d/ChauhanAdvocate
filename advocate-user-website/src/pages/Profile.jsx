@@ -8,20 +8,21 @@ import {
   getMyAppointments, getMyOrders, getNotifications,
   markNotificationRead, markAllNotificationsRead, getMyApplications,
   getMyEnrollments, getPublicCourse, updateCourseProgress,
-  getMyMagazinePurchases, downloadMagazineFull,
+  getMyMagazinePurchases, downloadMagazineFull, getDrafts,
 } from '../api';
 import { mediaUrl } from '../utils/helpers';
 import AppointmentModal from '../components/AppointmentModal';
 
 const TABS = [
-  { id: 'dashboard', icon: 'fa-tachometer-alt', label: 'Dashboard' },
-  { id: 'appointments', icon: 'fa-calendar-alt', label: 'My Appointments' },
-  { id: 'orders', icon: 'fa-book', label: 'My Orders' },
-  { id: 'courses', icon: 'fa-graduation-cap', label: 'My Courses' },
-  { id: 'magazines', icon: 'fa-book-open', label: 'My Magazines' },
-  { id: 'applications', icon: 'fa-user-tie', label: 'My Applications' },
-  { id: 'notifications', icon: 'fa-bell', label: 'Notifications' },
-  { id: 'settings', icon: 'fa-user-cog', label: 'Profile Settings' },
+  { id: 'dashboard',     icon: 'fa-tachometer-alt', label: 'Dashboard' },
+  { id: 'appointments',  icon: 'fa-calendar-alt',   label: 'My Appointments' },
+  { id: 'orders',        icon: 'fa-book',           label: 'My Orders' },
+  { id: 'courses',       icon: 'fa-graduation-cap', label: 'My Courses' },
+  { id: 'magazines',     icon: 'fa-book-open',      label: 'My Magazines' },
+  { id: 'drafts',        icon: 'fa-file-alt',       label: 'Drafts' },
+  { id: 'applications',  icon: 'fa-user-tie',       label: 'My Applications' },
+  { id: 'notifications', icon: 'fa-bell',           label: 'Notifications' },
+  { id: 'settings',      icon: 'fa-user-cog',       label: 'Profile Settings' },
 ];
 
 const STATUS_BADGE = {
@@ -190,6 +191,7 @@ export default function Profile() {
   const [enrollments, setEnrollments] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [myMagazines, setMyMagazines] = useState([]);
+  const [myDrafts, setMyDrafts] = useState(null);
   const [dataLoading, setDataLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const fileInputRef = useRef();
@@ -217,6 +219,7 @@ export default function Profile() {
     if (tab === 'orders') loadOrders();
     if (tab === 'courses') loadEnrollments();
     if (tab === 'magazines') loadMyMagazines();
+    if (tab === 'drafts') loadDrafts();
     if (tab === 'applications') loadApplications();
     if (tab === 'notifications') loadNotifications();
   }, [tab, user]);
@@ -268,6 +271,17 @@ export default function Profile() {
       const r = await getMyMagazinePurchases(authHeader());
       if (r.data.success) setMyMagazines(r.data.data);
     } catch {}
+    setDataLoading(false);
+  };
+
+  const loadDrafts = async () => {
+    if (myDrafts !== null) return;
+    setDataLoading(true);
+    try {
+      const r = await getDrafts();
+      if (r.data?.success) setMyDrafts(r.data.data || []);
+      else setMyDrafts([]);
+    } catch { setMyDrafts([]); }
     setDataLoading(false);
   };
 
@@ -809,6 +823,54 @@ export default function Profile() {
                             </div>
                           );
                         })}
+                      </div>
+                    )
+                  }
+                </div>
+              )}
+
+              {/* ── Drafts ── */}
+              {tab === 'drafts' && (
+                <div>
+                  <h4 className="profile-section-title">Legal Drafts</h4>
+                  {dataLoading || myDrafts === null
+                    ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
+                    : myDrafts.length === 0
+                    ? (
+                      <div className="profile-empty">
+                        <i className="fas fa-file-alt"></i>
+                        <p>No drafts available yet</p>
+                      </div>
+                    ) : (
+                      <div className="row g-3">
+                        {myDrafts.map((d, i) => (
+                          <div className="col-md-6 col-lg-4" key={d._id || i}>
+                            <div className="profile-card h-100 d-flex flex-column">
+                              <div className="d-flex align-items-start gap-3 mb-3">
+                                <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(201,168,76,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                  <i className="fas fa-file-pdf" style={{ color: 'var(--gold)', fontSize: '1.2rem' }}></i>
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div className="fw-bold text-dark" style={{ fontSize: '0.9rem', lineHeight: 1.3 }}>{d.title}</div>
+                                  {d.category && <span className="badge bg-secondary mt-1" style={{ fontSize: '0.7rem' }}>{d.category}</span>}
+                                </div>
+                              </div>
+                              {d.description && <p className="text-muted small mb-3" style={{ flex: 1 }}>{d.description}</p>}
+                              <button
+                                className="btn btn-gold btn-sm w-100 mt-auto"
+                                onClick={() => {
+                                  if (!d.file) { alert(`"${d.title}" is not available for download yet.`); return; }
+                                  const a = document.createElement('a');
+                                  a.href = mediaUrl(d.file); a.download = d.title + '.pdf'; a.target = '_blank';
+                                  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                                }}
+                              >
+                                <i className={`fas ${d.file ? 'fa-download' : 'fa-lock'} me-1`}></i>
+                                {d.file ? 'Download PDF' : 'Not Available'}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )
                   }

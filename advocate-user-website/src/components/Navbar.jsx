@@ -11,7 +11,7 @@ const NAV_LINKS = [
   { id: 'gallery',  label: 'Gallery',  page: '/gallery', icon: 'fa-images',          publicOnly: true },
   { id: 'blog',     label: 'Blog',     page: null,       icon: 'fa-pen-nib',         publicOnly: true },
   { id: 'faq',      label: 'FAQ',      page: null,       icon: 'fa-question-circle', publicOnly: true },
-  { id: 'contact',  label: 'Contact',  page: null,       icon: 'fa-envelope' },
+  { id: 'contact',  label: 'Contact',  page: '/contact', icon: 'fa-envelope' },
 ];
 
 const USER_LINKS = [
