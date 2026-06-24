@@ -371,20 +371,20 @@
 
         <!-- Method Detail Panels -->
 
-        <!-- Razorpay Panel -->
-        <div class="method-details" id="panel-razorpay">
-          <div class="d-flex align-items-center gap-2 mb-3">
-            <i class="fas fa-shield-alt text-success"></i>
-            <span class="fw-semibold small">Razorpay Secure Checkout</span>
-          </div>
-          <p class="text-muted small mb-3">Pay using any UPI app, debit/credit card, or net banking. Your appointment will be confirmed instantly after payment.</p>
-          <div id="alertRazorpay"></div>
-          <button class="btn-pay btn-razorpay" id="btnRazorpay" onclick="startRazorpay()">
-            <i class="fas fa-lock me-2"></i> Pay Securely with Razorpay
-          </button>
-        </div>
+<!-- Razorpay Panel -->
+         <div class="method-details" id="panel-razorpay">
+           <div class="d-flex align-items-center gap-2 mb-3">
+             <i class="fas fa-shield-alt text-success"></i>
+             <span class="fw-semibold small">Razorpay Secure Checkout</span>
+           </div>
+           <p class="text-muted small mb-3">Pay using any UPI app, debit/credit card, or net banking. Your appointment will be confirmed instantly after payment.</p>
+           <div id="alertRazorpay"></div>
+           <button class="btn-pay btn-razorpay" id="btnRazorpay" onclick="startRazorpay()">
+             <i class="fas fa-lock me-2"></i> Pay Securely with Razorpay
+           </button>
+         </div>
 
-        <!-- PhonePe / Google Pay Panel -->
+         <!-- PhonePe / Google Pay Panel -->
         <div class="method-details" id="panel-phonepe">
           <div id="upiQrSection">
             <p class="small text-muted mb-3">Scan this QR code or use the UPI ID below to pay from PhonePe:</p>
@@ -698,11 +698,11 @@ function populateSummary() {
     badge.innerHTML = '<i class="fas fa-building me-1"></i>Offline';
   }
 
-  // Fee in step instructions
-  ['stepFeePhonepe','stepFeeGpay','stepFeeUpi','stepFeeQr'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = fee;
-  });
+// Fee in step instructions
+   ['stepFeePhonepe','stepFeeGpay','stepFeeUpi','stepFeeQr'].forEach(id => {
+     const el = document.getElementById(id);
+     if (el) el.textContent = fee;
+   });
 }
 
 async function loadPaymentSettings() {
