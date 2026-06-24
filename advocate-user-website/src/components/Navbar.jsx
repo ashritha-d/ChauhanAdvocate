@@ -3,26 +3,30 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
 
-const NAV_LINKS = [
-  { id: 'home',      label: 'Home',      page: null,       icon: 'fa-home',            publicOnly: true },
-  { id: 'services',  label: 'Services',  page: null,       icon: 'fa-balance-scale',   publicOnly: true },
-  { id: 'news',      label: 'News',      page: '/news',    icon: 'fa-newspaper',       publicOnly: true },
-  { id: 'courses',   label: 'Courses',   page: '/courses', icon: 'fa-graduation-cap' },
-  { id: 'gallery',   label: 'Gallery',   page: '/gallery', icon: 'fa-images',          publicOnly: true },
-  { id: 'blog',      label: 'Blog',      page: null,       icon: 'fa-pen-nib',         publicOnly: true },
-  { id: 'faq',       label: 'FAQ',       page: null,       icon: 'fa-question-circle', publicOnly: true },
-  { id: 'contact',   label: 'Contact',   page: '/contact', icon: 'fa-envelope' },
-  { id: 'dashboard', label: 'Dashboard', page: '/profile', icon: 'fa-tachometer-alt',  loggedInOnly: true },
-  { id: 'drafts',    label: 'Drafts',    page: '/drafts',  icon: 'fa-file-alt',        loggedInOnly: true },
+const PUBLIC_NAV_LINKS = [
+  { id: 'home',     label: 'Home',     page: null,       icon: 'fa-home' },
+  { id: 'services', label: 'Services', page: null,       icon: 'fa-balance-scale' },
+  { id: 'news',     label: 'News',     page: '/news',    icon: 'fa-newspaper' },
+  { id: 'courses',  label: 'Courses',  page: '/courses', icon: 'fa-graduation-cap' },
+  { id: 'gallery',  label: 'Gallery',  page: '/gallery', icon: 'fa-images' },
+  { id: 'blog',     label: 'Blog',     page: null,       icon: 'fa-pen-nib' },
+  { id: 'faq',      label: 'FAQ',      page: null,       icon: 'fa-question-circle' },
+  { id: 'contact',  label: 'Contact',  page: '/contact', icon: 'fa-envelope' },
 ];
 
-const USER_LINKS = [
-  { to: '/profile',                   icon: 'fa-user-circle',    label: 'My Profile' },
-  { to: '/profile?tab=appointments',  icon: 'fa-calendar-alt',   label: 'My Appointments' },
-  { to: '/profile?tab=orders',        icon: 'fa-book',           label: 'My Orders' },
-  { to: '/profile?tab=notifications', icon: 'fa-bell',           label: 'Notifications', badge: true },
-  { to: '/profile?tab=magazines',     icon: 'fa-book-open',      label: 'My Magazines' },
-  { to: '/profile?tab=courses',       icon: 'fa-graduation-cap', label: 'Purchased Courses' },
+const AUTH_NAV_LINKS = [
+  { id: 'dashboard', label: 'Dashboard', page: '/profile',   icon: 'fa-tachometer-alt' },
+  { id: 'courses',   label: 'Courses',   page: '/courses',   icon: 'fa-graduation-cap' },
+  { id: 'magazines', label: 'Magazines', page: '/magazines', icon: 'fa-book-open' },
+  { id: 'drafts',    label: 'Drafts',    page: '/drafts',    icon: 'fa-file-alt' },
+  { id: 'contact',   label: 'Contact',   page: '/contact',   icon: 'fa-envelope' },
+];
+
+const USER_DROPDOWN_LINKS = [
+  { to: '/profile',                  icon: 'fa-user-circle', label: 'My Profile' },
+  { to: '/profile?tab=appointments', icon: 'fa-calendar-alt', label: 'My Appointments' },
+  { to: '/profile?tab=orders',       icon: 'fa-book',         label: 'My Orders' },
+  { to: '/profile?tab=settings',     icon: 'fa-user-cog',     label: 'Profile Settings' },
 ];
 
 function formatDate(d) {
@@ -31,22 +35,17 @@ function formatDate(d) {
 }
 
 export default function Navbar() {
-  const [scrolled, setScrolled]         = useState(false);
-  const [menuOpen, setMenuOpen]         = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [scrolled, setScrolled]           = useState(false);
+  const [menuOpen, setMenuOpen]           = useState(false);
+  const [userMenuOpen, setUserMenuOpen]   = useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
   const navRef = useRef(null);
   const { user, logout, unreadCount, openModal } = useUserAuth();
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // Lock body scroll when drawer is open
   useEffect(() => {
-    if (menuOpen) {
-      document.body.classList.add('drawer-open');
-    } else {
-      document.body.classList.remove('drawer-open');
-    }
+    document.body.classList.toggle('drawer-open', menuOpen);
     return () => document.body.classList.remove('drawer-open');
   }, [menuOpen]);
 
@@ -57,26 +56,23 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    const handleClickOutside = e => {
-      if (navRef.current && !navRef.current.contains(e.target)) {
-        setUserMenuOpen(false);
-      }
+    const handler = e => {
+      if (navRef.current && !navRef.current.contains(e.target)) setUserMenuOpen(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   const close = () => { setMenuOpen(false); setUserMenuOpen(false); };
-
   const handleLogoutClick = () => { setMenuOpen(false); setLogoutConfirm(true); };
   const confirmLogout = () => { setLogoutConfirm(false); logout(); navigate('/'); };
 
   const handleSection = (id) => (e) => {
     e.preventDefault();
     close();
-    const base        = import.meta.env.BASE_URL;
+    const base = import.meta.env.BASE_URL;
     const currentPath = window.location.pathname.replace(/\/$/, '');
-    const basePath    = base.replace(/\/$/, '');
+    const basePath = base.replace(/\/$/, '');
     if (currentPath === basePath || currentPath === '') {
       document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     } else {
@@ -91,6 +87,16 @@ export default function Navbar() {
     else { savePendingAction('appointment'); navigate('/login'); }
   };
 
+  const isActive = ({ id, page }) => {
+    if (!page) return false;
+    if (id === 'dashboard') return location.pathname.startsWith('/profile');
+    if (id === 'magazines') return location.pathname === '/magazines' || (location.pathname === '/profile' && location.search.includes('magazines'));
+    if (id === 'drafts') return location.pathname === '/drafts' || (location.pathname === '/profile' && location.search.includes('drafts'));
+    return location.pathname === page;
+  };
+
+  const navLinks = user ? AUTH_NAV_LINKS : PUBLIC_NAV_LINKS;
+
   return (
     <>
       <nav ref={navRef} className={`navbar navbar-dark fixed-top ${scrolled ? 'scrolled' : ''}`} id="mainNavbar">
@@ -103,9 +109,9 @@ export default function Navbar() {
 
           {/* Mobile: Book Appointment + Profile icon */}
           <div className="d-lg-none mobile-nav-center">
-            <a href="#appointment" className="btn btn-gold mobile-appt-btn" onClick={handleAppointment}>
+            <button className="btn btn-gold mobile-appt-btn" onClick={handleAppointment}>
               Book an Appointment
-            </a>
+            </button>
             {user ? (
               <Link to="/profile" className="mobile-profile-btn" onClick={close} title={user.name}>
                 {user.profilePhoto
@@ -133,55 +139,79 @@ export default function Navbar() {
 
           {/* ── Desktop nav ── */}
           <div className="d-none d-lg-flex ms-auto align-items-center gap-1">
-            {NAV_LINKS.filter(l => (!user ? !l.loggedInOnly : !l.publicOnly)).map(({ id, label, page }) => (
-              page
-                ? <Link key={id} to={page} className={`nav-link ${location.pathname === page ? 'active' : ''}`} onClick={close}>{label}</Link>
-                : <a key={id} className="nav-link" href={`#${id}`} onClick={handleSection(id)}>{label}</a>
+            {navLinks.map(link => (
+              link.page
+                ? <Link
+                    key={link.id}
+                    to={link.page}
+                    className={`nav-link ${isActive(link) ? 'active' : ''}`}
+                    onClick={close}
+                  >{link.label}</Link>
+                : <a key={link.id} className="nav-link" href={`#${link.id}`} onClick={handleSection(link.id)}>{link.label}</a>
             ))}
-            <a href="#appointment" className="btn btn-gold ms-2" onClick={handleAppointment}>Book an Appointment</a>
+
+            <button className="btn btn-gold ms-2" onClick={handleAppointment}>
+              Book an Appointment
+            </button>
 
             {user ? (
-              <div className="nav-user-menu ms-2">
-                <button className="nav-user-btn" onClick={() => setUserMenuOpen(o => !o)}>
-                  {user.profilePhoto
-                    ? <img src={user.profilePhoto} alt={user.name} className="nav-user-avatar" />
-                    : <div className="nav-user-initial">{user.name.charAt(0).toUpperCase()}</div>
-                  }
-                  <span className="nav-user-name">{user.name.split(' ')[0]}</span>
-                  {unreadCount > 0 && <span className="navbar-notif-badge-sm">{unreadCount > 9 ? '9+' : unreadCount}</span>}
-                  <i className="fas fa-chevron-down ms-1" style={{ fontSize: '0.65rem', opacity: 0.6 }}></i>
-                </button>
+              <>
+                {/* Notifications Bell */}
+                <Link
+                  to="/profile?tab=notifications"
+                  className="navbar-notif-btn ms-1"
+                  onClick={close}
+                  title={`Notifications${unreadCount > 0 ? ` (${unreadCount})` : ''}`}
+                  style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
+                >
+                  <i className="fas fa-bell"></i>
+                  {unreadCount > 0 && (
+                    <span className="navbar-notif-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                  )}
+                </Link>
 
-                {userMenuOpen && (
-                  <div className="nav-user-dropdown nav-profile-dropdown">
-                    <div className="nav-profile-card">
-                      <div className="nav-profile-avatar-wrap">
-                        {user.profilePhoto
-                          ? <img src={user.profilePhoto} alt={user.name} className="nav-profile-avatar-img" />
-                          : <div className="nav-profile-avatar-initial">{user.name.charAt(0).toUpperCase()}</div>
-                        }
+                {/* Profile Dropdown */}
+                <div className="nav-user-menu ms-2">
+                  <button className="nav-user-btn" onClick={() => setUserMenuOpen(o => !o)}>
+                    {user.profilePhoto
+                      ? <img src={user.profilePhoto} alt={user.name} className="nav-user-avatar" />
+                      : <div className="nav-user-initial">{user.name.charAt(0).toUpperCase()}</div>
+                    }
+                    <span className="nav-user-name">{user.name.split(' ')[0]}</span>
+                    <i className="fas fa-chevron-down ms-1" style={{ fontSize: '0.65rem', opacity: 0.6 }}></i>
+                  </button>
+
+                  {userMenuOpen && (
+                    <div className="nav-user-dropdown nav-profile-dropdown">
+                      <div className="nav-profile-card">
+                        <div className="nav-profile-avatar-wrap">
+                          {user.profilePhoto
+                            ? <img src={user.profilePhoto} alt={user.name} className="nav-profile-avatar-img" />
+                            : <div className="nav-profile-avatar-initial">{user.name.charAt(0).toUpperCase()}</div>
+                          }
+                        </div>
+                        <div className="nav-profile-name">{user.name}</div>
+                        <div className="nav-profile-detail"><i className="fas fa-envelope"></i>{user.email}</div>
+                        <div className="nav-profile-detail"><i className="fas fa-phone"></i>{user.phone}</div>
+                        <div className="nav-profile-meta">
+                          <span className={`badge ${user.isActive ? 'bg-success' : 'bg-secondary'}`}>{user.isActive ? 'Active' : 'Inactive'}</span>
+                          <small>Member since {formatDate(user.createdAt)}</small>
+                        </div>
                       </div>
-                      <div className="nav-profile-name">{user.name}</div>
-                      <div className="nav-profile-detail"><i className="fas fa-envelope"></i>{user.email}</div>
-                      <div className="nav-profile-detail"><i className="fas fa-phone"></i>{user.phone}</div>
-                      <div className="nav-profile-meta">
-                        <span className={`badge ${user.isActive ? 'bg-success' : 'bg-secondary'}`}>{user.isActive ? 'Active' : 'Inactive'}</span>
-                        <small>Member since {formatDate(user.createdAt)}</small>
-                      </div>
+                      <div className="nav-user-dd-divider"></div>
+                      {USER_DROPDOWN_LINKS.map(({ to, icon, label }) => (
+                        <Link key={to} to={to} className="nav-user-dd-item" onClick={close}>
+                          <i className={`fas ${icon}`}></i> {label}
+                        </Link>
+                      ))}
+                      <div className="nav-user-dd-divider"></div>
+                      <button className="nav-user-dd-item" style={{ color: '#ff6b6b' }} onClick={handleLogoutClick}>
+                        <i className="fas fa-sign-out-alt"></i> Logout
+                      </button>
                     </div>
-                    <div className="nav-user-dd-divider"></div>
-                    <Link to="/profile?tab=settings" className="nav-user-dd-item" onClick={close}><i className="fas fa-user-cog"></i> Profile Settings</Link>
-                    <Link to="/profile?tab=notifications" className="nav-user-dd-item" onClick={close}>
-                      <i className="fas fa-bell"></i> Notifications
-                      {unreadCount > 0 && <span className="ms-auto badge bg-danger">{unreadCount}</span>}
-                    </Link>
-                    <div className="nav-user-dd-divider"></div>
-                    <button className="nav-user-dd-item" style={{ color: '#ff6b6b' }} onClick={handleLogoutClick}>
-                      <i className="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              </>
             ) : (
               <div className="d-flex gap-2 ms-2">
                 <Link to="/login" className="btn btn-outline-light btn-sm"><i className="fas fa-sign-in-alt me-1"></i>Login</Link>
@@ -217,17 +247,21 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Drawer Scrollable Body */}
+        {/* Drawer Body */}
         <div className="mobile-drawer-body">
-
           <div className="mobile-drawer-section-label">Navigation</div>
-          {NAV_LINKS.filter(l => (!user ? !l.loggedInOnly : !l.publicOnly)).map(({ id, label, page, icon }) => (
-            page
-              ? <Link key={id} to={page} className="mobile-drawer-link" onClick={close}>
-                  <i className={`fas ${icon} mobile-drawer-link-icon`}></i>{label}
+          {navLinks.map(link => (
+            link.page
+              ? <Link
+                  key={link.id}
+                  to={link.page}
+                  className={`mobile-drawer-link ${isActive(link) ? 'active' : ''}`}
+                  onClick={close}
+                >
+                  <i className={`fas ${link.icon} mobile-drawer-link-icon`}></i>{link.label}
                 </Link>
-              : <a key={id} href={`#${id}`} className="mobile-drawer-link" onClick={handleSection(id)}>
-                  <i className={`fas ${icon} mobile-drawer-link-icon`}></i>{label}
+              : <a key={link.id} href={`#${link.id}`} className="mobile-drawer-link" onClick={handleSection(link.id)}>
+                  <i className={`fas ${link.icon} mobile-drawer-link-icon`}></i>{link.label}
                 </a>
           ))}
 
@@ -246,13 +280,14 @@ export default function Navbar() {
             <>
               <div className="mobile-drawer-divider"></div>
               <div className="mobile-drawer-section-label">My Account</div>
-              {USER_LINKS.map(({ to, icon, label, badge }) => (
+              <Link to="/profile?tab=notifications" className="mobile-drawer-link" onClick={close}>
+                <i className="fas fa-bell mobile-drawer-link-icon"></i>
+                Notifications
+                {unreadCount > 0 && <span className="mobile-drawer-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
+              </Link>
+              {USER_DROPDOWN_LINKS.filter(l => l.to !== '/profile').map(({ to, icon, label }) => (
                 <Link key={to} to={to} className="mobile-drawer-link" onClick={close}>
-                  <i className={`fas ${icon} mobile-drawer-link-icon`}></i>
-                  {label}
-                  {badge && unreadCount > 0 && (
-                    <span className="mobile-drawer-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
-                  )}
+                  <i className={`fas ${icon} mobile-drawer-link-icon`}></i>{label}
                 </Link>
               ))}
             </>
@@ -270,7 +305,7 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Drawer Footer — Logout always visible */}
+        {/* Drawer Footer */}
         <div className="mobile-drawer-footer">
           {user ? (
             <button className="mobile-drawer-logout" onClick={handleLogoutClick}>

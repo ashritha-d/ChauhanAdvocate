@@ -1626,6 +1626,8 @@ body.drawer-open { overflow: hidden !important; }
 
 .mobile-drawer-appt-link { color: var(--gold) !important; font-weight: 600; }
 .mobile-drawer-appt-link .mobile-drawer-link-icon { color: var(--gold) !important; }
+.mobile-drawer-link.active { color: var(--gold) !important; background: rgba(201,168,76,0.12); border-radius: 8px; }
+.mobile-drawer-link.active .mobile-drawer-link-icon { color: var(--gold) !important; }
 
 /* Notification badge inside drawer */
 .mobile-drawer-badge {

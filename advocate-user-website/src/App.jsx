@@ -21,6 +21,20 @@ import NewsPage from './pages/News';
 import Payment from './pages/Payment';
 import NewsTicker from './components/NewsTicker';
 import Contact from './components/Contact';
+import AppointmentModal from './components/AppointmentModal';
+import OrderModal from './components/OrderModal';
+import JrAdvocateModal from './components/JrAdvocateModal';
+import { clearPendingAction } from './utils/pendingAction';
+import { useUserAuth } from './context/UserAuthContext';
+
+function GlobalModals() {
+  const { activeModal, modalData, closeModal } = useUserAuth();
+  const handleClose = () => { clearPendingAction(); closeModal(); };
+  if (activeModal === 'appointment') return <AppointmentModal onClose={handleClose} onSuccess={handleClose} />;
+  if (activeModal === 'order') return <OrderModal book={modalData || { title: 'Book', price: '' }} onClose={handleClose} onSuccess={handleClose} />;
+  if (activeModal === 'jr_advocate') return <JrAdvocateModal onClose={handleClose} onSuccess={handleClose} />;
+  return null;
+}
 
 function ScrollToHash() {
   const location = useLocation();
@@ -46,6 +60,7 @@ function AppLayout({ children, hideFooterExtras }) {
       <div className="nav-spacer" />
       <NewsTicker />
       <main>{children}</main>
+      <GlobalModals />
       {!hideFooterExtras && (
         <>
           <PhoneButton />

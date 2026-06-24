@@ -15,29 +15,15 @@ import Appointment from '../components/Appointment';
 import Blogs from '../components/Blogs';
 import FAQs from '../components/FAQs';
 import Contact from '../components/Contact';
-import AppointmentModal from '../components/AppointmentModal';
-import OrderModal from '../components/OrderModal';
-import JrAdvocateModal from '../components/JrAdvocateModal';
 import { useUserAuth } from '../context/UserAuthContext';
-import { clearPendingAction } from '../utils/pendingAction';
 
 export default function Home() {
-  const { user, loading: authLoading, activeModal, modalData, closeModal } = useUserAuth();
+  const { user, loading: authLoading } = useUserAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!authLoading && user) navigate('/profile', { replace: true });
   }, [user, authLoading, navigate]);
-
-  const handleModalSuccess = () => {
-    clearPendingAction();
-    closeModal();
-  };
-
-  const handleModalClose = () => {
-    clearPendingAction();
-    closeModal();
-  };
 
   return (
     <>
@@ -60,21 +46,6 @@ export default function Home() {
       <Blogs />
       <FAQs />
       <Contact />
-
-      {/* Global modals — triggered by auth flow or direct button clicks */}
-      {activeModal === 'appointment' && (
-        <AppointmentModal onClose={handleModalClose} onSuccess={handleModalSuccess} />
-      )}
-      {activeModal === 'order' && (
-        <OrderModal
-          book={modalData || { title: 'Book', price: '' }}
-          onClose={handleModalClose}
-          onSuccess={handleModalSuccess}
-        />
-      )}
-      {activeModal === 'jr_advocate' && (
-        <JrAdvocateModal onClose={handleModalClose} onSuccess={handleModalSuccess} />
-      )}
     </>
   );
 }
