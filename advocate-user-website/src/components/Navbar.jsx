@@ -4,14 +4,16 @@ import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
 
 const NAV_LINKS = [
-  { id: 'home',     label: 'Home',     page: null,       icon: 'fa-home',            publicOnly: true },
-  { id: 'services', label: 'Services', page: null,       icon: 'fa-balance-scale',   publicOnly: true },
-  { id: 'news',     label: 'News',     page: '/news',    icon: 'fa-newspaper',       publicOnly: true },
-  { id: 'courses',  label: 'Courses',  page: '/courses', icon: 'fa-graduation-cap' },
-  { id: 'gallery',  label: 'Gallery',  page: '/gallery', icon: 'fa-images',          publicOnly: true },
-  { id: 'blog',     label: 'Blog',     page: null,       icon: 'fa-pen-nib',         publicOnly: true },
-  { id: 'faq',      label: 'FAQ',      page: null,       icon: 'fa-question-circle', publicOnly: true },
-  { id: 'contact',  label: 'Contact',  page: '/contact', icon: 'fa-envelope' },
+  { id: 'home',      label: 'Home',      page: null,       icon: 'fa-home',            publicOnly: true },
+  { id: 'services',  label: 'Services',  page: null,       icon: 'fa-balance-scale',   publicOnly: true },
+  { id: 'news',      label: 'News',      page: '/news',    icon: 'fa-newspaper',       publicOnly: true },
+  { id: 'courses',   label: 'Courses',   page: '/courses', icon: 'fa-graduation-cap' },
+  { id: 'gallery',   label: 'Gallery',   page: '/gallery', icon: 'fa-images',          publicOnly: true },
+  { id: 'blog',      label: 'Blog',      page: null,       icon: 'fa-pen-nib',         publicOnly: true },
+  { id: 'faq',       label: 'FAQ',       page: null,       icon: 'fa-question-circle', publicOnly: true },
+  { id: 'contact',   label: 'Contact',   page: '/contact', icon: 'fa-envelope' },
+  { id: 'dashboard', label: 'Dashboard', page: '/profile', icon: 'fa-tachometer-alt',  loggedInOnly: true },
+  { id: 'drafts',    label: 'Drafts',    page: '/drafts',  icon: 'fa-file-alt',        loggedInOnly: true },
 ];
 
 const USER_LINKS = [
@@ -131,7 +133,7 @@ export default function Navbar() {
 
           {/* ── Desktop nav ── */}
           <div className="d-none d-lg-flex ms-auto align-items-center gap-1">
-            {NAV_LINKS.filter(l => !user || !l.publicOnly).map(({ id, label, page }) => (
+            {NAV_LINKS.filter(l => (!user ? !l.loggedInOnly : !l.publicOnly)).map(({ id, label, page }) => (
               page
                 ? <Link key={id} to={page} className={`nav-link ${location.pathname === page ? 'active' : ''}`} onClick={close}>{label}</Link>
                 : <a key={id} className="nav-link" href={`#${id}`} onClick={handleSection(id)}>{label}</a>
@@ -219,7 +221,7 @@ export default function Navbar() {
         <div className="mobile-drawer-body">
 
           <div className="mobile-drawer-section-label">Navigation</div>
-          {NAV_LINKS.filter(l => !user || !l.publicOnly).map(({ id, label, page, icon }) => (
+          {NAV_LINKS.filter(l => (!user ? !l.loggedInOnly : !l.publicOnly)).map(({ id, label, page, icon }) => (
             page
               ? <Link key={id} to={page} className="mobile-drawer-link" onClick={close}>
                   <i className={`fas ${icon} mobile-drawer-link-icon`}></i>{label}
