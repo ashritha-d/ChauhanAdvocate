@@ -274,14 +274,23 @@ export default function Profile() {
     setDataLoading(false);
   };
 
+  const DRAFT_FALLBACK = [
+    { _id: 'f1', title: 'Rental Agreement Draft',    description: 'Standard rental agreement template for residential properties.',       category: 'Property', file: null },
+    { _id: 'f2', title: 'Employment Contract Draft', description: 'Comprehensive employment contract template for employers.',              category: 'Employment', file: null },
+    { _id: 'f3', title: 'NDA Draft',                 description: 'Non-disclosure agreement template for business use.',                   category: 'Business', file: null },
+    { _id: 'f4', title: 'Sale Deed Draft',            description: 'Property sale deed template for transfer of ownership.',               category: 'Property', file: null },
+    { _id: 'f5', title: 'Power of Attorney',          description: 'General power of attorney template for legal authorization.',          category: 'Legal', file: null },
+    { _id: 'f6', title: 'Affidavit Template',         description: 'General affidavit format for sworn statements.',                      category: 'Legal', file: null },
+  ];
+
   const loadDrafts = async () => {
     if (myDrafts !== null) return;
     setDataLoading(true);
     try {
       const r = await getDrafts();
-      if (r.data?.success) setMyDrafts(r.data.data || []);
-      else setMyDrafts([]);
-    } catch { setMyDrafts([]); }
+      const data = r.data?.success && r.data.data?.length ? r.data.data : DRAFT_FALLBACK;
+      setMyDrafts(data);
+    } catch { setMyDrafts(DRAFT_FALLBACK); }
     setDataLoading(false);
   };
 
@@ -835,13 +844,7 @@ export default function Profile() {
                   <h4 className="profile-section-title">Legal Drafts</h4>
                   {dataLoading || myDrafts === null
                     ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
-                    : myDrafts.length === 0
-                    ? (
-                      <div className="profile-empty">
-                        <i className="fas fa-file-alt"></i>
-                        <p>No drafts available yet</p>
-                      </div>
-                    ) : (
+                    : (
                       <div className="row g-3">
                         {myDrafts.map((d, i) => (
                           <div className="col-md-6 col-lg-4" key={d._id || i}>

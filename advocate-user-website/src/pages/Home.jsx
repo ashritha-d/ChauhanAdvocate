@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
 import Hero from '../components/Hero';
 import Services from '../components/Services';
@@ -20,10 +20,12 @@ import { useUserAuth } from '../context/UserAuthContext';
 export default function Home() {
   const { user, loading: authLoading } = useUserAuth();
   const navigate = useNavigate();
+  const { hash } = useLocation();
 
   useEffect(() => {
-    if (!authLoading && user) navigate('/profile', { replace: true });
-  }, [user, authLoading, navigate]);
+    // Allow logged-in users to reach homepage sections via hash links (e.g. goTo('magazines'))
+    if (!authLoading && user && !hash) navigate('/profile', { replace: true });
+  }, [user, authLoading, navigate, hash]);
 
   return (
     <>
