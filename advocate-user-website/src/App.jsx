@@ -85,6 +85,7 @@ function AuthLayout({ children }) {
       <TopBar />
       <Navbar />
       <main>{children}</main>
+      <GlobalModals />
       <Footer />
     </>
   );
