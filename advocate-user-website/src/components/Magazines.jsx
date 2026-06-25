@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 import { useSite } from '../context/SiteContext';
 import {
@@ -324,6 +325,12 @@ export default function Magazines() {
             ))}
           </div>
         )}
+
+        <div className="text-center mt-5">
+          <Link to="/magazines" className="btn btn-gold px-5">
+            <i className="fas fa-book-open me-2"></i>Browse All Magazines
+          </Link>
+        </div>
       </div>
 
       {purchasing && (
