@@ -4,14 +4,17 @@ import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
 
 const PUBLIC_NAV_LINKS = [
-  { id: 'home',     label: 'Home',     page: null,       icon: 'fa-home' },
-  { id: 'services', label: 'Services', page: null,       icon: 'fa-balance-scale' },
-  { id: 'news',     label: 'News',     page: '/news',    icon: 'fa-newspaper' },
-  { id: 'courses',  label: 'Courses',  page: '/courses', icon: 'fa-graduation-cap' },
-  { id: 'gallery',  label: 'Gallery',  page: '/gallery', icon: 'fa-images' },
-  { id: 'blog',     label: 'Blog',     page: null,       icon: 'fa-pen-nib' },
-  { id: 'faq',      label: 'FAQ',      page: null,       icon: 'fa-question-circle' },
-  { id: 'contact',  label: 'Contact',  page: '/contact', icon: 'fa-envelope' },
+  { id: 'home',      label: 'Home',      page: null,          icon: 'fa-home' },
+  { id: 'services',  label: 'Services',  page: null,          icon: 'fa-balance-scale' },
+  { id: 'news',      label: 'News',      page: '/news',       icon: 'fa-newspaper' },
+  { id: 'courses',   label: 'Courses',   page: '/courses',    icon: 'fa-graduation-cap' },
+  { id: 'magazines', label: 'Magazines', page: '/magazines',  icon: 'fa-book-open' },
+  { id: 'drafts',    label: 'Drafts',    page: '/drafts',     icon: 'fa-file-alt' },
+  { id: 'books',     label: 'Books',     page: '/books',      icon: 'fa-book' },
+  { id: 'gallery',   label: 'Gallery',   page: '/gallery',    icon: 'fa-images' },
+  { id: 'blog',      label: 'Blog',      page: null,          icon: 'fa-pen-nib' },
+  { id: 'faq',       label: 'FAQ',       page: null,          icon: 'fa-question-circle' },
+  { id: 'contact',   label: 'Contact',   page: '/contact',    icon: 'fa-envelope' },
 ];
 
 const AUTH_NAV_LINKS = [
@@ -19,6 +22,7 @@ const AUTH_NAV_LINKS = [
   { id: 'courses',   label: 'Courses',   page: '/courses',   icon: 'fa-graduation-cap' },
   { id: 'magazines', label: 'Magazines', page: '/magazines', icon: 'fa-book-open' },
   { id: 'drafts',    label: 'Drafts',    page: '/drafts',    icon: 'fa-file-alt' },
+  { id: 'books',     label: 'Books',     page: '/books',     icon: 'fa-book' },
   { id: 'contact',   label: 'Contact',   page: '/contact',   icon: 'fa-envelope' },
 ];
 

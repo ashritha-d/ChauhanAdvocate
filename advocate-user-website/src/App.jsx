@@ -19,6 +19,7 @@ import Gallery from './pages/Gallery';
 import Courses from './pages/Courses';
 import MagazinesPage from './pages/Magazines';
 import DraftsPage from './pages/Drafts';
+import BooksPage from './pages/Books';
 import NewsPage from './pages/News';
 import Payment from './pages/Payment';
 import NewsTicker from './components/NewsTicker';
@@ -231,6 +232,7 @@ export default function App() {
             {/* Standalone content pages */}
             <Route path="/magazines" element={<AppLayout><MagazinesPage /></AppLayout>} />
             <Route path="/drafts"    element={<AppLayout><DraftsPage /></AppLayout>} />
+            <Route path="/books"     element={<AppLayout><BooksPage /></AppLayout>} />
 
             {/* Tab shortcut redirects */}
             <Route path="/appointments"  element={<Navigate to="/profile?tab=appointments"  replace />} />
