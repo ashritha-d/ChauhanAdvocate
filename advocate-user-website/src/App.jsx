@@ -48,6 +48,9 @@ function ScrollToHash() {
     } else {
       window.scrollTo(0, 0);
     }
+    // Re-init AOS on every route change so data-aos elements on new pages animate
+    const t = setTimeout(() => window.AOS?.init({ duration: 800, once: true, offset: 60 }), 80);
+    return () => clearTimeout(t);
   }, [location]);
   return null;
 }
