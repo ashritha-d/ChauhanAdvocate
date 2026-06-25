@@ -98,6 +98,9 @@ export default function SiteSettings() {
       { key:'payment_upi_id', label:'UPI ID (e.g. name@upi)', type:'text' },
       { key:'payment_qr_image', label:'UPI / QR Code Image', type:'image' },
       { key:'admin_email', label:'Admin Email (for payment receipts)', type:'email' },
+      { key:'cashfree_app_id', label:'Cashfree App ID (optional — enables "Pay Online")', type:'text' },
+      { key:'cashfree_secret_key', label:'Cashfree Secret Key', type:'password' },
+      { key:'cashfree_environment', label:'Cashfree Environment (sandbox / production)', type:'text' },
     ],
   };
 

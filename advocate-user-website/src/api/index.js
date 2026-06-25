@@ -42,11 +42,20 @@ export const getNotifications = (headers) => api.get('/users/notifications', { h
 export const markNotificationRead = (id, headers) => api.put(`/users/notifications/${id}/read`, {}, { headers });
 export const markAllNotificationsRead = (headers) => api.put('/users/notifications/mark-all-read', {}, { headers });
 
-// ── Payments / Razorpay ───────────────────────────────────────────────────────
+// ── Payments ──────────────────────────────────────────────────────────────────
 export const getPaymentSettings = () => api.get('/payments/payment-settings');
-export const createRazorpayOrder = (data, headers = {}) => api.post('/payments/razorpay/create-order', data, { headers });
-export const verifyRazorpayPayment = (data, headers = {}) => api.post('/payments/razorpay/verify', data, { headers });
 export const submitManualPayment = (formData, headers = {}) => api.post('/payments/manual', formData, { headers: { ...headers, 'Content-Type': 'multipart/form-data' } });
+
+// Cashfree
+export const createCashfreeAppointmentOrder = (data)    => api.post('/payments/cashfree/create-order', data);
+export const getCashfreeOrderStatus          = (orderId) => api.get(`/payments/cashfree/order/${orderId}`);
+
+// Magazine Cashfree
+export const createMagazineCashfreeOrder = (id, headers = {}) => api.post(`/magazines/${id}/purchase/cashfree/create-order`, {}, { headers });
+
+// Razorpay (kept for fallback)
+export const createRazorpayOrder    = (data, headers = {}) => api.post('/payments/razorpay/create-order', data, { headers });
+export const verifyRazorpayPayment  = (data, headers = {}) => api.post('/payments/razorpay/verify', data, { headers });
 
 // ── Jr Advocate Applications ──────────────────────────────────────────────────
 export const submitJrAdvocateApplication = (formData) => api.post('/jr-advocates', formData, { headers: { 'Content-Type': 'multipart/form-data' } });

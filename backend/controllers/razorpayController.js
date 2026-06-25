@@ -29,7 +29,7 @@ function generateAppointmentId() {
   return `APT${String(Date.now()).slice(-8)}`;
 }
 
-// PUBLIC: Get payment settings (bank details, UPI ID, QR URL — never expose secret)
+// PUBLIC: Get payment settings (bank details, UPI ID, QR URL — never expose secrets)
 exports.getPaymentSettings = async (req, res) => {
   try {
     const keys = [
@@ -43,6 +43,8 @@ exports.getPaymentSettings = async (req, res) => {
       'bank_name',
       'bank_account_number',
       'bank_ifsc',
+      'cashfree_app_id',
+      'cashfree_environment',
     ];
     const settings = await SiteSettings.find({ key: { $in: keys } });
     const result = {};
