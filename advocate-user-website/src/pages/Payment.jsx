@@ -1,71 +1,126 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
-import { getPaymentSettings, createRazorpayOrder, verifyRazorpayPayment, submitManualPayment } from '../api';
+import { getPaymentSettings, submitManualPayment } from '../api';
 
-const METHOD_LABELS = {
-  razorpay: 'Razorpay',
-  phonepe: 'PhonePe',
-  googlepay: 'Google Pay',
-  upi_id: 'UPI ID',
-  qr_code: 'QR Code',
-};
+const METHODS = [
+  { id: 'bank_transfer', icon: 'fa-university', label: 'Bank Transfer', sub: 'NEFT / IMPS / RTGS' },
+  { id: 'upi_id',        icon: 'fa-mobile-alt', label: 'UPI ID',        sub: 'PhonePe / GPay / Paytm' },
+  { id: 'qr_code',       icon: 'fa-qrcode',     label: 'QR Code',       sub: 'Scan & Pay' },
+];
 
-function LoadingOverlay({ show, text }) {
-  if (!show) return null;
+function CopyButton({ text }) {
+  const [copied, setCopied] = useState(false);
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(255,255,255,0.88)', zIndex:9999, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:16 }}>
-      <div className="spinner-border text-warning" style={{ width:48, height:48 }}></div>
-      <div className="text-muted small">{text || 'Processing...'}</div>
-    </div>
+    <button
+      className="btn btn-sm btn-outline-secondary py-0 px-2"
+      style={{ fontSize: '0.72rem', minWidth: 52 }}
+      onClick={() => { navigator.clipboard?.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1800); }}
+    >
+      {copied ? <><i className="fas fa-check me-1 text-success"></i>Copied</> : <><i className="fas fa-copy me-1"></i>Copy</>}
+    </button>
   );
 }
 
-function MethodCard({ id, icon, imgSrc, name, sub, selected, onClick, wide }) {
+function BankDetails({ s, method }) {
+  const API_BASE = 'https://chauhanadvocate.onrender.com';
+  const qrUrl = s.payment_qr_image
+    ? (s.payment_qr_image.startsWith('http') ? s.payment_qr_image : API_BASE + s.payment_qr_image)
+    : '';
+
+  const showQR = (method === 'qr_code' || method === 'upi_id') && qrUrl;
+  const showUpi = method !== 'bank_transfer' && s.payment_upi_id;
+  const showBank = method === 'bank_transfer';
+
   return (
-    <div
-      onClick={onClick}
-      style={{
-        border: `2px solid ${selected ? '#C9A84C' : '#e5e7eb'}`,
-        borderRadius: 14,
-        padding: '14px 12px',
-        cursor: 'pointer',
-        background: selected ? '#f9f5e8' : '#fff',
-        display: 'flex', flexDirection: wide ? 'row' : 'column',
-        alignItems: 'center', gap: 10,
-        textAlign: wide ? 'left' : 'center',
-        gridColumn: wide ? '1 / -1' : undefined,
-        position: 'relative',
-        transition: 'all 0.2s',
-        boxShadow: selected ? '0 2px 16px rgba(201,168,76,0.2)' : 'none',
-      }}
-    >
-      {selected && (
-        <div style={{ position:'absolute', top:8, right:8, width:20, height:20, borderRadius:'50%', background:'#C9A84C', color:'#fff', fontSize:10, display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <i className="fas fa-check"></i>
+    <div style={{ background: 'linear-gradient(135deg,#f9f5e8,#fff9ed)', border: '1.5px solid rgba(201,168,76,0.35)', borderRadius: 14, padding: '16px 20px', marginBottom: 20 }}>
+      <div className="fw-bold mb-3" style={{ color: '#92650a', fontSize: '0.9rem' }}>
+        <i className="fas fa-info-circle me-2" style={{ color: '#C9A84C' }}></i>
+        {method === 'bank_transfer' ? 'Bank Account Details' : method === 'qr_code' ? 'Scan QR to Pay' : 'Pay via UPI'}
+      </div>
+
+      {showQR && (
+        <div className="text-center mb-3">
+          <img src={qrUrl} alt="Payment QR" style={{ maxWidth: 160, borderRadius: 10, border: '2px solid rgba(201,168,76,0.3)' }} />
         </div>
       )}
-      {imgSrc
-        ? <img src={imgSrc} alt={name} style={{ height: wide ? 22 : 28, objectFit:'contain' }} />
-        : <i className={`fas ${icon}`} style={{ fontSize: 24, color:'#C9A84C' }}></i>
-      }
-      <div>
-        <div style={{ fontWeight:600, fontSize:'0.82rem', color:'#374151' }}>{name}</div>
-        {sub && <div style={{ fontSize:'0.72rem', color:'#6b7280' }}>{sub}</div>}
-      </div>
+
+      {showUpi && (
+        <div className="d-flex align-items-center gap-2 mb-2" style={{ background: '#fff', border: '1.5px dashed #C9A84C', borderRadius: 8, padding: '8px 14px' }}>
+          <i className="fas fa-mobile-alt" style={{ color: '#C9A84C' }}></i>
+          <span style={{ fontFamily: 'monospace', fontWeight: 700, flex: 1 }}>{s.payment_upi_id}</span>
+          <CopyButton text={s.payment_upi_id} />
+        </div>
+      )}
+
+      {showBank && (
+        <div className="d-flex flex-column gap-2">
+          {[
+            ['Account Holder', s.bank_account_holder, 'fa-user'],
+            ['Bank Name',      s.bank_name,            'fa-university'],
+            ['Account Number', s.bank_account_number,  'fa-credit-card'],
+            ['IFSC Code',      s.bank_ifsc,            'fa-code'],
+          ].filter(([, v]) => v).map(([label, value, icon]) => (
+            <div key={label} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 14px' }}>
+              <div className="d-flex align-items-center justify-content-between gap-2">
+                <span style={{ color: '#6b7280', fontSize: '0.78rem', minWidth: 100 }}>
+                  <i className={`fas ${icon} me-2`} style={{ color: '#C9A84C' }}></i>{label}
+                </span>
+                <div className="d-flex align-items-center gap-2 ms-auto">
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.9rem' }}>{value}</span>
+                  <CopyButton text={value} />
+                </div>
+              </div>
+            </div>
+          ))}
+          {s.payment_upi_id && (
+            <div style={{ background: '#fff', border: '1.5px dashed #C9A84C', borderRadius: 8, padding: '8px 14px' }}>
+              <div className="d-flex align-items-center justify-content-between gap-2">
+                <span style={{ color: '#6b7280', fontSize: '0.78rem', minWidth: 100 }}>
+                  <i className="fas fa-mobile-alt me-2" style={{ color: '#C9A84C' }}></i>UPI ID
+                </span>
+                <div className="d-flex align-items-center gap-2 ms-auto">
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.9rem' }}>{s.payment_upi_id}</span>
+                  <CopyButton text={s.payment_upi_id} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-function ManualPanel({ method, upiId, qrUrl, feeDisplay, onSuccess }) {
+export default function Payment() {
+  const navigate = useNavigate();
+  const { user } = useUserAuth();
+  const [appt, setAppt] = useState(null);
+  const [settings, setSettings] = useState({});
+  const [method, setMethod] = useState('bank_transfer');
   const [utr, setUtr] = useState('');
   const [screenshot, setScreenshot] = useState(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
-  const appt = JSON.parse(sessionStorage.getItem('pendingAppointment') || '{}');
+  const [screen, setScreen] = useState('payment');
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem('pendingAppointment');
+    if (!raw) { navigate('/#appointment'); return; }
+    setAppt(JSON.parse(raw));
+    getPaymentSettings().then(r => { if (r.data.success) setSettings(r.data.data); }).catch(() => {});
+  }, []);
+
+  if (!appt) return null;
+
+  const fee = appt.amount || (appt.appointmentMode === 'online' ? 1 : 2);
+  const feeDisplay = `₹${Number(fee).toLocaleString('en-IN')}`;
+  const dateStr = appt.date
+    ? new Date(appt.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+    : '—';
 
   const handleSubmit = async () => {
-    if (!utr.trim()) { setErr('Please enter your UTR / Transaction Reference Number.'); return; }
+    if (!utr.trim()) { setErr('Please enter your Transaction / UTR Reference Number.'); return; }
     setLoading(true); setErr('');
     try {
       const fd = new FormData();
@@ -74,297 +129,68 @@ function ManualPanel({ method, upiId, qrUrl, feeDisplay, onSuccess }) {
       fd.append('utrNumber', utr.trim());
       if (screenshot) fd.append('screenshot', screenshot);
       const { data } = await submitManualPayment(fd);
-      if (data.success) onSuccess('pending');
-      else setErr(data.message || 'Submission failed.');
-    } catch { setErr('Network error. Please try again.'); }
+      if (data.success) {
+        sessionStorage.removeItem('pendingAppointment');
+        setScreen('pending');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        setErr(data.message || 'Submission failed. Please try again.');
+      }
+    } catch {
+      setErr('Network error. Please try again.');
+    }
     setLoading(false);
   };
 
-  const steps = {
-    phonepe: ['Open PhonePe → Send Money', 'Enter UPI ID or scan QR', `Pay ${feeDisplay} and note the UTR`, 'Enter UTR below'],
-    googlepay: ['Open Google Pay → New Payment', 'Enter UPI ID or scan QR', `Pay ${feeDisplay} and note Transaction ID`, 'Enter the reference below'],
-    upi_id: ['Open any UPI app → Send Money → UPI ID', `Enter UPI ID and pay ${feeDisplay}`, 'Note the UTR from success screen', 'Enter UTR below'],
-    qr_code: ['Open any UPI app → Scan QR', `Scan and pay exactly ${feeDisplay}`, 'Note the UTR from success screen', 'Enter UTR below'],
-  };
-
-  return (
-    <div>
-      {(method === 'phonepe' || method === 'googlepay' || method === 'qr_code') && (
-        <div className="text-center mb-3">
-          {qrUrl
-            ? <img src={qrUrl} alt="QR Code" style={{ maxWidth:180, borderRadius:10 }} />
-            : <div className="text-muted small"><i className="fas fa-qrcode me-1"></i>QR not configured — use UPI ID</div>
-          }
-        </div>
-      )}
-      {(method !== 'qr_code') && upiId && (
-        <div style={{ background:'#fff', border:'1.5px dashed #C9A84C', borderRadius:10, padding:'10px 14px', fontFamily:'monospace', fontWeight:700, textAlign:'center', marginBottom:12, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-          {upiId}
-          <button className="btn btn-sm btn-outline-secondary py-0 px-2" style={{ fontSize:'0.75rem' }} onClick={() => navigator.clipboard?.writeText(upiId)}>
-            <i className="fas fa-copy"></i>
-          </button>
-        </div>
-      )}
-      <ol className="small mb-3 ps-3" style={{ color:'#374151' }}>
-        {(steps[method] || []).map((s, i) => <li key={i} className="mb-1">{s}</li>)}
-      </ol>
-      <div className="mb-3">
-        <label className="form-label small fw-semibold">UTR / Transaction Reference *</label>
-        <input className="form-control" value={utr} onChange={e => setUtr(e.target.value)} placeholder="12-digit UTR number" />
-        <div className="form-text">Find it in your UPI app → Transaction History</div>
-      </div>
-      <div className="mb-3">
-        <label className="form-label small fw-semibold">Screenshot (optional)</label>
-        <input type="file" className="form-control" accept="image/*" onChange={e => setScreenshot(e.target.files[0])} />
-      </div>
-      {err && <div className="alert alert-danger py-2 small">{err}</div>}
-      <button
-        className="btn btn-gold w-100 py-3"
-        onClick={handleSubmit}
-        disabled={loading}
-      >
-        {loading ? <><i className="fas fa-spinner fa-spin me-2"></i>Submitting...</> : <><i className="fas fa-paper-plane me-2"></i>Submit Payment Details</>}
-      </button>
-    </div>
-  );
-}
-
-export default function Payment() {
-  const navigate = useNavigate();
-  const { user, authHeader } = useUserAuth();
-  const [appt, setAppt] = useState(null);
-  const [settings, setSettings] = useState({});
-  const [method, setMethod] = useState('razorpay');
-  const [loading, setLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState('');
-  const [screen, setScreen] = useState('payment'); // payment | success | pending
-  const [result, setResult] = useState(null);
-  const [verifyError, setVerifyError] = useState('');
-  const rzpRef = useRef(null);
-
-  const API_BASE = 'https://chauhanadvocate.onrender.com';
-
-  useEffect(() => {
-    const raw = sessionStorage.getItem('pendingAppointment');
-    if (!raw) { navigate('/#appointment'); return; }
-    setAppt(JSON.parse(raw));
-    getPaymentSettings().then(r => { if (r.data.success) setSettings(r.data.data); }).catch(() => {});
-
-    // Load Razorpay script
-    if (!window.Razorpay) {
-      const s = document.createElement('script');
-      s.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      document.head.appendChild(s);
-    }
-  }, []);
-
-  if (!appt) return null;
-
-  const fee = appt.amount || (appt.appointmentMode === 'online' ? 1 : 2);
-  const feeDisplay = `₹${Number(fee).toLocaleString('en-IN')}`;
-  const dateStr = appt.date ? new Date(appt.date).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : '—';
-  const qrUrl = settings.payment_qr_image
-    ? (settings.payment_qr_image.startsWith('http') ? settings.payment_qr_image : API_BASE + settings.payment_qr_image)
-    : '';
-  const upiId = settings.payment_upi_id || '';
-
-  // ── Razorpay ──────────────────────────────────────────────
-  const startRazorpay = async () => {
-    setVerifyError('');
-    setLoading(true); setLoadingText('Setting up secure checkout...');
-    try {
-      const headers = user ? authHeader() : {};
-      const { data } = await createRazorpayOrder({ ...appt, amount: fee }, headers);
-      setLoading(false);
-      if (!data.success) {
-        setVerifyError(data.message || 'Could not create payment order. Please try again.');
-        return;
-      }
-
-      const options = {
-        key: data.key_id,
-        amount: data.amount,
-        currency: 'INR',
-        name: 'Balu Law Chamber',
-        description: `Consultation — ${appt.service}`,
-        order_id: data.order_id,
-        prefill: data.prefill || {},
-        theme: { color: '#C9A84C' },
-        config: {
-          display: {
-            blocks: {
-              upi:        { name: 'Pay via UPI',    instruments: [{ method: 'upi', flows: ['collect', 'qr', 'intent'] }] },
-              netbanking: { name: 'Net Banking',    instruments: [{ method: 'netbanking' }] },
-              card:       { name: 'Pay via Card',   instruments: [{ method: 'card' }] },
-              wallet:     { name: 'Wallets',        instruments: [{ method: 'wallet' }] },
-            },
-            sequence: ['block.upi', 'block.netbanking', 'block.card', 'block.wallet'],
-            preferences: { show_default_blocks: false },
-          },
-        },
-        handler: async (response) => {
-          setLoading(true); setLoadingText('Verifying Payment...');
-          setVerifyError('');
-          try {
-            const headers2 = user ? authHeader() : {};
-            const vRes = await verifyRazorpayPayment({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              payment_db_id: data.payment_db_id,
-            }, headers2);
-            setLoading(false);
-            if (vRes.data.success) {
-              sessionStorage.removeItem('pendingAppointment');
-              setResult({ ...vRes.data, method: 'Razorpay' });
-              setScreen('success');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-              setVerifyError(vRes.data.message || 'Payment verification failed. Please try again or contact support.');
-            }
-          } catch {
-            setLoading(false);
-            setVerifyError('Verification error. Please contact support with your transaction ID.');
-          }
-        },
-        modal: {
-          ondismiss: () => {
-            setVerifyError('cancelled');
-          },
-        },
-      };
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (err) {
-      setLoading(false);
-      const msg = err?.response?.data?.message || err?.message || 'Unknown error';
-      setVerifyError(msg);
-    }
-  };
-
-  const handleManualSuccess = (type) => {
-    sessionStorage.removeItem('pendingAppointment');
-    if (type === 'pending') setScreen('pending');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // ── Styles ────────────────────────────────────────────────
-  const cardStyle = { background:'#fff', borderRadius:20, boxShadow:'0 4px 30px rgba(0,0,0,0.08)', overflow:'hidden' };
-  const headerStyle = { background:'linear-gradient(135deg,#1a1a2e,#16213e)', padding:'20px 24px', color:'#fff' };
-  const bodyStyle = { padding:24 };
-  const summaryStyle = { background:'linear-gradient(135deg,#f9f5e8,#fff9ed)', border:'1.5px solid rgba(201,168,76,0.3)', borderRadius:14, padding:16, marginBottom:20 };
-  const receiptRowStyle = { display:'flex', justifyContent:'space-between', padding:'5px 0', fontSize:'0.875rem', borderBottom:'1px solid rgba(201,168,76,0.15)' };
-
-  // ══ SUCCESS SCREEN ════════════════════════════════════════
-  if (screen === 'success') {
-    const r = result || {};
-    const apptData = r.appointmentData || {};
-    const rDateStr = apptData.date ? new Date(apptData.date).toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' }) : dateStr;
-    return (
-      <div style={{ background:'linear-gradient(135deg,#f0f4f8,#e8ecf0)', minHeight:'100vh', padding:'24px 0' }}>
-        <div className="container" style={{ maxWidth:520 }}>
-          <div style={cardStyle}>
-            <div style={bodyStyle} className="text-center">
-              <div style={{ width:80, height:80, borderRadius:'50%', background:'linear-gradient(135deg,#22c55e,#16a34a)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', boxShadow:'0 8px 30px rgba(34,197,94,0.3)' }}>
-                <i className="fas fa-check" style={{ color:'#fff', fontSize:'2rem' }}></i>
-              </div>
-              <h4 className="fw-bold mb-1">Appointment Booked!</h4>
-              <p className="text-muted mb-4">Payment successful — your appointment is confirmed.</p>
-
-              <div className="d-flex gap-3 justify-content-center flex-wrap mb-4">
-                {r.appointmentId && (
-                  <div className="text-center">
-                    <div className="small text-muted mb-1">Appointment ID</div>
-                    <span style={{ background:'rgba(201,168,76,0.15)', color:'#92650a', padding:'4px 12px', borderRadius:20, fontSize:'0.8rem', fontWeight:700, fontFamily:'monospace' }}>{r.appointmentId}</span>
-                  </div>
-                )}
-                {r.transactionId && (
-                  <div className="text-center">
-                    <div className="small text-muted mb-1">Transaction ID</div>
-                    <span style={{ background:'rgba(201,168,76,0.15)', color:'#92650a', padding:'4px 12px', borderRadius:20, fontSize:'0.8rem', fontWeight:700, fontFamily:'monospace' }}>{r.transactionId}</span>
-                  </div>
-                )}
-              </div>
-
-              <div style={{ background:'#f9f5e8', border:'1.5px solid rgba(201,168,76,0.3)', borderRadius:14, padding:'16px 20px', marginBottom:20, textAlign:'left' }}>
-                <div className="fw-bold text-center mb-3" style={{ color:'#1a1a2e' }}><i className="fas fa-receipt me-2" style={{ color:'#C9A84C' }}></i>PAYMENT RECEIPT</div>
-                {[
-                  ['Receipt ID', r.receiptId],
-                  ['Client Name', appt.name],
-                  ['Mobile', appt.phone],
-                  ['Service', appt.service],
-                  ['Date & Time', `${rDateStr} at ${appt.time}`],
-                  ['Mode', appt.appointmentMode === 'online' ? 'Online' : 'Offline'],
-                  ['Amount Paid', feeDisplay],
-                  ['Payment Method', r.method || 'Online'],
-                  ['Status', '✅ Confirmed'],
-                ].map(([l, v]) => v ? (
-                  <div key={l} style={receiptRowStyle}>
-                    <span style={{ color:'#6b7280' }}>{l}</span>
-                    <span style={{ fontWeight:600, textAlign:'right', maxWidth:'60%', wordBreak:'break-all', color: l === 'Amount Paid' ? '#C9A84C' : '#1f2937' }}>{v}</span>
-                  </div>
-                ) : null)}
-              </div>
-
-              <div className="d-grid gap-2">
-                <button className="btn btn-dark py-2" style={{ borderRadius:12, border:'1.5px solid #C9A84C', color:'#C9A84C' }} onClick={() => window.print()}>
-                  <i className="fas fa-download me-2"></i>Download Receipt (PDF)
-                </button>
-                <button className="btn btn-outline-secondary py-2" style={{ borderRadius:12 }} onClick={() => {
-                  const d = apptData.date ? new Date(apptData.date) : new Date();
-                  const [tp, ampm] = (apptData.time || appt.time || '10:00 AM').split(' ');
-                  let [h, m] = tp.split(':').map(Number);
-                  if (ampm === 'PM' && h !== 12) h += 12;
-                  if (ampm === 'AM' && h === 12) h = 0;
-                  d.setHours(h, m || 0, 0);
-                  const end = new Date(d.getTime() + 3600000);
-                  const fmt = x => x.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-                  window.open(`https://calendar.google.com/calendar/r/eventedit?text=${encodeURIComponent('Consultation – Balu Law Chamber')}&dates=${fmt(d)}/${fmt(end)}&details=${encodeURIComponent(`Appointment ID: ${r.appointmentId}\nService: ${appt.service}`)}&location=${encodeURIComponent('Balu Law Chamber, Hasthinapuram, LB Nagar')}`, '_blank');
-                }}>
-                  <i className="fas fa-calendar-plus me-2"></i>Add to Calendar
-                </button>
-                <button className="btn btn-outline-secondary py-2" style={{ borderRadius:12 }} onClick={() => navigate('/profile')}>
-                  <i className="fas fa-user me-2"></i>View My Appointments
-                </button>
-              </div>
-              <div className="text-muted small mt-3">
-                <i className="fas fa-envelope me-1" style={{ color:'#C9A84C' }}></i>
-                Receipt sent to your email (if provided)
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const cardStyle = { background: '#fff', borderRadius: 20, boxShadow: '0 4px 30px rgba(0,0,0,0.08)', overflow: 'hidden' };
+  const headerStyle = { background: 'linear-gradient(135deg,#1a1a2e,#16213e)', padding: '20px 24px', color: '#fff' };
+  const bodyStyle = { padding: 24 };
+  const receiptRowStyle = { display: 'flex', justifyContent: 'space-between', padding: '5px 0', fontSize: '0.875rem', borderBottom: '1px solid rgba(201,168,76,0.15)' };
 
   // ══ PENDING SCREEN ════════════════════════════════════════
   if (screen === 'pending') {
     return (
-      <div style={{ background:'linear-gradient(135deg,#f0f4f8,#e8ecf0)', minHeight:'100vh', padding:'24px 0' }}>
-        <div className="container" style={{ maxWidth:520 }}>
+      <div style={{ background: 'linear-gradient(135deg,#f0f4f8,#e8ecf0)', minHeight: '100vh', padding: '24px 0' }}>
+        <div className="container" style={{ maxWidth: 520 }}>
           <div style={cardStyle}>
             <div style={bodyStyle} className="text-center">
-              <div style={{ width:80, height:80, borderRadius:'50%', background:'linear-gradient(135deg,#f59e0b,#d97706)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', boxShadow:'0 8px 30px rgba(245,158,11,0.3)' }}>
-                <i className="fas fa-clock" style={{ color:'#fff', fontSize:'2rem' }}></i>
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'linear-gradient(135deg,#f59e0b,#d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 8px 30px rgba(245,158,11,0.3)' }}>
+                <i className="fas fa-clock" style={{ color: '#fff', fontSize: '2rem' }}></i>
               </div>
-              <h4 className="fw-bold mb-1">Payment Submitted!</h4>
-              <p className="text-muted mb-4">Your appointment is <strong>pending payment verification</strong>. We will confirm within a few hours.</p>
-              <div style={{ ...summaryStyle, textAlign:'left' }}>
-                {[['Name', appt.name], ['Service', appt.service], ['Date & Time', `${dateStr} at ${appt.time}`], ['Amount', feeDisplay]].map(([l, v]) => (
+              <h4 className="fw-bold mb-1">Payment Details Submitted!</h4>
+              <p className="text-muted mb-4">Your appointment is <strong>pending payment verification</strong>. We will confirm within a few hours after verifying your transaction.</p>
+              <div style={{ background: 'linear-gradient(135deg,#f9f5e8,#fff9ed)', border: '1.5px solid rgba(201,168,76,0.3)', borderRadius: 14, padding: 16, marginBottom: 20, textAlign: 'left' }}>
+                {[
+                  ['Name', appt.name],
+                  ['Service', appt.service],
+                  ['Date & Time', `${dateStr} at ${appt.time}`],
+                  ['Amount', feeDisplay],
+                  ['UTR / Transaction ID', utr],
+                ].map(([l, v]) => v ? (
                   <div key={l} style={receiptRowStyle}>
-                    <span style={{ color:'#6b7280' }}>{l}</span>
-                    <span style={{ fontWeight:600 }}>{v}</span>
+                    <span style={{ color: '#6b7280' }}>{l}</span>
+                    <span style={{ fontWeight: 600, maxWidth: '60%', textAlign: 'right', wordBreak: 'break-all' }}>{v}</span>
                   </div>
-                ))}
-                <div style={receiptRowStyle}>
-                  <span style={{ color:'#6b7280' }}>Status</span>
+                ) : null)}
+                <div style={{ ...receiptRowStyle, borderBottom: 'none' }}>
+                  <span style={{ color: '#6b7280' }}>Status</span>
                   <span><span className="badge bg-warning text-dark">Pending Verification</span></span>
                 </div>
               </div>
-              <button className="btn btn-outline-secondary w-100 py-2" style={{ borderRadius:12 }} onClick={() => navigate('/')}>
-                <i className="fas fa-home me-2"></i>Back to Home
-              </button>
+              <p className="small text-muted mb-4">
+                <i className="fas fa-bell me-1" style={{ color: '#C9A84C' }}></i>
+                You will receive a WhatsApp message once your payment is verified and appointment is confirmed.
+              </p>
+              <div className="d-grid gap-2">
+                {user && (
+                  <button className="btn btn-gold py-2" style={{ borderRadius: 12 }} onClick={() => navigate('/profile?tab=appointments')}>
+                    <i className="fas fa-calendar-check me-2"></i>View My Appointments
+                  </button>
+                )}
+                <button className="btn btn-outline-secondary py-2" style={{ borderRadius: 12 }} onClick={() => navigate('/')}>
+                  <i className="fas fa-home me-2"></i>Back to Home
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -374,102 +200,164 @@ export default function Payment() {
 
   // ══ PAYMENT SCREEN ════════════════════════════════════════
   return (
-    <div style={{ background:'linear-gradient(135deg,#f0f4f8,#e8ecf0)', minHeight:'100vh', padding:'24px 0' }}>
-      <LoadingOverlay show={loading} text={loadingText} />
-      <div className="container" style={{ maxWidth:540 }}>
+    <div style={{ background: 'linear-gradient(135deg,#f0f4f8,#e8ecf0)', minHeight: '100vh', padding: '24px 0' }}>
+      <div className="container" style={{ maxWidth: 560 }}>
 
-        {/* Progress */}
-        <div style={{ background:'#fff', borderRadius:12, padding:'12px 20px', marginBottom:16, display:'flex', alignItems:'center', gap:8, fontSize:'0.82rem' }}>
-          <span style={{ color:'#22c55e', fontWeight:600, display:'flex', alignItems:'center', gap:6 }}>
-            <span style={{ width:22, height:22, borderRadius:'50%', background:'#22c55e', color:'#fff', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:10 }}><i className="fas fa-check"></i></span>
+        {/* Progress bar */}
+        <div style={{ background: '#fff', borderRadius: 12, padding: '12px 20px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem' }}>
+          <span style={{ color: '#22c55e', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#22c55e', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>
+              <i className="fas fa-check"></i>
+            </span>
             Appointment Details
           </span>
-          <div style={{ flex:1, height:2, background:'#22c55e', margin:'0 4px' }}></div>
-          <span style={{ fontWeight:600, color:'#1a1a2e', display:'flex', alignItems:'center', gap:6 }}>
-            <span style={{ width:22, height:22, borderRadius:'50%', background:'#C9A84C', color:'#fff', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:11 }}>2</span>
+          <div style={{ flex: 1, height: 2, background: '#22c55e', margin: '0 4px' }}></div>
+          <span style={{ fontWeight: 600, color: '#1a1a2e', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#C9A84C', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>2</span>
             Payment
           </span>
         </div>
 
         <div style={cardStyle}>
           <div style={headerStyle}>
-            <div style={{ fontWeight:700, fontSize:'1.1rem' }}>Complete Your Payment</div>
-            <div style={{ color:'#aaa', fontSize:'0.8rem', marginTop:2 }}>Step 2 of 2 — Secure checkout via Razorpay</div>
+            <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>Complete Your Payment</div>
+            <div style={{ color: '#aaa', fontSize: '0.8rem', marginTop: 2 }}>Transfer the amount and submit transaction details below</div>
           </div>
           <div style={bodyStyle}>
 
             {/* Appointment Summary */}
-            <div style={summaryStyle}>
+            <div style={{ background: 'linear-gradient(135deg,#f9f5e8,#fff9ed)', border: '1.5px solid rgba(201,168,76,0.3)', borderRadius: 14, padding: 16, marginBottom: 20 }}>
               <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="fw-semibold" style={{ fontSize:'0.9rem' }}>
-                  <i className="fas fa-calendar-alt me-2" style={{ color:'#C9A84C' }}></i>Appointment Summary
+                <span className="fw-semibold" style={{ fontSize: '0.9rem' }}>
+                  <i className="fas fa-calendar-alt me-2" style={{ color: '#C9A84C' }}></i>Appointment Summary
                 </span>
-                <span style={{ background: appt.appointmentMode === 'online' ? 'rgba(59,130,246,0.1)' : 'rgba(201,168,76,0.15)', color: appt.appointmentMode === 'online' ? '#1d4ed8' : '#92650a', padding:'3px 10px', borderRadius:20, fontSize:'0.78rem', fontWeight:600 }}>
+                <span style={{ background: appt.appointmentMode === 'online' ? 'rgba(59,130,246,0.1)' : 'rgba(201,168,76,0.15)', color: appt.appointmentMode === 'online' ? '#1d4ed8' : '#92650a', padding: '3px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>
                   <i className={`fas ${appt.appointmentMode === 'online' ? 'fa-video' : 'fa-building'} me-1`}></i>
                   {appt.appointmentMode === 'online' ? 'Online' : 'Offline'}
                 </span>
               </div>
-              {[['Name', appt.name], ['Service', appt.service], ['Date & Time', `${dateStr} at ${appt.time}`], ['Consultation Fee', feeDisplay]].map(([l, v]) => (
-                <div key={l} style={{ display:'flex', justifyContent:'space-between', padding:'5px 0', fontSize:'0.875rem', borderBottom:'1px solid rgba(201,168,76,0.1)' }}>
-                  <span style={{ color:'#6b7280' }}>{l}</span>
-                  <span style={{ fontWeight:600, color: l === 'Consultation Fee' ? '#C9A84C' : '#1f2937', fontSize: l === 'Consultation Fee' ? '1.1rem' : undefined }}>{v}</span>
+              {[
+                ['Name', appt.name],
+                ['Service', appt.service],
+                ['Date & Time', `${dateStr} at ${appt.time}`],
+                ['Amount to Pay', feeDisplay],
+              ].map(([l, v]) => (
+                <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', fontSize: '0.875rem', borderBottom: '1px solid rgba(201,168,76,0.1)' }}>
+                  <span style={{ color: '#6b7280' }}>{l}</span>
+                  <span style={{ fontWeight: 600, color: l === 'Amount to Pay' ? '#C9A84C' : '#1f2937', fontSize: l === 'Amount to Pay' ? '1.1rem' : undefined }}>{v}</span>
                 </div>
               ))}
             </div>
 
-            {/* Payment Cancelled / Failed Banner */}
-            {verifyError === 'cancelled' && (
-              <div style={{ background:'#fff8f0', border:'1.5px solid #f59e0b', borderRadius:14, padding:20, marginBottom:16, textAlign:'center' }}>
-                <div style={{ width:56, height:56, borderRadius:'50%', background:'linear-gradient(135deg,#f59e0b,#d97706)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px', boxShadow:'0 4px 15px rgba(245,158,11,0.3)' }}>
-                  <i className="fas fa-times" style={{ color:'#fff', fontSize:'1.4rem' }}></i>
-                </div>
-                <div className="fw-bold mb-1" style={{ color:'#92400e' }}>Payment Cancelled</div>
-                <p className="small text-muted mb-3">You closed the payment window. Your appointment is NOT confirmed yet. Click below to try again.</p>
-                <button className="btn w-100 py-3 fw-bold" style={{ background:'linear-gradient(135deg,#f59e0b,#d97706)', color:'#fff', borderRadius:12, fontSize:'1rem' }} onClick={startRazorpay}>
-                  <i className="fas fa-redo me-2"></i>Retry Payment — {feeDisplay}
-                </button>
-                <button className="btn btn-link text-muted small mt-2 w-100" onClick={() => navigate(-1)}>
-                  Go back and change details
-                </button>
+            {/* Step 1: Choose payment method */}
+            <div className="mb-4">
+              <div className="fw-semibold mb-2" style={{ fontSize: '0.88rem', color: '#374151' }}>
+                <span style={{ background: '#C9A84C', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, marginRight: 8 }}>1</span>
+                Choose Payment Method
               </div>
-            )}
-
-            {/* Razorpay — only payment method */}
-            {verifyError !== 'cancelled' && (
-            <div style={{ background:'#f9fafb', border:'1.5px solid #e5e7eb', borderRadius:14, padding:20, marginBottom:16 }}>
-              <div className="d-flex align-items-center gap-2 mb-3">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Razorpay_logo.svg" alt="Razorpay" style={{ height:22, objectFit:'contain' }} />
-                <span className="fw-semibold">Razorpay Secure Checkout</span>
-              </div>
-              <p className="small text-muted mb-3">
-                <i className="fas fa-shield-alt text-success me-2"></i>
-                Pay using any UPI app, debit/credit card, or net banking. Your appointment will be confirmed instantly after payment verification.
-              </p>
-              <div className="d-flex gap-2 flex-wrap mb-3">
-                {['UPI QR','UPI Intent','Card'].map(m => (
-                  <span key={m} className="badge bg-light text-dark border" style={{ fontWeight:500 }}>{m}</span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                {METHODS.map(m => (
+                  <div
+                    key={m.id}
+                    onClick={() => setMethod(m.id)}
+                    style={{
+                      border: `2px solid ${method === m.id ? '#C9A84C' : '#e5e7eb'}`,
+                      borderRadius: 12,
+                      padding: '12px 8px',
+                      cursor: 'pointer',
+                      background: method === m.id ? '#f9f5e8' : '#fff',
+                      textAlign: 'center',
+                      position: 'relative',
+                      transition: 'all 0.2s',
+                      boxShadow: method === m.id ? '0 2px 12px rgba(201,168,76,0.2)' : 'none',
+                    }}
+                  >
+                    {method === m.id && (
+                      <div style={{ position: 'absolute', top: 6, right: 6, width: 16, height: 16, borderRadius: '50%', background: '#C9A84C', color: '#fff', fontSize: 9, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <i className="fas fa-check"></i>
+                      </div>
+                    )}
+                    <i className={`fas ${m.icon}`} style={{ fontSize: 20, color: '#C9A84C', display: 'block', marginBottom: 4 }}></i>
+                    <div style={{ fontWeight: 600, fontSize: '0.78rem', color: '#374151' }}>{m.label}</div>
+                    <div style={{ fontSize: '0.68rem', color: '#9ca3af' }}>{m.sub}</div>
+                  </div>
                 ))}
               </div>
-              {verifyError && (
-                <div className="alert alert-danger py-2 small mb-3" style={{ borderRadius:10 }}>
-                  <i className="fas fa-exclamation-triangle me-2"></i>{verifyError}
+            </div>
+
+            {/* Step 2: Bank / UPI details */}
+            <div className="mb-4">
+              <div className="fw-semibold mb-2" style={{ fontSize: '0.88rem', color: '#374151' }}>
+                <span style={{ background: '#C9A84C', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, marginRight: 8 }}>2</span>
+                Transfer {feeDisplay} to the account below
+              </div>
+              <BankDetails s={settings} method={method} />
+            </div>
+
+            {/* Step 3: Submit transaction details */}
+            <div className="mb-2">
+              <div className="fw-semibold mb-3" style={{ fontSize: '0.88rem', color: '#374151' }}>
+                <span style={{ background: '#C9A84C', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, marginRight: 8 }}>3</span>
+                Submit Transaction Details
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label small fw-semibold">
+                  UTR / Transaction Reference Number <span className="text-danger">*</span>
+                </label>
+                <input
+                  className="form-control"
+                  value={utr}
+                  onChange={e => { setUtr(e.target.value); setErr(''); }}
+                  placeholder="e.g. 423198765432 or TXNID..."
+                  style={{ borderRadius: 10 }}
+                />
+                <div className="form-text">
+                  <i className="fas fa-info-circle me-1"></i>
+                  Find this in your UPI app or bank's transaction history after payment
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label small fw-semibold">Payment Screenshot <span className="text-muted fw-normal">(optional but recommended)</span></label>
+                <input
+                  type="file"
+                  className="form-control"
+                  accept="image/*"
+                  onChange={e => setScreenshot(e.target.files[0])}
+                  style={{ borderRadius: 10 }}
+                />
+                <div className="form-text">Upload a screenshot of your successful payment for faster verification</div>
+              </div>
+
+              {err && (
+                <div className="alert alert-danger py-2 small" style={{ borderRadius: 10 }}>
+                  <i className="fas fa-exclamation-triangle me-2"></i>{err}
                 </div>
               )}
-              <button className="btn w-100 py-3 fw-bold" style={{ background:'linear-gradient(135deg,#528FF0,#2563eb)', color:'#fff', borderRadius:12, fontSize:'1rem' }} onClick={startRazorpay}>
-                <i className="fas fa-lock me-2"></i>{verifyError ? `Retry Payment — ${feeDisplay}` : `Pay ${feeDisplay} Securely`}
+
+              <button
+                className="btn btn-gold w-100 py-3 fw-bold"
+                style={{ borderRadius: 12, fontSize: '1rem' }}
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                {loading
+                  ? <><i className="fas fa-spinner fa-spin me-2"></i>Submitting...</>
+                  : <><i className="fas fa-paper-plane me-2"></i>Submit Payment Details</>
+                }
               </button>
             </div>
-            )}
 
             <div className="d-flex justify-content-between align-items-center mt-3">
               <button className="btn btn-outline-secondary btn-sm" onClick={() => navigate(-1)}>
                 <i className="fas fa-arrow-left me-2"></i>Back
               </button>
               <div className="text-muted small">
-                <i className="fas fa-lock me-1" style={{ color:'#22c55e' }}></i>256-bit SSL Encrypted
+                <i className="fas fa-shield-alt me-1" style={{ color: '#22c55e' }}></i>
+                Verified manually by admin
               </div>
             </div>
-
           </div>
         </div>
       </div>

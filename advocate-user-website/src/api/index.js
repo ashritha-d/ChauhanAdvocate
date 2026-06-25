@@ -11,6 +11,7 @@ export const getYouTubeVideos = () => api.get('/youtube-videos');
 export const getFacebookPosts = () => api.get('/facebook-posts');
 export const getMagazines = (params = {}) => api.get('/magazines', { params });
 export const checkMagazinePurchase          = (id, headers = {}) => api.get(`/magazines/${id}/purchase/status`, { headers });
+export const submitMagazineManualPayment    = (id, formData, headers = {}) => api.post(`/magazines/${id}/purchase/manual`, formData, { headers: { ...headers, 'Content-Type': 'multipart/form-data' } });
 export const createMagazineRazorpayOrder    = (id, headers = {}) => api.post(`/magazines/${id}/purchase/razorpay/create-order`, {}, { headers });
 export const verifyMagazineRazorpayPayment  = (id, data, headers = {}) => api.post(`/magazines/${id}/purchase/razorpay/verify`, data, { headers });
 export const downloadMagazineFull           = (id, headers = {}) => api.get(`/magazines/${id}/download/full`, { headers });

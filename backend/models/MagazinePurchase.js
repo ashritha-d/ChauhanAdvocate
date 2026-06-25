@@ -5,7 +5,7 @@ const magazinePurchaseSchema = new mongoose.Schema({
   magazineId:  { type: mongoose.Schema.Types.ObjectId, ref: 'Magazine', required: true },
   paymentId:   { type: mongoose.Schema.Types.ObjectId, ref: 'Payment', default: null },
   amount:      { type: String, default: '0' },
-  status:      { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
+  status:      { type: String, enum: ['pending', 'pending_verification', 'completed', 'failed'], default: 'pending' },
   purchaseDate:{ type: Date, default: null },
 }, { timestamps: true });
 

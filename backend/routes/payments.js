@@ -1,8 +1,6 @@
 const router = require('express').Router();
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const { protect } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 const {
   createPayment, getAllPayments, getPayment,
   updatePayment, deletePayment, getStats, getQRCode, uploadQRCode,
@@ -14,25 +12,6 @@ const {
   getPaymentSettings,
   createManualPayment,
 } = require('../controllers/razorpayController');
-
-const paymentsDir = path.join(__dirname, '../uploads/payments');
-if (!fs.existsSync(paymentsDir)) fs.mkdirSync(paymentsDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, paymentsDir),
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, 'pay-' + unique + path.extname(file.originalname));
-  }
-});
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    if (/image\/(jpeg|jpg|png|gif|webp)/.test(file.mimetype)) return cb(null, true);
-    cb(new Error('Only images are allowed for payment screenshot'));
-  }
-});
 
 // Public: payment settings (key_id, UPI ID, QR)
 router.get('/payment-settings', getPaymentSettings);

@@ -13,8 +13,8 @@ const paymentSchema = new mongoose.Schema({
   totalAmount: { type: String, default: '' },
   paymentMethod: {
     type: String,
-    enum: ['razorpay', 'phonepe', 'googlepay', 'upi_id', 'qr_code', 'cash'],
-    default: 'razorpay'
+    enum: ['razorpay', 'phonepe', 'googlepay', 'upi_id', 'qr_code', 'cash', 'bank_transfer'],
+    default: 'bank_transfer'
   },
   utrNumber: { type: String, trim: true, default: '' },
   screenshot: { type: String, default: '' },

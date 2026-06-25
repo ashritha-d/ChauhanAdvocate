@@ -1,6 +1,7 @@
 const Payment = require('../models/Payment');
 const Appointment = require('../models/Appointment');
 const BookOrder = require('../models/BookOrder');
+const MagazinePurchase = require('../models/MagazinePurchase');
 const SiteSettings = require('../models/SiteSettings');
 const path = require('path');
 const fs = require('fs');
@@ -155,12 +156,22 @@ exports.updatePayment = async (req, res) => {
           paymentStatus: 'paid',
           paymentId: payment._id
         });
+      } else if (payment.type === 'magazine') {
+        await MagazinePurchase.findOneAndUpdate(
+          { paymentId: payment._id },
+          { status: 'completed', purchaseDate: new Date() }
+        );
       }
     } else if (status === 'rejected') {
       if (payment.type === 'appointment') {
         await Appointment.findByIdAndUpdate(payment.referenceId, { paymentStatus: 'failed' });
       } else if (payment.type === 'book_order') {
         await BookOrder.findByIdAndUpdate(payment.referenceId, { paymentStatus: 'failed' });
+      } else if (payment.type === 'magazine') {
+        await MagazinePurchase.findOneAndUpdate(
+          { paymentId: payment._id },
+          { status: 'failed' }
+        );
       }
     }
 

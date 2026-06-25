@@ -5,104 +5,104 @@ import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
 import {
   getMagazines, checkMagazinePurchase,
-  createMagazineRazorpayOrder, verifyMagazineRazorpayPayment,
+  getPaymentSettings, submitMagazineManualPayment,
   downloadMagazineFull, downloadMagazinePreview,
 } from '../api';
 import { mediaUrl } from '../utils/helpers';
 
 const PLACEHOLDER = `${import.meta.env.BASE_URL}placeholder-lawyer.svg`;
 const PER_PAGE = 9;
+const API_BASE = 'https://chauhanadvocate.onrender.com';
+
+const METHODS = [
+  { id: 'bank_transfer', icon: 'fa-university', label: 'Bank Transfer' },
+  { id: 'upi_id',        icon: 'fa-mobile-alt', label: 'UPI / GPay' },
+  { id: 'qr_code',       icon: 'fa-qrcode',     label: 'QR Code' },
+];
 
 function formatDate(d) {
   if (!d) return '';
   return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function loadRazorpay() {
-  return new Promise(resolve => {
-    if (window.Razorpay) { resolve(true); return; }
-    const s = document.createElement('script');
-    s.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    s.onload = () => resolve(true);
-    s.onerror = () => resolve(false);
-    document.head.appendChild(s);
-  });
+function CopyBtn({ text }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button className="btn btn-sm btn-outline-secondary py-0 px-2" style={{ fontSize: '0.7rem' }}
+      onClick={() => { navigator.clipboard?.writeText(text); setDone(true); setTimeout(() => setDone(false), 1600); }}>
+      {done ? <><i className="fas fa-check text-success me-1"></i>Copied</> : <><i className="fas fa-copy me-1"></i>Copy</>}
+    </button>
+  );
 }
 
 function PurchaseModal({ magazine, onClose, onSuccess, authHeader }) {
-  const [step, setStep] = useState('confirm');
-  const [errMsg, setErrMsg] = useState('');
+  const [step, setStep] = useState('form'); // form | pending | error
+  const [method, setMethod] = useState('bank_transfer');
+  const [utr, setUtr] = useState('');
+  const [screenshot, setScreenshot] = useState(null);
+  const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [settings, setSettings] = useState({});
 
-  const handlePay = async () => {
-    setStep('processing');
+  useEffect(() => {
+    getPaymentSettings().then(r => { if (r.data.success) setSettings(r.data.data); }).catch(() => {});
+  }, []);
+
+  const qrUrl = settings.payment_qr_image
+    ? (settings.payment_qr_image.startsWith('http') ? settings.payment_qr_image : API_BASE + settings.payment_qr_image)
+    : '';
+
+  const handleSubmit = async () => {
+    if (!utr.trim()) { setErr('Please enter your Transaction / UTR Reference Number.'); return; }
+    setLoading(true); setErr('');
     try {
-      const loaded = await loadRazorpay();
-      if (!loaded) { setErrMsg('Razorpay failed to load. Check your internet connection.'); setStep('error'); return; }
-
-      const r = await createMagazineRazorpayOrder(magazine._id, authHeader());
-      if (!r.data.success) { setErrMsg(r.data.message || 'Order creation failed.'); setStep('error'); return; }
-
-      const { order_id, key_id, amount, payment_db_id, prefill } = r.data;
-      new window.Razorpay({
-        key: key_id, amount, currency: 'INR',
-        name: 'Chauhan Advocate',
-        description: `Purchase: ${magazine.title}`,
-        order_id, prefill,
-        theme: { color: '#c9a84c' },
-        handler: async (response) => {
-          try {
-            const vr = await verifyMagazineRazorpayPayment(magazine._id, {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              payment_db_id,
-            }, authHeader());
-            if (vr.data.success) { setStep('success'); onSuccess(magazine._id); }
-            else { setErrMsg(vr.data.message || 'Verification failed.'); setStep('error'); }
-          } catch (e) { setErrMsg(e.response?.data?.message || 'Verification error.'); setStep('error'); }
-        },
-        modal: { ondismiss: () => setStep(s => s === 'processing' ? 'confirm' : s) },
-      }).open();
+      const fd = new FormData();
+      fd.append('utrNumber', utr.trim());
+      fd.append('paymentMethod', method);
+      if (screenshot) fd.append('screenshot', screenshot);
+      const { data } = await submitMagazineManualPayment(magazine._id, fd, authHeader());
+      if (data.success) {
+        setStep('pending');
+        onSuccess(magazine._id, 'pending');
+      } else {
+        setErr(data.message || 'Submission failed. Please try again.');
+      }
     } catch (e) {
-      setErrMsg(e.response?.data?.message || 'Payment failed. Please try again.');
-      setStep('error');
+      setErr(e.response?.data?.message || 'Network error. Please try again.');
     }
+    setLoading(false);
   };
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="course-enroll-modal" onClick={e => e.stopPropagation()}>
+      <div className="course-enroll-modal" style={{ maxWidth: 460, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
         <button className="jr-modal-close" onClick={onClose}>&times;</button>
 
-        {step === 'success' ? (
-          <div className="form-success-screen py-3">
-            <div className="form-success-icon"><i className="fas fa-check-circle"></i></div>
-            <h5 className="form-success-title">Purchase Successful!</h5>
-            <p className="form-success-msg">
-              You can now download <strong>{magazine.title}</strong>. Find it in My Profile → My Magazines.
+        {step === 'pending' ? (
+          <div className="form-success-screen py-3 text-center">
+            <div style={{ fontSize: '3rem', color: '#f59e0b', marginBottom: 12 }}><i className="fas fa-clock"></i></div>
+            <h5 className="fw-bold mb-2">Payment Submitted!</h5>
+            <p className="text-muted small mb-3">
+              Your purchase of <strong>{magazine.title}</strong> is <strong>pending admin verification</strong>.<br />
+              Access will be unlocked within a few hours.
+            </p>
+            <p className="small text-muted">
+              <i className="fas fa-bell me-1" style={{ color: '#C9A84C' }}></i>
+              You'll receive a WhatsApp notification once approved.
             </p>
             <button className="btn btn-gold mt-3 px-5" onClick={onClose}>
-              <i className="fas fa-download me-2"></i>Close
+              <i className="fas fa-check me-2"></i>Done
             </button>
-          </div>
-        ) : step === 'error' ? (
-          <div className="text-center py-3">
-            <div style={{ fontSize: '3rem', color: '#dc3545' }}><i className="fas fa-times-circle"></i></div>
-            <h5 className="mt-3">Payment Failed</h5>
-            <p className="text-muted">{errMsg}</p>
-            <div className="d-flex gap-2 justify-content-center mt-3">
-              <button className="btn btn-gold px-4" onClick={() => { setStep('confirm'); setErrMsg(''); }}>Try Again</button>
-              <button className="btn btn-outline-secondary px-4" onClick={onClose}>Cancel</button>
-            </div>
           </div>
         ) : (
           <>
             <h5 className="mb-1" style={{ fontFamily: "'Playfair Display', serif" }}>
               <i className="fas fa-book-open text-gold me-2"></i>Purchase Magazine
             </h5>
-            <p className="text-muted small mb-3">Secure payment via Razorpay</p>
+            <p className="text-muted small mb-3">Transfer the amount and submit transaction details</p>
 
-            <div className="mag-purchase-info">
+            {/* Magazine info */}
+            <div className="mag-purchase-info mb-3">
               {magazine.coverImage && (
                 <img src={mediaUrl(magazine.coverImage)} alt={magazine.title}
                   className="mag-purchase-thumb" onError={e => { e.target.style.display = 'none'; }} />
@@ -114,19 +114,95 @@ function PurchaseModal({ magazine, onClose, onSuccess, authHeader }) {
               </div>
             </div>
 
-            {step === 'processing' ? (
-              <div className="text-center py-3">
-                <div className="spinner-border text-warning mb-2"></div>
-                <div className="text-muted small">Opening payment window…</div>
+            {/* Method selector */}
+            <div className="mb-3">
+              <div className="small fw-semibold mb-2 text-muted">Choose Payment Method</div>
+              <div className="d-flex gap-2">
+                {METHODS.map(m => (
+                  <button key={m.id} type="button"
+                    className={`btn btn-sm flex-fill ${method === m.id ? 'btn-gold' : 'btn-outline-secondary'}`}
+                    style={{ fontSize: '0.75rem' }}
+                    onClick={() => setMethod(m.id)}>
+                    <i className={`fas ${m.icon} me-1`}></i>{m.label}
+                  </button>
+                ))}
               </div>
-            ) : (
-              <div className="d-flex gap-2 mt-4">
-                <button className="btn btn-gold flex-grow-1" onClick={handlePay}>
-                  <i className="fas fa-credit-card me-2"></i>Pay ₹{magazine.price} with Razorpay
-                </button>
-                <button className="btn btn-outline-secondary" onClick={onClose}>Cancel</button>
+            </div>
+
+            {/* Bank / UPI / QR details */}
+            <div style={{ background: 'linear-gradient(135deg,#f9f5e8,#fff9ed)', border: '1.5px solid rgba(201,168,76,0.3)', borderRadius: 12, padding: '14px 16px', marginBottom: 14 }}>
+              <div className="small fw-bold mb-2" style={{ color: '#92650a' }}>
+                <i className="fas fa-info-circle me-1" style={{ color: '#C9A84C' }}></i>
+                Send ₹{magazine.price} to:
               </div>
-            )}
+
+              {(method === 'qr_code' || method === 'upi_id') && qrUrl && (
+                <div className="text-center mb-2">
+                  <img src={qrUrl} alt="QR" style={{ maxWidth: 130, borderRadius: 8 }} />
+                </div>
+              )}
+
+              {method !== 'bank_transfer' && settings.payment_upi_id && (
+                <div className="d-flex align-items-center gap-2 mb-1" style={{ background: '#fff', border: '1.5px dashed #C9A84C', borderRadius: 8, padding: '6px 10px' }}>
+                  <i className="fas fa-mobile-alt" style={{ color: '#C9A84C' }}></i>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, flex: 1, fontSize: '0.9rem' }}>{settings.payment_upi_id}</span>
+                  <CopyBtn text={settings.payment_upi_id} />
+                </div>
+              )}
+
+              {method === 'bank_transfer' && (
+                <div className="d-flex flex-column gap-1">
+                  {[
+                    ['Account Holder', settings.bank_account_holder],
+                    ['Bank Name',      settings.bank_name],
+                    ['Account No.',    settings.bank_account_number],
+                    ['IFSC Code',      settings.bank_ifsc],
+                    ['UPI ID',         settings.payment_upi_id],
+                  ].filter(([, v]) => v).map(([label, value]) => (
+                    <div key={label} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 7, padding: '5px 10px' }}>
+                      <div className="d-flex align-items-center justify-content-between">
+                        <span style={{ color: '#6b7280', fontSize: '0.74rem', minWidth: 90 }}>{label}</span>
+                        <div className="d-flex align-items-center gap-1 ms-auto">
+                          <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.82rem' }}>{value}</span>
+                          <CopyBtn text={value} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* UTR + screenshot */}
+            <div className="mb-2">
+              <label className="form-label small fw-semibold">
+                UTR / Transaction ID <span className="text-danger">*</span>
+              </label>
+              <input
+                className="form-control form-control-sm"
+                value={utr}
+                onChange={e => { setUtr(e.target.value); setErr(''); }}
+                placeholder="Transaction reference number"
+                style={{ borderRadius: 8 }}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label small fw-semibold">Screenshot <span className="text-muted fw-normal">(optional)</span></label>
+              <input type="file" className="form-control form-control-sm" accept="image/*"
+                onChange={e => setScreenshot(e.target.files[0])} style={{ borderRadius: 8 }} />
+            </div>
+
+            {err && <div className="alert alert-danger py-2 small mb-3" style={{ borderRadius: 8 }}>{err}</div>}
+
+            <div className="d-flex gap-2 mt-2">
+              <button className="btn btn-gold flex-grow-1" onClick={handleSubmit} disabled={loading}>
+                {loading
+                  ? <><i className="fas fa-spinner fa-spin me-2"></i>Submitting...</>
+                  : <><i className="fas fa-paper-plane me-2"></i>Submit Payment</>
+                }
+              </button>
+              <button className="btn btn-outline-secondary" onClick={onClose}>Cancel</button>
+            </div>
           </>
         )}
       </div>
@@ -144,6 +220,7 @@ export default function MagazinesPage() {
   const [filter, setFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [purchases, setPurchases] = useState({});
+  const [pendingPurchases, setPendingPurchases] = useState({});
   const [purchasing, setPurchasing] = useState(null);
 
   const fetchMagazines = useCallback(() => {
@@ -173,16 +250,22 @@ export default function MagazinesPage() {
     if (!paidMags.length) return;
     Promise.allSettled(paidMags.map(m => checkMagazinePurchase(m._id, authHeader())))
       .then(results => {
-        const map = {};
+        const bought = {};
+        const pending = {};
         results.forEach((res, i) => {
-          if (res.status === 'fulfilled' && res.value.data.purchased) map[paidMags[i]._id] = true;
+          if (res.status === 'fulfilled') {
+            if (res.value.data.purchased) bought[paidMags[i]._id] = true;
+            if (res.value.data.pending)   pending[paidMags[i]._id] = true;
+          }
         });
-        setPurchases(map);
+        setPurchases(bought);
+        setPendingPurchases(pending);
       });
   }, [magazines, user]);
 
   const handlePurchase = (mag) => {
     if (!user) { savePendingAction('magazines'); navigate('/login'); return; }
+    if (pendingPurchases[mag._id]) return;
     setPurchasing(mag);
   };
 
@@ -374,6 +457,10 @@ export default function MagazinesPage() {
                               <button className="btn btn-gold btn-sm px-4" onClick={() => handleDownload(mag)}>
                                 <i className="fas fa-download me-1"></i>Download
                               </button>
+                            ) : pendingPurchases[mag._id] ? (
+                              <button className="btn btn-sm btn-warning text-dark px-3" disabled style={{ fontSize: '0.78rem' }}>
+                                <i className="fas fa-clock me-1"></i>Pending Verification
+                              </button>
                             ) : (
                               <button className="btn btn-gold btn-sm px-4" onClick={() => handlePurchase(mag)}>
                                 <i className="fas fa-lock-open me-1"></i>Purchase
@@ -431,7 +518,11 @@ export default function MagazinesPage() {
           magazine={purchasing}
           authHeader={authHeader}
           onClose={() => setPurchasing(null)}
-          onSuccess={id => setPurchases(prev => ({ ...prev, [id]: true }))}
+          onSuccess={(id, status) => {
+            if (status === 'pending') setPendingPurchases(prev => ({ ...prev, [id]: true }));
+            else setPurchases(prev => ({ ...prev, [id]: true }));
+            setPurchasing(null);
+          }}
         />
       )}
     </section>

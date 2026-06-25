@@ -29,6 +29,7 @@ router.delete('/:id',           protect, ctrl.remove);
 router.get('/:id/download/preview',              ctrl.downloadPreview);
 router.get('/:id/download/full',                 protectUser, ctrl.downloadFull);
 router.get('/:id/purchase/status',               protectUser, purchaseCtrl.checkPurchase);
+router.post('/:id/purchase/manual',              protectUser, upload.single('screenshot'), purchaseCtrl.submitManualPurchase);
 router.post('/:id/purchase/razorpay/create-order', protectUser, purchaseCtrl.createRazorpayOrder);
 router.post('/:id/purchase/razorpay/verify',       protectUser, purchaseCtrl.verifyRazorpayPayment);
 

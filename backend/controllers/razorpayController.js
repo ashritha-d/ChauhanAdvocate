@@ -29,17 +29,20 @@ function generateAppointmentId() {
   return `APT${String(Date.now()).slice(-8)}`;
 }
 
-// PUBLIC: Get payment settings (key_id, UPI ID, QR URL — never expose secret)
+// PUBLIC: Get payment settings (bank details, UPI ID, QR URL — never expose secret)
 exports.getPaymentSettings = async (req, res) => {
   try {
     const keys = [
-      'razorpay_key_id',
       'payment_upi_id',
       'payment_qr_image',
       'consultation_fee',
       'consultation_fee_online',
       'consultation_fee_offline',
       'admin_email',
+      'bank_account_holder',
+      'bank_name',
+      'bank_account_number',
+      'bank_ifsc',
     ];
     const settings = await SiteSettings.find({ key: { $in: keys } });
     const result = {};
@@ -253,13 +256,13 @@ exports.createManualPayment = async (req, res) => {
       date: new Date(date), time,
       message: message || '',
       appointmentMode: appointmentMode || 'offline',
-      paymentMethod: paymentMethod || 'qr_code',
+      paymentMethod: paymentMethod || 'bank_transfer',
       paymentStatus: 'pending_verification',
       consultationFee: String(amount || 0),
       status: 'pending',
     });
 
-    const screenshotPath = req.file ? `/uploads/payments/${req.file.filename}` : '';
+    const screenshotPath = req.file?.path || (req.file ? `/uploads/payments/${req.file.filename}` : '');
 
     const payment = await Payment.create({
       type: 'appointment',
@@ -268,7 +271,7 @@ exports.createManualPayment = async (req, res) => {
       clientPhone: phone,
       clientEmail: email || '',
       amount: String(amount || 0),
-      paymentMethod: paymentMethod || 'qr_code',
+      paymentMethod: paymentMethod || 'bank_transfer',
       utrNumber: utrNumber || '',
       screenshot: screenshotPath,
       status: 'pending_verification',

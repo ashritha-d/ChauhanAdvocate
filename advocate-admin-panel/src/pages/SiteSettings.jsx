@@ -91,10 +91,12 @@ export default function SiteSettings() {
     Payment: [
       { key:'consultation_fee_offline', label:'Offline Consultation Fee (₹)', type:'text' },
       { key:'consultation_fee_online', label:'Online Consultation Fee (₹)', type:'text' },
+      { key:'bank_account_holder', label:'Bank Account Holder Name', type:'text' },
+      { key:'bank_name', label:'Bank Name', type:'text' },
+      { key:'bank_account_number', label:'Bank Account Number', type:'text' },
+      { key:'bank_ifsc', label:'IFSC Code', type:'text' },
       { key:'payment_upi_id', label:'UPI ID (e.g. name@upi)', type:'text' },
-      { key:'payment_qr_image', label:'PhonePe / UPI QR Code Image', type:'image' },
-      { key:'razorpay_key_id', label:'Razorpay Key ID (rzp_live_...)', type:'text' },
-      { key:'razorpay_secret', label:'Razorpay Secret Key', type:'text' },
+      { key:'payment_qr_image', label:'UPI / QR Code Image', type:'image' },
       { key:'admin_email', label:'Admin Email (for payment receipts)', type:'email' },
     ],
   };
@@ -121,16 +123,15 @@ export default function SiteSettings() {
             {TABS.map(t => <li key={t} className="nav-item"><button className={`nav-link ${tab===t?'active':''}`} onClick={() => setTab(t)}>{t}</button></li>)}
           </ul>
           {tab === 'Payment' && (
-            <div className="alert mb-4" style={{ background:'#fff8e1', border:'1.5px solid #f59e0b', borderRadius:12 }}>
-              <div className="fw-bold mb-1" style={{ color:'#92400e' }}>
-                <i className="fas fa-info-circle me-2"></i>About Razorpay Test Mode (MockSharp)
+            <div className="alert mb-4" style={{ background:'#f0fdf4', border:'1.5px solid #22c55e', borderRadius:12 }}>
+              <div className="fw-bold mb-1" style={{ color:'#166534' }}>
+                <i className="fas fa-university me-2"></i>Manual Bank Transfer Payment System
               </div>
-              <p className="small mb-2" style={{ color:'#78350f' }}>
-                If you see a "<strong>Welcome to Razorpay Software Private Ltd Bank</strong>" page with Success/Failure buttons during payment, this is Razorpay's <strong>MockSharp simulator</strong>. It appears only when Test Mode keys (<code>rzp_test_...</code>) are active.
-              </p>
-              <p className="small mb-0" style={{ color:'#78350f' }}>
-                <i className="fas fa-check-circle me-1 text-success"></i>
-                After configuring <strong>Live Keys</strong> (<code>rzp_live_...</code>) in the fields below, all payments will use real banking flows (UPI apps, actual bank OTPs) and MockSharp will disappear automatically — <strong>no code changes required</strong>.
+              <p className="small mb-0" style={{ color:'#166534' }}>
+                Customers are shown your bank account details and UPI ID when booking appointments or purchasing magazines.
+                They transfer the amount manually and submit their UTR / transaction reference number.
+                You review and approve or reject payments from the <strong>Payments</strong> section.
+                Access is granted only after you approve.
               </p>
             </div>
           )}
