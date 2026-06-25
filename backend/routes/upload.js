@@ -2,7 +2,8 @@ const router = require('express').Router();
 const upload = require('../middleware/upload');
 const { protect } = require('../middleware/auth');
 
-router.post('/', protect, upload.single('image'), (req, res) => {
+router.post('/', protect, upload.fields([{ name: 'file' }, { name: 'image' }]), (req, res) => {
+  req.file = req.files?.file?.[0] || req.files?.image?.[0];
   if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
   res.json({ success: true, url: req.file.path, filename: req.file.filename });
 });
