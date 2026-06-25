@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getPayments, getPayment, updatePayment, deletePayment, getPaymentRevenue, exportPaymentsCsv, getWebhookLogs } from '../api';
+import { getPayments, getPayment, updatePayment, deletePayment, getPaymentRevenue, exportPaymentsCsv } from '../api';
 import { formatDate } from '../utils/helpers';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -99,8 +99,6 @@ export default function Payments() {
   const [showReceipt, setShowReceipt] = useState(false);
   const [revenue, setRevenue] = useState(null);
   const [exporting, setExporting] = useState(false);
-  const [webhookLogs, setWebhookLogs] = useState([]);
-  const [webhookLoading, setWebhookLoading] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -116,16 +114,7 @@ export default function Payments() {
       .catch(() => {});
   };
 
-  const loadWebhooks = () => {
-    setWebhookLoading(true);
-    getWebhookLogs(1, 100)
-      .then(r => { if (r.data.success) setWebhookLogs(r.data.data || []); })
-      .catch(() => {})
-      .finally(() => setWebhookLoading(false));
-  };
-
   useEffect(() => { load(); loadRevenue(); }, [filter]);
-  useEffect(() => { if (tab === 'webhooks') loadWebhooks(); }, [tab]);
 
   const handleView = async (item) => {
     setShowReceipt(false);
@@ -208,11 +197,6 @@ export default function Payments() {
         <li className="nav-item">
           <button className={`nav-link ${tab === 'revenue' ? 'active' : ''}`} onClick={() => setTab('revenue')}>
             <i className="fas fa-chart-bar me-1"></i>Revenue Dashboard
-          </button>
-        </li>
-        <li className="nav-item">
-          <button className={`nav-link ${tab === 'webhooks' ? 'active' : ''}`} onClick={() => setTab('webhooks')}>
-            <i className="fas fa-bolt me-1"></i>Webhook Logs
           </button>
         </li>
       </ul>
@@ -347,57 +331,6 @@ export default function Payments() {
         </div>
       )}
 
-      {/* ══ WEBHOOK LOGS ══ */}
-      {tab === 'webhooks' && (
-        <div className="page-card">
-          <div className="page-card-header">
-            <h6 className="mb-0 fw-bold"><i className="fas fa-bolt me-2 text-gold"></i>Cashfree Webhook Logs</h6>
-            <button className="btn btn-sm btn-outline-secondary" onClick={loadWebhooks} disabled={webhookLoading}>
-              {webhookLoading ? <i className="fas fa-spinner fa-spin"></i> : <><i className="fas fa-sync me-1"></i>Refresh</>}
-            </button>
-          </div>
-          <div className="table-responsive">
-            <table className="table admin-table">
-              <thead>
-                <tr>
-                  <th>Time</th><th>Event Type</th><th>Gateway</th><th>Sig Valid</th><th>Processed</th><th>Error</th><th>Payload</th>
-                </tr>
-              </thead>
-              <tbody>
-                {webhookLoading && <tr><td colSpan="7" className="text-center py-4"><div className="spinner-border spinner-border-sm"></div></td></tr>}
-                {!webhookLoading && webhookLogs.length === 0 && <tr><td colSpan="7" className="text-center text-muted py-4">No webhook events received yet. Configure Cashfree webhook URL to start receiving events.</td></tr>}
-                {webhookLogs.map(log => (
-                  <tr key={log._id}>
-                    <td><small className="text-muted">{formatDate(log.createdAt)}</small></td>
-                    <td><span className="badge bg-secondary font-monospace" style={{ fontSize:'.72rem' }}>{log.type}</span></td>
-                    <td><span className="badge bg-light text-dark border">{log.gateway}</span></td>
-                    <td>
-                      {log.signatureValid
-                        ? <span className="badge bg-success">Valid</span>
-                        : <span className="badge bg-danger">Invalid</span>}
-                    </td>
-                    <td>
-                      {log.processed
-                        ? <span className="badge bg-success">Yes</span>
-                        : <span className="badge bg-warning text-dark">No</span>}
-                    </td>
-                    <td><small className="text-danger font-monospace" style={{ wordBreak:'break-all' }}>{log.error || '—'}</small></td>
-                    <td>
-                      <details>
-                        <summary className="btn btn-sm btn-outline-secondary py-0 px-2" style={{ fontSize:'.75rem' }}>View</summary>
-                        <pre className="mt-1 p-2 bg-light rounded" style={{ fontSize:'.7rem', maxHeight:160, overflow:'auto', whiteSpace:'pre-wrap', wordBreak:'break-all' }}>
-                          {JSON.stringify(log.payload, null, 2)}
-                        </pre>
-                      </details>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
       {/* ── DETAIL MODAL ── */}
       {selected && (
         <div className="modal fade show d-block" style={{ background:'rgba(0,0,0,0.5)' }}>
@@ -469,14 +402,10 @@ export default function Payments() {
                   {selected.screenshot && (
                     <div className="col-12">
                       <h6 className="fw-bold text-gold mb-2">Payment Screenshot</h6>
-                      {(() => {
-                        const src = selected.screenshot.startsWith('http') ? selected.screenshot : `${BACKEND}${selected.screenshot}`;
-                        return (
-                          <a href={src} target="_blank" rel="noreferrer">
-                            <img src={src} alt="Screenshot" className="img-fluid rounded border" style={{ maxHeight:220, objectFit:'cover' }} />
-                          </a>
-                        );
-                      })()}
+                      <a href={`${BACKEND}${selected.screenshot}`} target="_blank" rel="noreferrer">
+                        <img src={`${BACKEND}${selected.screenshot}`} alt="Screenshot"
+                          className="img-fluid rounded border" style={{ maxHeight:220, objectFit:'cover' }} />
+                      </a>
                     </div>
                   )}
 

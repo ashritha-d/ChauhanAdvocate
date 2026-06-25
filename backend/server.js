@@ -43,22 +43,6 @@ const authLimiter = rateLimit({
 });
 app.use('/api/auth/', authLimiter);
 
-// Capture raw body for webhook signature verification BEFORE json parser
-app.use((req, res, next) => {
-  if (req.path === '/api/payments/cashfree/webhook') {
-    let raw = '';
-    req.on('data', chunk => { raw += chunk; });
-    req.on('end', () => {
-      req.rawBody = raw;
-      try { req.body = JSON.parse(raw || '{}'); } catch { req.body = {}; }
-      next();
-    });
-    req.on('error', next);
-  } else {
-    next();
-  }
-});
-
 // Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

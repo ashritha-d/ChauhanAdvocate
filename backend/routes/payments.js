@@ -1,6 +1,5 @@
 const router = require('express').Router();
-const { protect }     = require('../middleware/auth');
-const { protectUser } = require('../middleware/userAuth');
+const { protect } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const {
   createPayment, getAllPayments, getPayment,
@@ -13,30 +12,16 @@ const {
   getPaymentSettings,
   createManualPayment,
 } = require('../controllers/razorpayController');
-const {
-  createAppointmentOrder,
-  getOrderStatus,
-  webhookHandler,
-  getWebhookLogs,
-} = require('../controllers/cashfreeController');
 
-// Public: payment settings (bank details, UPI ID, QR, env flags)
+// Public: payment settings (key_id, UPI ID, QR)
 router.get('/payment-settings', getPaymentSettings);
 
-// Public: Cashfree checkout flow
-router.post('/cashfree/create-order', createAppointmentOrder);
-router.post('/cashfree/webhook', webhookHandler);           // no auth — signature verified inside
-router.get('/cashfree/order/:orderId', getOrderStatus);
-
-// Public: manual bank transfer payment with optional screenshot
-router.post('/manual', upload.single('screenshot'), createManualPayment);
-
-// Public: Razorpay checkout flow (kept for fallback / legacy)
+// Public: Razorpay checkout flow
 router.post('/razorpay/create-order', createRazorpayOrder);
 router.post('/razorpay/verify', verifyRazorpayPayment);
 
-// Admin: webhook audit logs
-router.get('/webhook-logs', protect, getWebhookLogs);
+// Public: manual UPI/QR payment with optional screenshot
+router.post('/manual', upload.single('screenshot'), createManualPayment);
 
 // Public: legacy QR submit (kept for book orders)
 router.post('/', upload.single('screenshot'), createPayment);

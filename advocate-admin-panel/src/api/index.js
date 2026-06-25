@@ -87,7 +87,6 @@ export const deletePayment = (id) => api.delete(`/payments/${id}`);
 export const getPaymentStats = () => api.get('/payments/stats');
 export const getPaymentRevenue = (from, to) => api.get(`/payments/revenue${from || to ? `?${from?`from=${from}`:''}${from&&to?'&':''}${to?`to=${to}`:''}` : ''}`);
 export const exportPaymentsCsv = (status = '') => api.get(`/payments/export${status ? `?status=${status}` : ''}`, { responseType: 'blob' });
-export const getWebhookLogs = (page = 1, limit = 50) => api.get(`/payments/webhook-logs?page=${page}&limit=${limit}`);
 
 // Notifications
 export const getNotificationCounts    = ()           => api.get('/notifications/counts');
