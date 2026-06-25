@@ -73,7 +73,7 @@ export default function BooksPage() {
   };
 
   return (
-    <section id="books" className="section-padding bg-light">
+    <section id="books" className="section-padding bg-light" style={{ paddingTop: '2rem' }}>
       <SEOHead
         title="Legal Books & Publications"
         description="Purchase legal books and guides by Advocate Chauhan — covering civil law, criminal law, family law, property law, and more."

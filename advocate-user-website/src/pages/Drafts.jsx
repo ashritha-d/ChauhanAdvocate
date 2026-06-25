@@ -75,7 +75,7 @@ export default function DraftsPage() {
   };
 
   return (
-    <section id="drafts" className="section-padding bg-light">
+    <section id="drafts" className="section-padding bg-light" style={{ paddingTop: '2rem' }}>
       <SEOHead
         title="Legal Draft Templates"
         description="Download professionally drafted legal document templates by Advocate Chauhan — rental agreements, NDAs, employment contracts, sale deeds, and more."

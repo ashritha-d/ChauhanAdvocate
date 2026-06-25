@@ -228,7 +228,7 @@ export default function MagazinesPage() {
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   return (
-    <section id="magazines" className="section-padding bg-light">
+    <section id="magazines" className="section-padding bg-light" style={{ paddingTop: '2rem' }}>
       <SEOHead
         title="Legal Magazines & Publications"
         description="Browse and download legal magazines and publications by Advocate Chauhan. Free and paid editions covering law updates, case studies, and legal guidance."
