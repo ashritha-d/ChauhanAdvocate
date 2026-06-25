@@ -11,7 +11,7 @@ const INIT = {
   skills: '', experience: '', coverLetter: '',
 };
 
-export default function JrAdvocateModal({ onClose, onSuccess }) {
+export default function JrAdvocateModal({ onClose, onSuccess, inline = false }) {
   const { user } = useUserAuth();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
@@ -78,39 +78,33 @@ export default function JrAdvocateModal({ onClose, onSuccess }) {
 
   const FieldError = ({ name }) => errors[name] ? <div className="jr-field-error">{errors[name]}</div> : null;
 
-  return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="jr-modal jr-modal-lg" onClick={e => e.stopPropagation()}>
-        <button className="jr-modal-close" onClick={onClose}>&times;</button>
-
-        {submitted ? (
-          <div className="form-success-screen">
-            <div className="form-success-icon">
-              <i className="fas fa-check-circle"></i>
-            </div>
-            <h5 className="form-success-title">Application Submitted Successfully!</h5>
-            <p className="form-success-msg">
-              Your application has been submitted successfully. Our team will review your profile and contact you if shortlisted.
-            </p>
-            <div className="form-success-details">
-              <div><i className="fas fa-user me-2 text-gold"></i><strong>Name:</strong> {form.name}</div>
-              {form.qualification && <div><i className="fas fa-graduation-cap me-2 text-gold"></i><strong>Qualification:</strong> {form.qualification}</div>}
-            </div>
-            <p className="form-success-note">
-              <i className="fab fa-whatsapp me-1 text-success"></i>
-              Expected review time: 3–5 business days.
-              {user && <> Track status in <strong>My Profile → My Applications</strong>.</>}
-            </p>
-            <button className="btn btn-gold mt-3 px-5" onClick={onClose}>
-              <i className="fas fa-times me-2"></i>Close
-            </button>
+  const inner = (
+    <>
+      {submitted ? (
+        <div className="form-success-screen">
+          <div className="form-success-icon">
+            <i className="fas fa-check-circle"></i>
           </div>
-        ) : (
-          <>
-            <h5 className="mb-1" style={{ fontFamily: "'Playfair Display',serif" }}>
-              Join as <span style={{ color: 'var(--gold)' }}>Jr. Advocate</span>
-            </h5>
-            <p className="text-muted small mb-3">Complete the application form below</p>
+          <h5 className="form-success-title">Application Submitted Successfully!</h5>
+          <p className="form-success-msg">
+            Your application has been submitted successfully. Our team will review your profile and contact you if shortlisted.
+          </p>
+          <div className="form-success-details">
+            <div><i className="fas fa-user me-2 text-gold"></i><strong>Name:</strong> {form.name}</div>
+            {form.qualification && <div><i className="fas fa-graduation-cap me-2 text-gold"></i><strong>Qualification:</strong> {form.qualification}</div>}
+          </div>
+          <p className="form-success-note">
+            <i className="fab fa-whatsapp me-1 text-success"></i>
+            Expected review time: 3–5 business days.
+          </p>
+          {!inline && <button className="btn btn-gold mt-3 px-5" onClick={onClose}><i className="fas fa-times me-2"></i>Close</button>}
+        </div>
+      ) : (
+        <>
+          <h5 className="mb-1" style={{ fontFamily: "'Playfair Display',serif" }}>
+            Join as <span style={{ color: 'var(--gold)' }}>Jr. Advocate</span>
+          </h5>
+          <p className="text-muted small mb-3">Complete the application form below</p>
 
             <div className="jr-steps mb-4">
               {STEPS.map((s, i) => (
@@ -249,6 +243,16 @@ export default function JrAdvocateModal({ onClose, onSuccess }) {
             </form>
           </>
         )}
+    </>
+  );
+
+  if (inline) return inner;
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="jr-modal jr-modal-lg" onClick={e => e.stopPropagation()}>
+        <button className="jr-modal-close" onClick={onClose}>&times;</button>
+        {inner}
       </div>
     </div>
   );

@@ -12,6 +12,7 @@ import {
 } from '../api';
 import { mediaUrl } from '../utils/helpers';
 import AppointmentModal from '../components/AppointmentModal';
+import JrAdvocateModal from '../components/JrAdvocateModal';
 
 const TABS = [
   { id: 'dashboard',     icon: 'fa-tachometer-alt', label: 'Dashboard' },
@@ -891,41 +892,40 @@ export default function Profile() {
               {/* ── My Applications ── */}
               {tab === 'applications' && (
                 <div>
-                  <div className="d-flex align-items-center justify-content-between mb-4">
-                    <h4 className="profile-section-title mb-0">My Applications</h4>
-                    <button className="btn btn-gold btn-sm" onClick={() => goTo('join')}><i className="fas fa-plus me-1"></i>Apply Now</button>
-                  </div>
+                  <h4 className="profile-section-title mb-4">My Applications</h4>
                   {dataLoading
                     ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
                     : applications.length === 0
-                    ? <div className="profile-empty"><i className="fas fa-user-tie"></i><p>No applications found</p><button className="btn btn-gold btn-sm" onClick={() => goTo('join')}>Apply as Jr. Advocate</button></div>
+                    ? <JrAdvocateModal inline onSuccess={() => loadApplications()} />
                     : (
-                      <div className="profile-table-wrap">
-                        <table className="profile-table">
-                          <thead>
-                            <tr><th>#</th><th>Applied For</th><th>Qualification</th><th>Applied On</th><th>Status</th></tr>
-                          </thead>
-                          <tbody>
-                            {applications.map((a, i) => {
-                              const statusColor = { pending: 'warning', reviewed: 'info', selected: 'success', rejected: 'danger' };
-                              return (
-                                <tr key={a._id}>
-                                  <td><small className="text-muted">{i + 1}</small></td>
-                                  <td><strong>Jr. Advocate</strong><small className="d-block text-muted">{a.college || '—'}</small></td>
-                                  <td>{a.qualification}</td>
-                                  <td><small>{formatDate(a.createdAt)}</small></td>
-                                  <td>
-                                    <span className={`badge bg-${statusColor[a.status] || 'secondary'}`}>
-                                      {a.status.charAt(0).toUpperCase() + a.status.slice(1)}
-                                    </span>
-                                    {a.adminNotes && <small className="d-block text-muted mt-1">{a.adminNotes}</small>}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
+                      <>
+                        <div className="profile-table-wrap mb-4">
+                          <table className="profile-table">
+                            <thead>
+                              <tr><th>#</th><th>Applied For</th><th>Qualification</th><th>Applied On</th><th>Status</th></tr>
+                            </thead>
+                            <tbody>
+                              {applications.map((a, i) => {
+                                const statusColor = { pending: 'warning', reviewed: 'info', selected: 'success', rejected: 'danger' };
+                                return (
+                                  <tr key={a._id}>
+                                    <td><small className="text-muted">{i + 1}</small></td>
+                                    <td><strong>Jr. Advocate</strong><small className="d-block text-muted">{a.college || '—'}</small></td>
+                                    <td>{a.qualification}</td>
+                                    <td><small>{formatDate(a.createdAt)}</small></td>
+                                    <td>
+                                      <span className={`badge bg-${statusColor[a.status] || 'secondary'}`}>
+                                        {a.status.charAt(0).toUpperCase() + a.status.slice(1)}
+                                      </span>
+                                      {a.adminNotes && <small className="d-block text-muted mt-1">{a.adminNotes}</small>}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </>
                     )
                   }
                 </div>
