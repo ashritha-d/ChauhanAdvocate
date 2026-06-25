@@ -166,7 +166,6 @@ export default function MagazinesPage() {
   }, [filter]);
 
   useEffect(() => { fetchMagazines(); setPage(1); }, [fetchMagazines]);
-  useEffect(() => { if (!loading) window.AOS?.refresh(); }, [loading]);
 
   useEffect(() => {
     if (!user || !magazines.length) return;
@@ -315,7 +314,7 @@ export default function MagazinesPage() {
                 const hasPreview = !!(mag.previewPdf || (!isPaid && mag.pdfFile));
 
                 return (
-                  <div key={mag._id} className="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay={i * 80}>
+                  <div key={mag._id} className="col-lg-4 col-md-6 card-fade-in" style={{ animationDelay: `${i * 80}ms` }}>
                     <div className="course-card">
                       <div className="course-card-thumb">
                         {mag.coverImage

@@ -6,6 +6,14 @@
   --darker: #0f0f1a;
 }
 
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card-fade-in {
+  animation: fadeInUp 0.45s ease both;
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html {

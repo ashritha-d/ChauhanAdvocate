@@ -46,7 +46,6 @@ export default function DraftsPage() {
   }, []);
 
   useEffect(() => { fetchDrafts(); }, [fetchDrafts]);
-  useEffect(() => { if (!loading) window.AOS?.refresh(); }, [loading]);
 
   const contentTypes = ['all', ...new Set(drafts.map(d => d.contentType).filter(Boolean))];
 
@@ -165,7 +164,7 @@ export default function DraftsPage() {
                 const badgeClass = TYPE_BADGE[d.contentType] || 'bg-secondary';
 
                 return (
-                  <div key={d._id} className="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay={i * 80}>
+                  <div key={d._id} className="col-lg-4 col-md-6 card-fade-in" style={{ animationDelay: `${i * 80}ms` }}>
                     <div className="course-card">
                       <div className="course-card-thumb">
                         {d.thumbnail

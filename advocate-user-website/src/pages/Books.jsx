@@ -45,7 +45,6 @@ export default function BooksPage() {
   }, []);
 
   useEffect(() => { fetchBooks(); }, [fetchBooks]);
-  useEffect(() => { if (!loading) window.AOS?.refresh(); }, [loading]);
 
   const filtered = books.filter(b => {
     const matchStock =
@@ -162,7 +161,7 @@ export default function BooksPage() {
               {paginated.map((b, i) => {
                 const outOfStock = b.stockStatus === 'out_of_stock';
                 return (
-                  <div key={b._id} className="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay={i * 80}>
+                  <div key={b._id} className="col-lg-4 col-md-6 card-fade-in" style={{ animationDelay: `${i * 80}ms` }}>
                     <div className="course-card">
                       <div className="course-card-thumb">
                         {b.image
