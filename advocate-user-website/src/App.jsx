@@ -24,6 +24,7 @@ import NewsPage from './pages/News';
 import Payment from './pages/Payment';
 import NewsTicker from './components/NewsTicker';
 import Contact from './components/Contact';
+import BookPromoPopup from './components/BookPromoPopup';
 import AppointmentModal from './components/AppointmentModal';
 import OrderModal from './components/OrderModal';
 import JrAdvocateModal from './components/JrAdvocateModal';
@@ -67,6 +68,7 @@ function AppLayout({ children, hideFooterExtras }) {
       <NewsTicker />
       <main>{children}</main>
       <GlobalModals />
+      <BookPromoPopup />
       {!hideFooterExtras && (
         <>
           <PhoneButton />
