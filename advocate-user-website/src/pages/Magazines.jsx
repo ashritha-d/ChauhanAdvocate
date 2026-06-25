@@ -166,6 +166,7 @@ export default function MagazinesPage() {
   }, [filter]);
 
   useEffect(() => { fetchMagazines(); setPage(1); }, [fetchMagazines]);
+  useEffect(() => { if (!loading) window.AOS?.refresh(); }, [loading]);
 
   useEffect(() => {
     if (!user || !magazines.length) return;

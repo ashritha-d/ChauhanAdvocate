@@ -46,6 +46,7 @@ export default function DraftsPage() {
   }, []);
 
   useEffect(() => { fetchDrafts(); }, [fetchDrafts]);
+  useEffect(() => { if (!loading) window.AOS?.refresh(); }, [loading]);
 
   const contentTypes = ['all', ...new Set(drafts.map(d => d.contentType).filter(Boolean))];
 

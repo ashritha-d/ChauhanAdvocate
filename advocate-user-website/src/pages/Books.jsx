@@ -45,6 +45,7 @@ export default function BooksPage() {
   }, []);
 
   useEffect(() => { fetchBooks(); }, [fetchBooks]);
+  useEffect(() => { if (!loading) window.AOS?.refresh(); }, [loading]);
 
   const filtered = books.filter(b => {
     const matchStock =
