@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getDrafts } from '../api';
 import { mediaUrl } from '../utils/helpers';
 import SliderSection from './SliderSection';
@@ -48,14 +49,21 @@ export default function Drafts() {
   ];
 
   return (
-    <SliderSection
-      id="drafts"
-      label="Legal Templates"
-      title={<>Legal <span className="text-gold">Drafts</span></>}
-      description="Download ready-to-use legal draft templates"
-      items={items !== null && items.length ? items : fallback}
-      loading={items === null}
-      bg="bg-light"
-    />
+    <>
+      <SliderSection
+        id="drafts"
+        label="Legal Templates"
+        title={<>Legal <span className="text-gold">Drafts</span></>}
+        description="Download ready-to-use legal draft templates"
+        items={items !== null && items.length ? items : fallback}
+        loading={items === null}
+        bg="bg-light"
+      />
+      <div className="text-center pb-5" style={{ marginTop: '-2rem', background: 'var(--bs-light, #f8f9fa)' }}>
+        <Link to="/drafts" className="btn btn-gold px-5">
+          <i className="fas fa-file-alt me-2"></i>Browse All Drafts
+        </Link>
+      </div>
+    </>
   );
 }
