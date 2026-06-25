@@ -638,7 +638,7 @@ export default function Profile() {
                 <div>
                   <div className="d-flex align-items-center justify-content-between mb-4">
                     <h4 className="profile-section-title mb-0">My Orders</h4>
-                    <button className="btn btn-gold btn-sm" onClick={() => goTo('books')}><i className="fas fa-book me-1"></i>Browse Books</button>
+                    <button className="btn btn-gold btn-sm" onClick={() => navigate('/books')}><i className="fas fa-book me-1"></i>Browse Books</button>
                   </div>
                   {dataLoading
                     ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
