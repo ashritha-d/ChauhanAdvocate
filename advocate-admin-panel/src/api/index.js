@@ -116,5 +116,11 @@ export const publishDraft     = (id) => api.put(`/drafts/${id}/publish`);
 export const bulkDeleteDrafts = (ids) => api.post('/drafts/bulk-delete', { ids });
 export const bulkPublishDrafts = (ids) => api.post('/drafts/bulk-publish', { ids });
 
+// Books for Sale
+export const getBooks       = ()           => api.get('/books/admin/all');
+export const createBook     = (data)       => api.post('/books', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const updateBook     = (id, data)   => api.put(`/books/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const deleteBook     = (id)         => api.delete(`/books/${id}`);
+
 // Upload
 export const uploadFile = (formData) => api.post('/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });

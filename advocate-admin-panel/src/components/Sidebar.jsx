@@ -13,6 +13,7 @@ const NAV = [
     { icon: 'fas fa-newspaper',      label: 'Blogs',           page: 'blogs' },
     { icon: 'fas fa-graduation-cap', label: 'Courses',         page: 'courses' },
     { icon: 'fas fa-book-open',      label: 'Magazines',       page: 'magazines' },
+    { icon: 'fas fa-book',           label: 'Books for Sale',  page: 'books' },
     { icon: 'fas fa-drafting-compass', label: 'Drafts',        page: 'drafts' },
     { icon: 'fas fa-star',           label: 'Testimonials',    page: 'testimonials' },
     { icon: 'fas fa-question-circle',label: 'FAQs',            page: 'faqs' },

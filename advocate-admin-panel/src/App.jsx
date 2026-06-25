@@ -25,8 +25,9 @@ import News from './pages/News';
 import Courses from './pages/Courses';
 import Magazines from './pages/Magazines';
 import Drafts from './pages/Drafts';
+import Books from './pages/Books';
 
-const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, news: News, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile, youtube: YouTubeVideos, facebook: FacebookContent, orders: Orders, jradvocates: JrAdvocates, bookorders: BookOrders, payments: Payments, users: Users, notifications: Notifications, courses: Courses, magazines: Magazines, drafts: Drafts };
+const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, news: News, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile, youtube: YouTubeVideos, facebook: FacebookContent, orders: Orders, jradvocates: JrAdvocates, bookorders: BookOrders, payments: Payments, users: Users, notifications: Notifications, courses: Courses, magazines: Magazines, drafts: Drafts, books: Books };
 
 function AdminApp() {
   const { admin, loading } = useAuth();
