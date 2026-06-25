@@ -226,7 +226,9 @@
 .profile-table { width: 100%; background: #fff; border-radius: 12px; border-collapse: collapse; font-size: 0.87rem; }
 .profile-table thead { background: linear-gradient(135deg, var(--darker), #16213e); color: rgba(255,255,255,0.85); }
 .profile-table th { padding: 12px 16px; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.5px; white-space: nowrap; }
-.profile-table td { padding: 12px 16px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+.profile-table td { padding: 12px 16px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; color: #2d2d2d; }
+.profile-table td strong { color: #1a1a2e; font-weight: 600; }
+.profile-table td small { color: #666; }
 .profile-table tbody tr:last-child td { border-bottom: none; }
 .profile-table tbody tr:hover { background: #fafafa; }
 .notif-item { display: flex; align-items: flex-start; gap: 14px; padding: 16px; background: #fff; border-radius: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent; box-shadow: 0 1px 6px rgba(0,0,0,0.05); }
