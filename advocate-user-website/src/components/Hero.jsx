@@ -17,10 +17,53 @@ function StatCounter({ num, label }) {
   );
 }
 
+function HeroSkeleton() {
+  return (
+    <>
+      <style>{`
+        @keyframes heroPulse {
+          0%,100% { opacity:.65; } 50% { opacity:.3; }
+        }
+        .hsk { background:rgba(255,255,255,.13); border-radius:8px; animation:heroPulse 1.6s ease-in-out infinite; }
+      `}</style>
+      <section id="home" className="hero-section d-flex">
+        <div className="hero-overlay"></div>
+        <div className="container position-relative" style={{ zIndex:2 }}>
+          <div className="row align-items-center">
+            <div className="col-lg-7">
+              <div className="hsk" style={{ height:56, width:'62%', marginBottom:18 }}></div>
+              <div className="hsk" style={{ height:56, width:'44%', marginBottom:28 }}></div>
+              <div className="hsk" style={{ height:20, width:'92%', marginBottom:10 }}></div>
+              <div className="hsk" style={{ height:20, width:'72%', marginBottom:44 }}></div>
+              <div className="d-flex gap-3">
+                <div className="hsk" style={{ height:52, width:205, borderRadius:50 }}></div>
+                <div className="hsk" style={{ height:52, width:175, borderRadius:50 }}></div>
+              </div>
+              <div className="hero-stats row g-3 mt-5">
+                {[140,130,120,140].map((w,i) => (
+                  <div className="col-auto" key={i}>
+                    <div className="hsk" style={{ height:44, width:w, borderRadius:8 }}></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="col-lg-5 text-center mt-5 mt-lg-0">
+              <div className="hsk" style={{ width:270, height:330, borderRadius:16, margin:'0 auto' }}></div>
+              <div className="hsk" style={{ height:72, borderRadius:12, marginTop:20 }}></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
 export default function Hero() {
-  const { settings: s } = useSite();
+  const { settings: s, loading } = useSite();
   const { user, openModal } = useUserAuth();
   const navigate = useNavigate();
+
+  if (loading) return <HeroSkeleton />;
 
   const handleBook = (e) => {
     e.preventDefault();

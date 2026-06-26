@@ -8,10 +8,13 @@ export function SiteProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // After 8 s, stop blocking renders even if Render is still cold-starting
+    const fallbackTimer = setTimeout(() => setLoading(false), 8000);
     getSiteSettings()
       .then(r => { if (r.data.success) setSettings(r.data.data); })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => { clearTimeout(fallbackTimer); setLoading(false); });
+    return () => clearTimeout(fallbackTimer);
   }, []);
 
   return <SiteContext.Provider value={{ settings, loading }}>{children}</SiteContext.Provider>;
