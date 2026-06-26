@@ -2,6 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getBooks } from '../api';
 import { mediaUrl } from '../utils/helpers';
+import { useUserAuth } from '../context/UserAuthContext';
+import { savePendingAction } from '../utils/pendingAction';
 
 const SHOW_DELAY   = 1500;   // ms after page load before first show
 const RESHOW_DELAY = 30000;  // ms after close before reshowing
@@ -21,8 +23,10 @@ export default function BookPromoPopup() {
   const [book, setBook]       = useState(null);
   const [visible, setVisible] = useState(false);
   const navigate = useNavigate();
+  const { user } = useUserAuth();
   const showTimer   = useRef(null);
   const reshowTimer = useRef(null);
+  const buying      = useRef(false);
 
   useEffect(() => {
     getBooks()
@@ -51,10 +55,17 @@ export default function BookPromoPopup() {
   };
 
   const handleBuyNow = () => {
+    if (buying.current) return;
+    buying.current = true;
     track('clicks');
     setVisible(false);
     clearTimeout(reshowTimer.current);
-    navigate('/books');
+    if (user) {
+      navigate('/books', { state: { bookId: book._id } });
+    } else {
+      savePendingAction('order', { bookId: book._id });
+      navigate('/login', { state: { from: '/books', message: 'Please log in to purchase this book.' } });
+    }
   };
 
   if (!visible || !book) return null;

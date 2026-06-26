@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import { getBooks } from '../api';
 import { mediaUrl } from '../utils/helpers';
 import SliderSection from './SliderSection';
-import OrderModal from './OrderModal';
-import AuthGateModal from './AuthGateModal';
 import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
 import { useNavigate } from 'react-router-dom';
@@ -19,10 +17,7 @@ const FALLBACK = [
 export default function Books() {
   const { user } = useUserAuth();
   const navigate = useNavigate();
-  // null = still fetching; never show FALLBACK until the API call resolves
   const [books, setBooks] = useState(null);
-  const [selectedBook, setSelectedBook] = useState(null);
-  const [gateBook, setGateBook] = useState(null);
 
   useEffect(() => {
     getBooks()
@@ -38,16 +33,16 @@ export default function Books() {
 
   const handleOrderClick = (book) => {
     if (user) {
-      setSelectedBook(book);
+      navigate('/books', { state: { bookId: book._id } });
     } else {
-      savePendingAction('order', book);
-      navigate('/login');
+      savePendingAction('order', { bookId: book._id });
+      navigate('/login', { state: { from: '/books', message: 'Please log in to purchase this book.' } });
     }
   };
 
   const items = books && books.length
     ? books.map(b => ({
-        img: b.image ? mediaUrl(b.image) : `${BASE}advc.jpeg`,
+        img: b.image ? mediaUrl(b.image) : `${BASE}placeholder-lawyer.svg`,
         title: b.name,
         author: b.author ? `by ${b.author}` : '',
         description: b.description || '',
@@ -55,39 +50,19 @@ export default function Books() {
         buttonText: b.stockStatus === 'out_of_stock' ? 'Out of Stock' : 'Order Now',
         isButton: true,
         disabled: b.stockStatus === 'out_of_stock',
-        onClick: b.stockStatus === 'out_of_stock' ? undefined : () => handleOrderClick({ title: b.name, price: b.price ? `₹${b.price}` : '' }),
+        onClick: b.stockStatus === 'out_of_stock' ? undefined : () => handleOrderClick({ _id: b._id, title: b.name, price: b.price ? `₹${b.price}` : '' }),
       }))
     : FALLBACK.map(f => ({ ...f, onClick: () => handleOrderClick({ title: f.title, price: f.price }) }));
 
   return (
-    <>
-      <SliderSection
-        id="books"
-        label="Legal Library"
-        title={<>Books for <span className="text-gold">Sale</span></>}
-        description="Purchase our legal books and guides"
-        items={items}
-        loading={books === null}
-        bg="bg-white"
-      />
-
-      {/* Order form — only for logged-in users, opened directly here */}
-      {selectedBook && (
-        <OrderModal
-          book={selectedBook}
-          onClose={() => setSelectedBook(null)}
-          onSuccess={() => setSelectedBook(null)}
-        />
-      )}
-
-      {/* Fallback auth gate (legacy — now handled by navigate to login) */}
-      {gateBook && (
-        <AuthGateModal
-          action={`Order "${gateBook.title}"`}
-          redirectTo={`${BASE}#books`}
-          onClose={() => setGateBook(null)}
-        />
-      )}
-    </>
+    <SliderSection
+      id="books"
+      label="Legal Library"
+      title={<>Books for <span className="text-gold">Sale</span></>}
+      description="Purchase our legal books and guides"
+      items={items}
+      loading={books === null}
+      bg="bg-white"
+    />
   );
 }

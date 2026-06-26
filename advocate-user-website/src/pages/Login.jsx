@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
 import { userLogin } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
@@ -7,6 +7,9 @@ import { useUserAuth } from '../context/UserAuthContext';
 export default function Login() {
   const { login } = useUserAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from || '/';
+  const infoMessage = location.state?.message || '';
   const [form, setForm] = useState({ identifier: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,7 +26,7 @@ export default function Login() {
       const r = await userLogin(form);
       if (r.data.success) {
         login(r.data.token, r.data.user);
-        navigate('/');
+        navigate(from, { replace: true });
       } else {
         setError(r.data.message || 'Login failed');
       }
@@ -43,6 +46,12 @@ export default function Login() {
           </div>
           <h2 className="auth-title">Welcome Back</h2>
           <p className="auth-subtitle">Sign in to your account to manage appointments & orders</p>
+
+          {infoMessage && (
+            <div className="alert alert-info py-2 mb-3" role="alert">
+              <i className="fas fa-info-circle me-2"></i>{infoMessage}
+            </div>
+          )}
 
           {error && (
             <div className="alert alert-danger py-2 mb-3" role="alert">

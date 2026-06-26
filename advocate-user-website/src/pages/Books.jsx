@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import SEOHead from '../components/SEOHead';
 import OrderModal from '../components/OrderModal';
 import { getBooks } from '../api';
 import { mediaUrl } from '../utils/helpers';
 import { useUserAuth } from '../context/UserAuthContext';
-import { savePendingAction } from '../utils/pendingAction';
-import { useNavigate } from 'react-router-dom';
+import { savePendingAction, getPendingAction, getPendingActionData, clearPendingAction } from '../utils/pendingAction';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const PER_PAGE = 9;
 
@@ -17,6 +17,9 @@ function formatDate(d) {
 export default function BooksPage() {
   const { user } = useUserAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const autoOpenDone = useRef(false);
+  const initialBookId = useRef(location.state?.bookId || null);
 
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +49,33 @@ export default function BooksPage() {
 
   useEffect(() => { fetchBooks(); }, [fetchBooks]);
 
+  // Auto-open book modal when arriving from popup or after login redirect
+  useEffect(() => {
+    if (loading || autoOpenDone.current) return;
+
+    let bookId = initialBookId.current;
+
+    if (!bookId && user && getPendingAction() === 'order') {
+      const data = getPendingActionData();
+      bookId = data?.bookId;
+      clearPendingAction();
+    }
+
+    autoOpenDone.current = true;
+
+    if (bookId && books.length) {
+      const book = books.find(b => b._id === bookId);
+      if (book && book.stockStatus !== 'out_of_stock') {
+        setSelectedBook({ title: book.name, price: book.price ? `₹${book.price}` : '' });
+      }
+    }
+
+    // Clear bookId from location state so a refresh doesn't re-open
+    if (initialBookId.current) {
+      navigate('/books', { replace: true });
+    }
+  }, [loading, books, user, navigate]);
+
   const filtered = books.filter(b => {
     const matchStock =
       filterStock === 'all' ||
@@ -67,8 +97,8 @@ export default function BooksPage() {
     if (user) {
       setSelectedBook({ title: b.name, price: b.price ? `₹${b.price}` : '' });
     } else {
-      savePendingAction('order', { title: b.name, price: b.price ? `₹${b.price}` : '' });
-      navigate('/login');
+      savePendingAction('order', { bookId: b._id });
+      navigate('/login', { state: { from: '/books', message: 'Please log in to purchase this book.' } });
     }
   };
 
