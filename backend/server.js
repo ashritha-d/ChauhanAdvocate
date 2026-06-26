@@ -53,6 +53,14 @@ app.use('/api/', (req, res, next) => {
   next();
 });
 
+// Razorpay webhook — raw body required for HMAC signature verification.
+// Must be registered BEFORE express.json() so the body isn't pre-parsed.
+app.post(
+  '/api/payments/razorpay/webhook',
+  express.raw({ type: 'application/json' }),
+  require('./controllers/razorpayController').handleRazorpayWebhook
+);
+
 // Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

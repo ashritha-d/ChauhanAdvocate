@@ -239,6 +239,144 @@ exports.verifyRazorpayPayment = async (req, res) => {
   }
 };
 
+// PUBLIC: Razorpay webhook — handles payment.captured & payment.failed events
+// Must receive raw body (registered in server.js before express.json())
+exports.handleRazorpayWebhook = async (req, res) => {
+  try {
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      console.error('[Webhook] RAZORPAY_WEBHOOK_SECRET not configured');
+      return res.status(500).end();
+    }
+
+    const signature = req.headers['x-razorpay-signature'];
+    if (!signature) {
+      return res.status(400).json({ success: false, message: 'Missing signature header' });
+    }
+
+    // req.body is a Buffer from express.raw()
+    const rawBody = req.body.toString();
+    const expectedSig = crypto
+      .createHmac('sha256', webhookSecret)
+      .update(rawBody)
+      .digest('hex');
+
+    if (expectedSig !== signature) {
+      console.warn('[Webhook] Signature mismatch — possible spoofed request');
+      return res.status(400).json({ success: false, message: 'Invalid signature' });
+    }
+
+    const event = JSON.parse(rawBody);
+    const eventType = event.event;
+    const paymentEntity = event.payload?.payment?.entity;
+    const razorpay_order_id = paymentEntity?.order_id;
+    const razorpay_payment_id = paymentEntity?.id;
+
+    console.log('[Webhook] Event received:', eventType, '| order:', razorpay_order_id);
+
+    if (eventType === 'payment.captured') {
+      if (!razorpay_order_id) {
+        return res.status(200).json({ received: true });
+      }
+
+      const existingPayment = await Payment.findOne({ razorpay_order_id });
+      if (!existingPayment) {
+        // No payment record — Razorpay order may not be from this app
+        return res.status(200).json({ received: true });
+      }
+
+      // Idempotency: already confirmed by browser-side verify, skip
+      if (existingPayment.status === 'approved') {
+        return res.status(200).json({ received: true, alreadyProcessed: true });
+      }
+
+      const transactionId = generateTransactionId();
+      const receiptId = generateReceiptId();
+      const appointmentId = generateAppointmentId();
+
+      const payment = await Payment.findByIdAndUpdate(
+        existingPayment._id,
+        {
+          status: 'approved',
+          razorpay_payment_id,
+          transactionId,
+          receiptId,
+          approvedAt: new Date(),
+          isRead: false,
+        },
+        { new: true }
+      );
+
+      const d = payment.details || {};
+      const appt = await Appointment.create({
+        name:            d.name            || payment.clientName,
+        email:           d.email           || payment.clientEmail || '',
+        phone:           d.phone           || payment.clientPhone,
+        service:         d.service         || '',
+        date:            d.date ? new Date(d.date) : new Date(),
+        time:            d.time            || '',
+        message:         d.message         || '',
+        appointmentMode: d.appointmentMode || 'offline',
+        paymentMethod:   'razorpay',
+        paymentStatus:   'paid',
+        consultationFee: payment.amount,
+        status:          'confirmed',
+        appointmentId,
+        paymentId:       payment._id,
+      });
+
+      await Payment.findByIdAndUpdate(payment._id, { referenceId: appt._id });
+
+      whatsapp.appointmentPaymentConfirmed({
+        name: payment.clientName,
+        phone: payment.clientPhone,
+        appointmentId,
+        date: appt.date,
+        time: appt.time || '',
+        appointmentMode: appt.appointmentMode || 'offline',
+        amount: payment.amount,
+        transactionId,
+        receiptId,
+      }).catch(e => console.error('[Webhook WhatsApp]', e.message));
+
+      if (payment.clientEmail) {
+        const adminEmail = (await getSettingValue('admin_email')) || process.env.ADMIN_EMAIL;
+        emailService.sendPaymentReceipt({
+          to: payment.clientEmail,
+          bcc: adminEmail,
+          receiptId,
+          transactionId,
+          appointmentId,
+          name: payment.clientName,
+          phone: payment.clientPhone,
+          service: d.service || '',
+          date: appt.date,
+          time: appt.time || '',
+          appointmentMode: appt.appointmentMode || 'offline',
+          amount: payment.amount,
+          paymentMethod: 'Razorpay',
+        }).catch(e => console.error('[Webhook Email]', e.message));
+      }
+
+      console.log('[Webhook] payment.captured — appointment created:', appointmentId);
+    } else if (eventType === 'payment.failed') {
+      if (razorpay_order_id) {
+        await Payment.findOneAndUpdate(
+          { razorpay_order_id, status: 'pending_verification' },
+          { status: 'failed' }
+        );
+        console.log('[Webhook] payment.failed — order marked failed:', razorpay_order_id);
+      }
+    }
+
+    res.status(200).json({ received: true });
+  } catch (err) {
+    console.error('[Webhook] Error:', err.message);
+    // Return 200 so Razorpay doesn't keep retrying on our internal errors
+    res.status(200).json({ received: true });
+  }
+};
+
 // PUBLIC: Submit manual UPI / QR payment for appointment
 exports.createManualPayment = async (req, res) => {
   try {
