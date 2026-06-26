@@ -156,15 +156,6 @@ async function loadSiteSettings() {
     }
 
     // Images
-    if (s.advocate_photo) {
-      ['hero-advocate-photo'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el && s.advocate_photo) {
-          el.onload = () => { el.style.visibility = 'visible'; };
-          el.src = API_BASE.replace('/api', '') + s.advocate_photo;
-        }
-      });
-    }
 
     // Contact info with links
     updateContactLinks(s);
