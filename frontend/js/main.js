@@ -159,7 +159,10 @@ async function loadSiteSettings() {
     if (s.advocate_photo) {
       ['hero-advocate-photo'].forEach(id => {
         const el = document.getElementById(id);
-        if (el && s.advocate_photo) el.src = API_BASE.replace('/api', '') + s.advocate_photo;
+        if (el && s.advocate_photo) {
+          el.onload = () => { el.style.visibility = 'visible'; };
+          el.src = API_BASE.replace('/api', '') + s.advocate_photo;
+        }
       });
     }
 
