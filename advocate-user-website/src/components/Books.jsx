@@ -11,9 +11,9 @@ import { useNavigate } from 'react-router-dom';
 const BASE = import.meta.env.BASE_URL;
 
 const FALLBACK = [
-  { img: `${BASE}advc.jpeg`, title: 'Civil Law Handbook', author: 'by Advocate Chauhan', description: 'Comprehensive guide covering civil litigation, contract disputes, property matters.', price: '₹299', buttonText: 'Order Now', isButton: true },
-  { img: `${BASE}advc.jpeg`, title: 'Criminal Law Guide', author: 'by Advocate Chauhan', description: 'Essential resource for understanding criminal law principles, from investigation through trial.', price: '₹349', buttonText: 'Order Now', isButton: true },
-  { img: `${BASE}advc.jpeg`, title: 'Family Law Manual', author: 'by Advocate Chauhan', description: 'Compassionate guide to family law matters including divorce and child custody.', price: '₹249', buttonText: 'Order Now', isButton: true },
+  { img: `${BASE}placeholder-lawyer.svg`, title: 'Civil Law Handbook', author: 'by Advocate Chauhan', description: 'Comprehensive guide covering civil litigation, contract disputes, property matters.', price: '₹299', buttonText: 'Order Now', isButton: true },
+  { img: `${BASE}placeholder-lawyer.svg`, title: 'Criminal Law Guide', author: 'by Advocate Chauhan', description: 'Essential resource for understanding criminal law principles, from investigation through trial.', price: '₹349', buttonText: 'Order Now', isButton: true },
+  { img: `${BASE}placeholder-lawyer.svg`, title: 'Family Law Manual', author: 'by Advocate Chauhan', description: 'Compassionate guide to family law matters including divorce and child custody.', price: '₹249', buttonText: 'Order Now', isButton: true },
 ];
 
 export default function Books() {
