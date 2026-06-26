@@ -3,6 +3,10 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE || 'http://localhost:5000/api',
   timeout: 15000,
+  headers: {
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache',
+  },
 });
 
 function safeStorage(action, key, value) {
@@ -19,6 +23,10 @@ function safeStorage(action, key, value) {
 api.interceptors.request.use(cfg => {
   const token = safeStorage('get', 'adminToken');
   if (token) cfg.headers.Authorization = `Bearer ${token}`;
+  // Bust browser GET cache with a timestamp param
+  if (cfg.method === 'get') {
+    cfg.params = { ...cfg.params, _t: Date.now() };
+  }
   return cfg;
 });
 
