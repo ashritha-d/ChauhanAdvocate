@@ -48,7 +48,8 @@ export default function Hero() {
 
           <div className="col-lg-7" data-aos="fade-right" data-aos-duration="1000">
             <h1 className="hero-title display-3 fw-bold mb-4">
-              {s.hero_title || 'Your Trusted'} <span className="text-gold">Legal Advocate</span>
+              <span className="d-block">{s.hero_title || 'Your Trusted'}</span>
+              <span className="text-gold" style={{whiteSpace:'nowrap'}}>Legal Advocate</span>
             </h1>
             <p className="hero-subtitle lead mb-5">
               {s.hero_subtitle || 'Expert legal representation across criminal, civil, family and corporate law. Your rights, our commitment.'}

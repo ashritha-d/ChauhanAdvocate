@@ -152,7 +152,7 @@ async function loadSiteSettings() {
     // Hero title
     const heroTitle = document.getElementById('hero-title');
     if (heroTitle && s.hero_title) {
-      heroTitle.innerHTML = s.hero_title.replace(/Your Trusted/i, 'Your Trusted') + ' <span class="text-gold">Legal Advocate</span>';
+      heroTitle.innerHTML = '<span class="d-block">' + s.hero_title + '</span><span class="text-gold" style="white-space:nowrap">Legal Advocate</span>';
     }
 
     // Images
