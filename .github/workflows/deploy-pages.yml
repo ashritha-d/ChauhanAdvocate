@@ -42,12 +42,20 @@ jobs:
           npm run build
         working-directory: advocate-admin-panel
 
+      - name: Build super admin panel
+        run: |
+          npm ci
+          npm run build
+        working-directory: super-admin-panel
+
       - name: Merge builds
         run: |
           mkdir -p deploy
           cp -r advocate-user-website/dist/. deploy/
           mkdir -p deploy/admin
           cp -r advocate-admin-panel/dist/. deploy/admin/
+          mkdir -p deploy/superadmin
+          cp -r super-admin-panel/dist/. deploy/superadmin/
           cp advocate-user-website/public/404.html deploy/404.html || echo "404.html already in dist"
 
       - name: Setup Pages
