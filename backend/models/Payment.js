@@ -13,15 +13,11 @@ const paymentSchema = new mongoose.Schema({
   totalAmount: { type: String, default: '' },
   paymentMethod: {
     type: String,
-    enum: ['razorpay', 'phonepe', 'googlepay', 'upi_id', 'qr_code', 'cash', 'bank_transfer'],
+    enum: ['phonepe', 'googlepay', 'upi_id', 'qr_code', 'cash', 'bank_transfer'],
     default: 'bank_transfer'
   },
   utrNumber: { type: String, trim: true, default: '' },
   screenshot: { type: String, default: '' },
-  // Razorpay-specific fields
-  razorpay_order_id: { type: String, default: '' },
-  razorpay_payment_id: { type: String, default: '' },
-  razorpay_signature: { type: String, default: '' },
   status: {
     type: String,
     enum: ['pending_verification', 'approved', 'rejected', 'completed', 'failed'],

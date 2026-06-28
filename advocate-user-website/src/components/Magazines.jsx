@@ -4,7 +4,7 @@ import { useUserAuth } from '../context/UserAuthContext';
 import { useSite } from '../context/SiteContext';
 import {
   getMagazines, checkMagazinePurchase,
-  createMagazineRazorpayOrder, verifyMagazineRazorpayPayment,
+  submitMagazineManualPayment,
   downloadMagazineFull, downloadMagazinePreview,
 } from '../api';
 import { mediaUrl } from '../utils/helpers';
@@ -12,16 +12,6 @@ import AuthGateModal from './AuthGateModal';
 
 const PLACEHOLDER = `${import.meta.env.BASE_URL}placeholder-lawyer.svg`;
 
-function loadRazorpayScript() {
-  return new Promise(resolve => {
-    if (window.Razorpay) { resolve(true); return; }
-    const s = document.createElement('script');
-    s.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    s.onload  = () => resolve(true);
-    s.onerror = () => resolve(false);
-    document.head.appendChild(s);
-  });
-}
 
 function MagazineCard({ magazine, onPurchase, onPreview, onDownload, purchased }) {
   const isPaid = magazine.type === 'paid';
@@ -84,54 +74,25 @@ function MagazineCard({ magazine, onPurchase, onPreview, onDownload, purchased }
 
 function PurchaseModal({ magazine, onClose, onSuccess, authHeader, user }) {
   const { settings: s } = useSite();
-  const [step, setStep]         = useState('confirm'); // confirm | processing | success | error
-  const [errMsg, setErrMsg]     = useState('');
+  const [step, setStep]       = useState('confirm'); // confirm | success | error
+  const [utr, setUtr]         = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [errMsg, setErrMsg]   = useState('');
 
-  const handleRazorpay = async () => {
-    setStep('processing');
+  const handleManualSubmit = async () => {
+    if (!utr.trim()) { setErrMsg('Please enter your UTR / Transaction Reference Number.'); return; }
+    setSubmitting(true); setErrMsg('');
     try {
-      const loaded = await loadRazorpayScript();
-      if (!loaded) { setErrMsg('Razorpay SDK failed to load. Check your internet connection.'); setStep('error'); return; }
-
-      const r = await createMagazineRazorpayOrder(magazine._id, authHeader());
-      if (!r.data.success) { setErrMsg(r.data.message || 'Failed to create order.'); setStep('error'); return; }
-
-      const { order_id, key_id, amount, payment_db_id, prefill } = r.data;
-
-      const options = {
-        key:      key_id,
-        amount,
-        currency: 'INR',
-        name:     'Chauhan Advocate',
-        description: `Purchase: ${magazine.title}`,
-        order_id,
-        prefill,
-        theme: { color: '#c9a84c' },
-        handler: async (response) => {
-          try {
-            const vr = await verifyMagazineRazorpayPayment(
-              magazine._id,
-              {
-                razorpay_order_id:   response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature:  response.razorpay_signature,
-                payment_db_id,
-              },
-              authHeader()
-            );
-            if (vr.data.success) { setStep('success'); onSuccess(magazine._id); }
-            else { setErrMsg(vr.data.message || 'Verification failed.'); setStep('error'); }
-          } catch (e) { setErrMsg(e.response?.data?.message || 'Verification error.'); setStep('error'); }
-        },
-        modal: {
-          ondismiss: () => { if (step === 'processing') setStep('confirm'); },
-        },
-      };
-      new window.Razorpay(options).open();
+      const fd = new FormData();
+      fd.append('utrNumber', utr.trim());
+      fd.append('paymentMethod', 'upi_id');
+      const r = await submitMagazineManualPayment(magazine._id, fd, authHeader());
+      if (r.data.success) { setStep('success'); }
+      else { setErrMsg(r.data.message || 'Submission failed. Please try again.'); }
     } catch (e) {
-      setErrMsg(e.response?.data?.message || 'Payment failed. Please try again.');
-      setStep('error');
+      setErrMsg(e.response?.data?.message || 'Network error. Please try again.');
     }
+    setSubmitting(false);
   };
 
   return (
@@ -142,30 +103,20 @@ function PurchaseModal({ magazine, onClose, onSuccess, authHeader, user }) {
         {step === 'success' ? (
           <div className="form-success-screen py-3">
             <div className="form-success-icon"><i className="fas fa-check-circle"></i></div>
-            <h5 className="form-success-title">Purchase Successful!</h5>
+            <h5 className="form-success-title">Payment Submitted!</h5>
             <p className="form-success-msg">
-              You can now download <strong>{magazine.title}</strong>. Find it in My Profile → My Magazines.
+              Your payment for <strong>{magazine.title}</strong> is under review. We will unlock it within a few hours after verification.
             </p>
             <button className="btn btn-gold mt-3 px-5" onClick={onClose}>
-              <i className="fas fa-download me-2"></i>Close & Download
+              <i className="fas fa-times me-2"></i>Close
             </button>
-          </div>
-        ) : step === 'error' ? (
-          <div className="text-center py-3">
-            <div style={{ fontSize: '3rem', color: '#dc3545' }}><i className="fas fa-times-circle"></i></div>
-            <h5 className="mt-3">Payment Failed</h5>
-            <p className="text-muted">{errMsg}</p>
-            <div className="d-flex gap-2 justify-content-center mt-3">
-              <button className="btn btn-gold px-4" onClick={() => { setStep('confirm'); setErrMsg(''); }}>Try Again</button>
-              <button className="btn btn-outline-secondary px-4" onClick={onClose}>Cancel</button>
-            </div>
           </div>
         ) : (
           <>
             <h5 className="mb-1" style={{ fontFamily: "'Playfair Display',serif" }}>
               <i className="fas fa-book-open text-gold me-2"></i>Purchase Magazine
             </h5>
-            <p className="text-muted small mb-3">Secure payment via Razorpay</p>
+            <p className="text-muted small mb-3">Pay via UPI and submit your transaction ID below</p>
 
             <div className="mag-purchase-info">
               {magazine.coverImage && (
@@ -178,19 +129,32 @@ function PurchaseModal({ magazine, onClose, onSuccess, authHeader, user }) {
               </div>
             </div>
 
-            {step === 'processing' ? (
-              <div className="text-center py-3">
-                <div className="spinner-border text-warning mb-2"></div>
-                <div className="text-muted small">Opening payment window…</div>
-              </div>
-            ) : (
-              <div className="d-flex gap-2 mt-4">
-                <button className="btn btn-gold flex-grow-1" onClick={handleRazorpay}>
-                  <i className="fas fa-credit-card me-2"></i>Pay ₹{magazine.price} with Razorpay
-                </button>
-                <button className="btn btn-outline-secondary" onClick={onClose}>Cancel</button>
+            {s?.payment_upi_id && (
+              <div style={{ background: '#f9f5e8', border: '1.5px dashed #C9A84C', borderRadius: 10, padding: '10px 14px', margin: '12px 0' }}>
+                <div className="small text-muted mb-1"><i className="fas fa-mobile-alt me-1" style={{ color: '#C9A84C' }}></i>Pay to UPI ID</div>
+                <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '1rem' }}>{s.payment_upi_id}</div>
               </div>
             )}
+
+            <div className="mb-3">
+              <label className="form-label small fw-semibold">UTR / Transaction Reference Number <span className="text-danger">*</span></label>
+              <input
+                className="form-control"
+                value={utr}
+                onChange={e => { setUtr(e.target.value); setErrMsg(''); }}
+                placeholder="Enter UTR number after payment"
+                style={{ borderRadius: 8 }}
+              />
+            </div>
+
+            {errMsg && <div className="alert alert-danger py-2 small">{errMsg}</div>}
+
+            <div className="d-flex gap-2 mt-2">
+              <button className="btn btn-gold flex-grow-1" onClick={handleManualSubmit} disabled={submitting}>
+                {submitting ? <><i className="fas fa-spinner fa-spin me-2"></i>Submitting…</> : <><i className="fas fa-paper-plane me-2"></i>Submit Payment</>}
+              </button>
+              <button className="btn btn-outline-secondary" onClick={onClose}>Cancel</button>
+            </div>
           </>
         )}
       </div>

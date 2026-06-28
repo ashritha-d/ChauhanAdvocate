@@ -7,20 +7,14 @@ const {
   getRevenue, exportPayments,
 } = require('../controllers/paymentController');
 const {
-  createRazorpayOrder,
-  verifyRazorpayPayment,
   getPaymentSettings,
   createManualPayment,
 } = require('../controllers/razorpayController');
 
-// Public: payment settings (key_id, UPI ID, QR)
+// Public: payment settings (UPI ID, QR, bank details)
 router.get('/payment-settings', getPaymentSettings);
 
-// Public: Razorpay checkout flow
-router.post('/razorpay/create-order', createRazorpayOrder);
-router.post('/razorpay/verify', verifyRazorpayPayment);
-
-// Public: manual UPI/QR payment with optional screenshot
+// Public: manual UPI/QR/bank payment with optional screenshot
 router.post('/manual', upload.single('screenshot'), createManualPayment);
 
 // Public: legacy QR submit (kept for book orders)
