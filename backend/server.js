@@ -99,6 +99,7 @@ app.use('/api/books', require('./routes/books'));
 app.use('/api/join-with-us', require('./routes/joinWithUs'));
 app.use('/api/contact-details', require('./routes/contactDetails'));
 app.use('/api/payments', require('./routes/payments'));
+app.use('/api/admin-management', require('./routes/adminManagement'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/courses', require('./routes/courses'));
 app.use('/api/news',    require('./routes/news'));

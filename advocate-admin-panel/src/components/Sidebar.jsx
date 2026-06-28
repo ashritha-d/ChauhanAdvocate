@@ -36,6 +36,10 @@ const NAV = [
   { label: 'Account', items: [
     { icon: 'fas fa-user-circle', label: 'My Profile', page: 'profile' },
   ]},
+  { label: 'Super Admin', superadminOnly: true, items: [
+    { icon: 'fas fa-user-shield', label: 'Admin Management', page: 'adminmanagement' },
+    { icon: 'fas fa-clipboard-list', label: 'Audit Logs', page: 'auditlogs' },
+  ]},
 ];
 
 export default function Sidebar({ current, onChange, mobileOpen, onClose }) {
@@ -55,9 +59,9 @@ export default function Sidebar({ current, onChange, mobileOpen, onClose }) {
           <span>Advocate Chauhan</span>
         </div>
         <nav className="sidebar-nav">
-          {NAV.map(section => (
+          {NAV.filter(section => !section.superadminOnly || admin?.role === 'superadmin').map(section => (
             <div key={section.label}>
-              <div className="sidebar-section">{section.label}</div>
+              <div className="sidebar-section" style={section.superadminOnly ? { color: '#C9A84C' } : {}}>{section.label}</div>
               {section.items.map(item => (
                 <button
                   key={item.page}
