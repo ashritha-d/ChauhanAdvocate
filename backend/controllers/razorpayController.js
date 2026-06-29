@@ -1,6 +1,7 @@
 const Payment = require('../models/Payment');
 const Appointment = require('../models/Appointment');
 const SiteSettings = require('../models/SiteSettings');
+const UserNotification = require('../models/UserNotification');
 const whatsapp = require('../services/whatsapp');
 
 async function getSettingValue(key) {
@@ -41,7 +42,7 @@ exports.createManualPayment = async (req, res) => {
   try {
     const {
       name, email, phone, service, date, time, message, appointmentMode,
-      amount, paymentMethod, utrNumber,
+      amount, paymentMethod, utrNumber, userId,
     } = req.body;
 
     if (!name || !phone || !service || !date || !time) {
@@ -57,6 +58,7 @@ exports.createManualPayment = async (req, res) => {
       paymentStatus: 'pending_verification',
       consultationFee: String(amount || 0),
       status: 'pending',
+      ...(userId ? { userId } : {}),
     });
 
     const screenshotPath = req.file?.path || (req.file ? `/uploads/payments/${req.file.filename}` : '');
@@ -76,6 +78,18 @@ exports.createManualPayment = async (req, res) => {
     });
 
     await Appointment.findByIdAndUpdate(appt._id, { paymentId: payment._id });
+
+    // In-app notification for logged-in users
+    if (userId) {
+      await UserNotification.create({
+        userId,
+        title: 'Appointment Booked',
+        message: `Your appointment for "${service}" on ${new Date(date).toLocaleDateString('en-IN')} at ${time} has been received. Payment is pending verification.\nAppointment ID: ${appt.appointmentId}`,
+        type: 'appointment',
+        referenceId: appt._id,
+        referenceType: 'Appointment',
+      }).catch(() => {});
+    }
 
     const adminNumber = whatsapp.getAdminNumber?.() ||
       (process.env.ADMIN_WHATSAPP ? process.env.ADMIN_WHATSAPP.replace(/\D/g, '') : '');
