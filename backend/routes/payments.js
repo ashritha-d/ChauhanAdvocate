@@ -9,6 +9,7 @@ const {
 const {
   getPaymentSettings,
   createManualPayment,
+  createBookManualPayment,
 } = require('../controllers/razorpayController');
 
 // Public: payment settings (UPI ID, QR, bank details)
@@ -16,6 +17,9 @@ router.get('/payment-settings', getPaymentSettings);
 
 // Public: manual UPI/QR/bank payment with optional screenshot
 router.post('/manual', upload.single('screenshot'), createManualPayment);
+
+// Public: book order UPI/QR payment
+router.post('/book-manual', upload.single('screenshot'), createBookManualPayment);
 
 // Public: legacy QR submit (kept for book orders)
 router.post('/', upload.single('screenshot'), createPayment);

@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const bookOrderSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   phone: { type: String, required: true, trim: true },
-  email: { type: String, required: true, lowercase: true, trim: true },
+  email: { type: String, required: false, default: '', lowercase: true, trim: true },
   bookTitle: { type: String, required: true, trim: true },
   bookPrice: { type: String, trim: true },
   quantity: { type: Number, required: true, min: 1, default: 1 },

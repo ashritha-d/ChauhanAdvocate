@@ -1,5 +1,6 @@
 const Payment = require('../models/Payment');
 const Appointment = require('../models/Appointment');
+const BookOrder = require('../models/BookOrder');
 const SiteSettings = require('../models/SiteSettings');
 const UserNotification = require('../models/UserNotification');
 const whatsapp = require('../services/whatsapp');
@@ -104,6 +105,90 @@ exports.createManualPayment = async (req, res) => {
       success: true,
       message: 'Appointment submitted! Payment is pending verification. We will confirm within a few hours.',
       data: { paymentId: payment._id, status: payment.status },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// PUBLIC: Submit manual UPI/QR payment for a book order
+exports.createBookManualPayment = async (req, res) => {
+  try {
+    const {
+      name, email, phone, whatsappNumber, bookTitle, bookPrice,
+      address, quantity, notes, paymentMethod, utrNumber, userId, orderId,
+    } = req.body;
+
+    if (!name || !phone || !bookTitle || !address) {
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    const order = await BookOrder.create({
+      name,
+      email: email || '',
+      phone,
+      bookTitle,
+      bookPrice: String(bookPrice || ''),
+      address,
+      quantity: parseInt(quantity) || 1,
+      notes: notes || '',
+      orderId: orderId || undefined,
+      userId: userId || undefined,
+      paymentMethod: 'qr_code',
+      paymentStatus: parseFloat(bookPrice) > 0 ? 'pending_verification' : 'unpaid',
+      status: 'pending',
+    });
+
+    const screenshotPath = req.file?.path || '';
+
+    let payment = null;
+    if (parseFloat(bookPrice) > 0) {
+      const totalAmount = parseFloat(bookPrice) * (parseInt(quantity) || 1);
+      payment = await Payment.create({
+        type: 'book_order',
+        referenceId: order._id,
+        clientName: name,
+        clientPhone: phone,
+        clientEmail: email || '',
+        amount: String(totalAmount),
+        paymentMethod: paymentMethod || 'qr_code',
+        utrNumber: utrNumber || '',
+        screenshot: screenshotPath,
+        status: 'pending_verification',
+        details: { bookTitle, quantity, address, notes },
+      });
+      await BookOrder.findByIdAndUpdate(order._id, { paymentId: payment._id });
+    }
+
+    if (userId) {
+      const totalAmt = parseFloat(bookPrice) > 0
+        ? `\nTotal: ₹${parseFloat(bookPrice) * (parseInt(quantity) || 1)}`
+        : '';
+      await UserNotification.create({
+        userId,
+        title: 'Book Order Placed',
+        message: `Your order for "${bookTitle}" (Qty: ${parseInt(quantity) || 1}) has been placed.${totalAmt} Payment pending verification.\nOrder ID: ${order.orderId || order._id}`,
+        type: 'order',
+        referenceId: order._id,
+        referenceType: 'BookOrder',
+      }).catch(() => {});
+    }
+
+    whatsapp.orderPlaced({
+      name,
+      phone: whatsappNumber || phone,
+      orderId: order.orderId || order._id.toString(),
+      bookTitle,
+    }).catch(() => {});
+
+    res.status(201).json({
+      success: true,
+      message: 'Book order placed! Payment is pending verification.',
+      data: {
+        orderId: order.orderId || order._id,
+        paymentId: payment?._id,
+        status: order.paymentStatus,
+      },
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

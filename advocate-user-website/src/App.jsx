@@ -22,6 +22,7 @@ import DraftsPage from './pages/Drafts';
 import BooksPage from './pages/Books';
 import NewsPage from './pages/News';
 import Payment from './pages/Payment';
+import BookPayment from './pages/BookPayment';
 import NewsTicker from './components/NewsTicker';
 import Contact from './components/Contact';
 import BookPromoPopup from './components/BookPromoPopup';
@@ -227,6 +228,11 @@ export default function App() {
             <Route path="/payment" element={
               <AppLayout hideFooterExtras>
                 <Payment />
+              </AppLayout>
+            } />
+            <Route path="/book-payment" element={
+              <AppLayout hideFooterExtras>
+                <BookPayment />
               </AppLayout>
             } />
             <Route path="/contact" element={

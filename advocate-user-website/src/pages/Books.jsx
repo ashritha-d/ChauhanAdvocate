@@ -66,7 +66,7 @@ export default function BooksPage() {
     if (bookId && books.length) {
       const book = books.find(b => b._id === bookId);
       if (book && book.stockStatus !== 'out_of_stock') {
-        setSelectedBook({ title: book.name, price: book.price ? `₹${book.price}` : '' });
+        setSelectedBook({ title: book.name, price: book.price ? `₹${book.price}` : '', rawPrice: book.price || 0, _id: book._id });
       }
     }
 
@@ -95,7 +95,7 @@ export default function BooksPage() {
   const handleOrder = (b) => {
     if (b.stockStatus === 'out_of_stock') return;
     if (user) {
-      setSelectedBook({ title: b.name, price: b.price ? `₹${b.price}` : '' });
+      setSelectedBook({ title: b.name, price: b.price ? `₹${b.price}` : '', rawPrice: b.price || 0, _id: b._id });
     } else {
       savePendingAction('order', { bookId: b._id });
       navigate('/login', { state: { from: '/books', message: 'Please log in to purchase this book.' } });
