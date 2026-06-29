@@ -1,9 +1,30 @@
 import { useAuth } from '../context/AuthContext';
 
 const NAV = [
-  { icon: 'fas fa-tachometer-alt', label: 'Dashboard',        page: 'dashboard' },
-  { icon: 'fas fa-shield-alt',     label: 'Admin Management', page: 'adminmanagement' },
-  { icon: 'fas fa-clipboard-list', label: 'Audit Logs',       page: 'auditlogs' },
+  { section: 'Overview', items: [
+    { icon: 'fas fa-tachometer-alt', label: 'Dashboard',     page: 'dashboard' },
+    { icon: 'fas fa-chart-line',     label: 'Analytics',     page: 'analytics' },
+  ]},
+  { section: 'Management', items: [
+    { icon: 'fas fa-users',          label: 'Users',         page: 'users' },
+    { icon: 'fas fa-user-shield',    label: 'Admins',        page: 'adminmanagement' },
+    { icon: 'fas fa-calendar-alt',   label: 'Appointments',  page: 'appointments' },
+    { icon: 'fas fa-credit-card',    label: 'Payments',      page: 'payments' },
+  ]},
+  { section: 'Content', items: [
+    { icon: 'fas fa-layer-group',    label: 'Content Hub',   page: 'content' },
+  ]},
+  { section: 'Configuration', items: [
+    { icon: 'fas fa-cog',            label: 'Site Settings', page: 'sitesettings' },
+    { icon: 'fas fa-toggle-on',      label: 'Feature Toggles', page: 'features' },
+    { icon: 'fas fa-bell',           label: 'Notifications', page: 'notifications' },
+    { icon: 'fas fa-user-tag',       label: 'Roles & Permissions', page: 'roles' },
+  ]},
+  { section: 'Security & System', items: [
+    { icon: 'fas fa-shield-alt',     label: 'Security Center', page: 'security' },
+    { icon: 'fas fa-heartbeat',      label: 'System Health',   page: 'system' },
+    { icon: 'fas fa-clipboard-list', label: 'Audit Logs',      page: 'auditlogs' },
+  ]},
 ];
 
 export default function Sidebar({ current, onChange, mobileOpen, onClose }) {
@@ -22,16 +43,20 @@ export default function Sidebar({ current, onChange, mobileOpen, onClose }) {
         </div>
 
         <nav className="sa-sidebar-nav">
-          <div className="sa-nav-section">Control Panel</div>
-          {NAV.map(item => (
-            <button
-              key={item.page}
-              className={`sa-nav-item ${current === item.page ? 'active' : ''}`}
-              onClick={() => { onChange(item.page); onClose(); }}
-            >
-              <i className={item.icon}></i>
-              <span>{item.label}</span>
-            </button>
+          {NAV.map(group => (
+            <div key={group.section}>
+              <div className="sa-nav-section">{group.section}</div>
+              {group.items.map(item => (
+                <button
+                  key={item.page}
+                  className={`sa-nav-item ${current === item.page ? 'active' : ''}`}
+                  onClick={() => { onChange(item.page); onClose(); }}
+                >
+                  <i className={item.icon}></i>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
           ))}
         </nav>
 

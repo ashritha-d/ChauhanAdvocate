@@ -6,16 +6,38 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import AdminManagement from './pages/AdminManagement';
 import AuditLogs from './pages/AuditLogs';
+import Users from './pages/Users';
+import Appointments from './pages/Appointments';
+import Payments from './pages/Payments';
+import Analytics from './pages/Analytics';
+import FeatureToggles from './pages/FeatureToggles';
+import SecurityCenter from './pages/SecurityCenter';
+import SystemHealth from './pages/SystemHealth';
+import Notifications from './pages/Notifications';
+import ContentOverview from './pages/ContentOverview';
+import RoleManagement from './pages/RoleManagement';
+import SiteSettings from './pages/SiteSettings';
 
 const PAGES = {
   dashboard:       Dashboard,
   adminmanagement: AdminManagement,
   auditlogs:       AuditLogs,
+  users:           Users,
+  appointments:    Appointments,
+  payments:        Payments,
+  analytics:       Analytics,
+  features:        FeatureToggles,
+  security:        SecurityCenter,
+  system:          SystemHealth,
+  notifications:   Notifications,
+  content:         ContentOverview,
+  roles:           RoleManagement,
+  sitesettings:    SiteSettings,
 };
 
 function SuperAdminApp() {
   const { admin, loading, accessDenied } = useAuth();
-  const [page, setPage]       = useState('dashboard');
+  const [page, setPage]             = useState('dashboard');
   const [mobileOpen, setMobileOpen] = useState(false);
 
   if (loading) {
