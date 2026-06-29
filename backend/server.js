@@ -108,6 +108,38 @@ app.use('/api/news',    require('./routes/news'));
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
 
+// TEMP: clear all test/user data (remove after use)
+app.delete('/api/temp-clear-all', require('./middleware/auth').protect, async (req, res) => {
+  try {
+    const User = require('./models/User');
+    const BookOrder = require('./models/BookOrder');
+    const JrAdvocate = require('./models/JrAdvocate');
+    const MagazinePurchase = require('./models/MagazinePurchase');
+    const Order = require('./models/Order');
+    const Payment = require('./models/Payment');
+    const UserNotification = require('./models/UserNotification');
+    const Contact = require('./models/Contact');
+    const Enrollment = require('./models/Enrollment');
+    const AuditLog = require('./models/AuditLog');
+    const results = await Promise.all([
+      User.deleteMany({}),
+      BookOrder.deleteMany({}),
+      JrAdvocate.deleteMany({}),
+      MagazinePurchase.deleteMany({}),
+      Order.deleteMany({}),
+      Payment.deleteMany({}),
+      UserNotification.deleteMany({}),
+      Contact.deleteMany({}),
+      Enrollment.deleteMany({}),
+      AuditLog.deleteMany({}),
+    ]);
+    const labels = ['users','bookOrders','jrAdvocates','magazinePurchases','orders','payments','notifications','contacts','enrollments','auditLogs'];
+    const summary = {};
+    labels.forEach((l, i) => summary[l] = results[i].deletedCount);
+    res.json({ success: true, deleted: summary });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+});
+
 // Gallery images listing
 app.get('/api/gallery', (req, res) => {
   const imageExts = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif']);
