@@ -15,9 +15,8 @@ const PER_PAGE = 9;
 const API_BASE = 'https://chauhanadvocate.onrender.com';
 
 const METHODS = [
-  { id: 'bank_transfer', icon: 'fa-university', label: 'Bank Transfer' },
-  { id: 'upi_id',        icon: 'fa-mobile-alt', label: 'UPI / GPay' },
-  { id: 'qr_code',       icon: 'fa-qrcode',     label: 'QR Code' },
+  { id: 'upi_id',  icon: 'fa-mobile-alt', label: 'UPI / GPay' },
+  { id: 'qr_code', icon: 'fa-qrcode',     label: 'QR Code' },
 ];
 
 function formatDate(d) {
@@ -37,7 +36,7 @@ function CopyBtn({ text }) {
 
 function PurchaseModal({ magazine, onClose, onSuccess, authHeader }) {
   const [step, setStep] = useState('form'); // form | pending | error
-  const [method, setMethod] = useState('bank_transfer');
+  const [method, setMethod] = useState('upi_id');
   const [utr, setUtr] = useState('');
   const [screenshot, setScreenshot] = useState(null);
   const [err, setErr] = useState('');
@@ -142,33 +141,11 @@ function PurchaseModal({ magazine, onClose, onSuccess, authHeader }) {
                 </div>
               )}
 
-              {method !== 'bank_transfer' && settings.payment_upi_id && (
+              {settings.payment_upi_id && (
                 <div className="d-flex align-items-center gap-2 mb-1" style={{ background: '#fff', border: '1.5px dashed #C9A84C', borderRadius: 8, padding: '6px 10px' }}>
                   <i className="fas fa-mobile-alt" style={{ color: '#C9A84C' }}></i>
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, flex: 1, fontSize: '0.9rem' }}>{settings.payment_upi_id}</span>
                   <CopyBtn text={settings.payment_upi_id} />
-                </div>
-              )}
-
-              {method === 'bank_transfer' && (
-                <div className="d-flex flex-column gap-1">
-                  {[
-                    ['Account Holder', settings.bank_account_holder],
-                    ['Bank Name',      settings.bank_name],
-                    ['Account No.',    settings.bank_account_number],
-                    ['IFSC Code',      settings.bank_ifsc],
-                    ['UPI ID',         settings.payment_upi_id],
-                  ].filter(([, v]) => v).map(([label, value]) => (
-                    <div key={label} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 7, padding: '5px 10px' }}>
-                      <div className="d-flex align-items-center justify-content-between">
-                        <span style={{ color: '#6b7280', fontSize: '0.74rem', minWidth: 90 }}>{label}</span>
-                        <div className="d-flex align-items-center gap-1 ms-auto">
-                          <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.82rem' }}>{value}</span>
-                          <CopyBtn text={value} />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               )}
             </div>
