@@ -87,6 +87,46 @@ export default function Dashboard({ onNavigate }) {
         <div className="text-center py-3"><div className="spinner-border sa-spinner"></div></div>
       )}
 
+      {/* Permissions Overview */}
+      <div className="sa-permissions-card mb-4">
+        <div className="sa-permissions-header">
+          <div className="sa-permissions-icon">
+            <i className="fas fa-user-shield"></i>
+          </div>
+          <div>
+            <div className="sa-permissions-title">Super Admin <span style={{ color: '#4a5568', fontSize: '0.8rem', fontWeight: 400 }}>(You)</span></div>
+            <div className="sa-permissions-sub">This account belongs only to the website owner. You have full unrestricted access.</div>
+          </div>
+        </div>
+        <div className="sa-permissions-grid">
+          {[
+            { icon: 'fa-tachometer-alt',    text: 'Full dashboard access' },
+            { icon: 'fa-user-cog',          text: 'Create / Edit / Delete Admins' },
+            { icon: 'fa-user-check',        text: 'Approve or reject admin accounts' },
+            { icon: 'fa-users',             text: 'Manage all users' },
+            { icon: 'fa-calendar-alt',      text: 'Manage all appointments' },
+            { icon: 'fa-book-open',         text: 'Manage books, magazines, drafts & YouTube' },
+            { icon: 'fa-credit-card',       text: 'Manage payment settings' },
+            { icon: 'fa-university',        text: 'Change bank account details' },
+            { icon: 'fa-cog',              text: 'Configure website settings' },
+            { icon: 'fa-paint-brush',       text: 'Update logo, theme, banners & homepage' },
+            { icon: 'fa-chart-bar',         text: 'View analytics and reports' },
+            { icon: 'fa-bell',             text: 'Manage notifications' },
+            { icon: 'fa-toggle-on',         text: 'Enable / disable features' },
+            { icon: 'fa-database',          text: 'Backup and restore the database' },
+            { icon: 'fa-clipboard-list',    text: 'View activity logs' },
+            { icon: 'fa-shield-alt',        text: 'Manage security settings' },
+            { icon: 'fa-user-slash',        text: 'Suspend or delete any account' },
+          ].map((p, i) => (
+            <div key={i} className="sa-perm-item">
+              <div className="sa-perm-check"><i className="fas fa-check"></i></div>
+              <i className={`fas ${p.icon} sa-perm-icon`}></i>
+              <span>{p.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="row g-4">
         {/* Recent Audit Logs */}
         <div className="col-lg-7">
