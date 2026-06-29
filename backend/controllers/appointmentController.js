@@ -238,3 +238,12 @@ exports.getStats = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.deleteAllAppointments = async (req, res) => {
+  try {
+    const result = await Appointment.deleteMany({});
+    res.json({ success: true, message: `Deleted ${result.deletedCount} appointments` });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
