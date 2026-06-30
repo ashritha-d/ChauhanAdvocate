@@ -30,10 +30,6 @@ const NAV = [
   { label: 'Account', items: [
     { icon: 'fas fa-user-circle', label: 'My Profile', page: 'profile' },
   ]},
-  { label: 'Super Admin', superadminOnly: true, items: [
-    { icon: 'fas fa-user-shield', label: 'Admin Management', page: 'adminmanagement' },
-    { icon: 'fas fa-clipboard-list', label: 'Audit Logs', page: 'auditlogs' },
-  ]},
 ];
 
 export default function Sidebar({ current, onChange, mobileOpen, onClose }) {

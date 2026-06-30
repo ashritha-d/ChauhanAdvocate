@@ -477,41 +477,7 @@ export default function Profile() {
               {/* ── Dashboard ── */}
               {tab === 'dashboard' && (
                 <div>
-                  <h4 className="profile-section-title">Dashboard Overview</h4>
-                  <div className="profile-stats-grid">
-                    <div className="profile-stat-card" onClick={() => setTab('appointments')}>
-                      <div className="psc-icon" style={{ background: 'rgba(13,202,240,0.15)', color: '#0dcaf0' }}><i className="fas fa-calendar-alt"></i></div>
-                      <div className="psc-value">{apptStats.total}</div>
-                      <div className="psc-label">Total Appointments</div>
-                    </div>
-                    <div className="profile-stat-card" onClick={() => setTab('appointments')}>
-                      <div className="psc-icon" style={{ background: 'rgba(255,193,7,0.15)', color: '#ffc107' }}><i className="fas fa-clock"></i></div>
-                      <div className="psc-value">{apptStats.pending}</div>
-                      <div className="psc-label">Pending Appointments</div>
-                    </div>
-                    <div className="profile-stat-card" onClick={() => setTab('appointments')}>
-                      <div className="psc-icon" style={{ background: 'rgba(25,135,84,0.15)', color: '#198754' }}><i className="fas fa-check-circle"></i></div>
-                      <div className="psc-value">{apptStats.completed}</div>
-                      <div className="psc-label">Completed Appointments</div>
-                    </div>
-                    <div className="profile-stat-card" onClick={() => setTab('orders')}>
-                      <div className="psc-icon" style={{ background: 'rgba(201,168,76,0.15)', color: '#c9a84c' }}><i className="fas fa-book"></i></div>
-                      <div className="psc-value">{orderStats.total}</div>
-                      <div className="psc-label">Total Orders</div>
-                    </div>
-                    <div className="profile-stat-card" onClick={() => setTab('orders')}>
-                      <div className="psc-icon" style={{ background: 'rgba(220,53,69,0.15)', color: '#dc3545' }}><i className="fas fa-hourglass-half"></i></div>
-                      <div className="psc-value">{orderStats.pending}</div>
-                      <div className="psc-label">Pending Orders</div>
-                    </div>
-                    <div className="profile-stat-card" onClick={() => setTab('notifications')}>
-                      <div className="psc-icon" style={{ background: 'rgba(111,66,193,0.15)', color: '#6f42c1' }}><i className="fas fa-bell"></i></div>
-                      <div className="psc-value">{unreadCount}</div>
-                      <div className="psc-label">Unread Notifications</div>
-                    </div>
-                  </div>
-
-                  <div className="row g-4 mt-2">
+                  <div className="row g-4">
                     <div className="col-lg-6">
                       <div className="profile-card">
                         <div className="profile-card-header">
