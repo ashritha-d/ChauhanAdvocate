@@ -130,18 +130,20 @@ export default function BookPromoPopup() {
           padding: 4px 14px; border-radius: 20px; margin-bottom: 16px;
         }
         .bpp-book-wrap {
-          width: 190px; height: auto; flex-shrink: 0;
-          border-radius: 16px; overflow: hidden;
+          width: 190px; height: 260px; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          overflow: hidden; border-radius: 14px;
           background: #0f1d4d;
           border: 2.5px solid rgba(201,168,76,.45);
           box-shadow: 0 8px 26px rgba(0,0,0,.45);
         }
         .bpp-book-img {
-          width: 100%; height: auto;
+          width: 100%; height: 100%;
+          object-fit: contain; object-position: center;
           display: block;
         }
         .bpp-book-placeholder {
-          width: 190px; height: 190px; flex-shrink: 0; border-radius: 16px;
+          width: 190px; height: 260px; flex-shrink: 0; border-radius: 14px;
           background: rgba(201,168,76,.08);
           border: 2px dashed rgba(201,168,76,.35);
           display: flex; align-items: center; justify-content: center;
@@ -170,8 +172,7 @@ export default function BookPromoPopup() {
         }
         @media (max-width: 480px) {
           .bpp-card { border-radius: 16px; }
-          .bpp-book-wrap { width: 120px; height: auto; border-radius: 12px; }
-          .bpp-book-placeholder { width: 120px; height: 120px; border-radius: 12px; }
+          .bpp-book-wrap, .bpp-book-placeholder { width: 130px; height: 180px; border-radius: 10px; }
           .bpp-buy-btn { font-size: .93rem; padding: 12px 24px; }
         }
       `}</style>
