@@ -130,9 +130,9 @@ export default function BookPromoPopup() {
           padding: 4px 14px; border-radius: 20px; margin-bottom: 16px;
         }
         .bpp-book-wrap {
-          width: 190px; height: 260px; flex-shrink: 0;
+          width: 190px; height: 280px; flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
-          overflow: hidden; border-radius: 14px;
+          overflow: hidden; border-radius: 16px;
           background: #0f1d4d;
           border: 2.5px solid rgba(201,168,76,.45);
           box-shadow: 0 8px 26px rgba(0,0,0,.45);
@@ -143,7 +143,7 @@ export default function BookPromoPopup() {
           display: block;
         }
         .bpp-book-placeholder {
-          width: 190px; height: 260px; flex-shrink: 0; border-radius: 14px;
+          width: 190px; height: 280px; flex-shrink: 0; border-radius: 16px;
           background: rgba(201,168,76,.08);
           border: 2px dashed rgba(201,168,76,.35);
           display: flex; align-items: center; justify-content: center;
@@ -172,7 +172,7 @@ export default function BookPromoPopup() {
         }
         @media (max-width: 480px) {
           .bpp-card { border-radius: 16px; }
-          .bpp-book-wrap, .bpp-book-placeholder { width: 130px; height: 180px; }
+          .bpp-book-wrap, .bpp-book-placeholder { width: 120px; height: 175px; border-radius: 12px; }
           .bpp-buy-btn { font-size: .93rem; padding: 12px 24px; }
         }
       `}</style>
