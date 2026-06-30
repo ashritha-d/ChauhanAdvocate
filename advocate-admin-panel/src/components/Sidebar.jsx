@@ -7,8 +7,6 @@ const NAV = [
     { icon: 'fas fa-tachometer-alt', label: 'Dashboard', page: 'dashboard' },
   ]},
   { label: 'Content', items: [
-    { icon: 'fas fa-cog',            label: 'Site Settings',   page: 'settings' },
-    { icon: 'fas fa-briefcase',      label: 'Services',        page: 'services' },
     { icon: 'fas fa-rss',            label: 'Latest News',     page: 'news', badge: 'news' },
     { icon: 'fas fa-newspaper',      label: 'Blogs',           page: 'blogs' },
     { icon: 'fas fa-graduation-cap', label: 'Courses',         page: 'courses' },
@@ -24,11 +22,7 @@ const NAV = [
     { icon: 'fas fa-calendar-alt',   label: 'Appointments',   page: 'appointments' },
     { icon: 'fas fa-book',           label: 'Book Orders',    page: 'bookorders' },
     { icon: 'fas fa-user-tie',       label: 'Jr. Advocates',  page: 'jradvocates' },
-    { icon: 'fas fa-envelope',       label: 'Contacts',       page: 'contacts' },
     { icon: 'fas fa-credit-card',    label: 'Payments',       page: 'payments' },
-  ]},
-  { label: 'Users', items: [
-    { icon: 'fas fa-users', label: 'Registered Users', page: 'users' },
   ]},
   { label: 'Alerts', items: [
     { icon: 'fas fa-bell', label: 'All Notifications', page: 'notifications' },

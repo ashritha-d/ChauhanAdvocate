@@ -15,8 +15,8 @@ import SecurityCenter from './pages/SecurityCenter';
 import SystemHealth from './pages/SystemHealth';
 import Notifications from './pages/Notifications';
 import ContentOverview from './pages/ContentOverview';
-import RoleManagement from './pages/RoleManagement';
 import SiteSettings from './pages/SiteSettings';
+import Services from './pages/Services';
 
 const PAGES = {
   dashboard:       Dashboard,
@@ -31,8 +31,8 @@ const PAGES = {
   system:          SystemHealth,
   notifications:   Notifications,
   content:         ContentOverview,
-  roles:           RoleManagement,
   sitesettings:    SiteSettings,
+  services:        Services,
 };
 
 function SuperAdminApp() {

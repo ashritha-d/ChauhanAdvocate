@@ -4,13 +4,10 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import Services from './pages/Services';
 import Blogs from './pages/Blogs';
 import Testimonials from './pages/Testimonials';
 import FAQs from './pages/FAQs';
 import Appointments from './pages/Appointments';
-import Contacts from './pages/Contacts';
-import SiteSettings from './pages/SiteSettings';
 import HeroBanners from './pages/HeroBanners';
 import Profile from './pages/Profile';
 import YouTubeVideos from './pages/YouTubeVideos';
@@ -19,7 +16,6 @@ import Orders from './pages/Orders';
 import JrAdvocates from './pages/JrAdvocates';
 import BookOrders from './pages/BookOrders';
 import Payments from './pages/Payments';
-import Users from './pages/Users';
 import Notifications from './pages/Notifications';
 import News from './pages/News';
 import Courses from './pages/Courses';
@@ -29,7 +25,7 @@ import Books from './pages/Books';
 import AdminManagement from './pages/AdminManagement';
 import AuditLogs from './pages/AuditLogs';
 
-const PAGES = { dashboard: Dashboard, settings: SiteSettings, banners: HeroBanners, services: Services, blogs: Blogs, news: News, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, contacts: Contacts, profile: Profile, youtube: YouTubeVideos, facebook: FacebookContent, orders: Orders, jradvocates: JrAdvocates, bookorders: BookOrders, payments: Payments, users: Users, notifications: Notifications, courses: Courses, magazines: Magazines, drafts: Drafts, books: Books, adminmanagement: AdminManagement, auditlogs: AuditLogs };
+const PAGES = { dashboard: Dashboard, banners: HeroBanners, blogs: Blogs, news: News, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, profile: Profile, youtube: YouTubeVideos, facebook: FacebookContent, orders: Orders, jradvocates: JrAdvocates, bookorders: BookOrders, payments: Payments, notifications: Notifications, courses: Courses, magazines: Magazines, drafts: Drafts, books: Books, adminmanagement: AdminManagement, auditlogs: AuditLogs };
 
 function AdminApp() {
   const { admin, loading } = useAuth();

@@ -13,12 +13,12 @@ const NAV = [
   ]},
   { section: 'Content', items: [
     { icon: 'fas fa-layer-group',    label: 'Content Hub',   page: 'content' },
+    { icon: 'fas fa-briefcase',      label: 'Services',      page: 'services' },
   ]},
   { section: 'Configuration', items: [
     { icon: 'fas fa-cog',            label: 'Site Settings', page: 'sitesettings' },
     { icon: 'fas fa-toggle-on',      label: 'Feature Toggles', page: 'features' },
     { icon: 'fas fa-bell',           label: 'Notifications', page: 'notifications' },
-    { icon: 'fas fa-user-tag',       label: 'Roles & Permissions', page: 'roles' },
   ]},
   { section: 'Security & System', items: [
     { icon: 'fas fa-shield-alt',     label: 'Security Center', page: 'security' },
