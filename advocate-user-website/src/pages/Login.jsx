@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
 import { userLogin } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
+import { getPendingAction, getPendingActionData, clearPendingAction } from '../utils/pendingAction';
 
 export default function Login() {
   const { login } = useUserAuth();
@@ -26,7 +27,16 @@ export default function Login() {
       const r = await userLogin(form);
       if (r.data.success) {
         login(r.data.token, r.data.user);
-        navigate(from, { replace: true });
+        // If a book order was pending, pass bookId via location state so
+        // Books.jsx reads it at mount-time (avoids the user-state race condition)
+        const pendingAction = getPendingAction();
+        const pendingData   = getPendingActionData();
+        if (pendingAction === 'order' && pendingData?.bookId) {
+          clearPendingAction();
+          navigate('/books', { replace: true, state: { bookId: pendingData.bookId } });
+        } else {
+          navigate(from, { replace: true });
+        }
       } else {
         setError(r.data.message || 'Login failed');
       }
