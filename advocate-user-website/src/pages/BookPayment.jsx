@@ -67,7 +67,13 @@ export default function BookPayment() {
   useEffect(() => {
     const raw = sessionStorage.getItem('pendingBookOrder');
     if (!raw) { navigate('/books'); return; }
-    setOrder(JSON.parse(raw));
+    const parsed = JSON.parse(raw);
+    if (!parsed.bookTitle || !parsed.name || !parsed.phone || !parsed.address) {
+      sessionStorage.removeItem('pendingBookOrder');
+      navigate('/books');
+      return;
+    }
+    setOrder(parsed);
     getPaymentSettings().then(r => { if (r.data.success) setSettings(r.data.data); }).catch(() => {});
   }, []);
 
