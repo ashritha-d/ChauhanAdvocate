@@ -205,6 +205,7 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [showApptModal, setShowApptModal] = useState(false);
   const [watchingEnrollmentId, setWatchingEnrollmentId] = useState(null);
+  const [showNewAppForm, setShowNewAppForm] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/login');
@@ -427,17 +428,6 @@ export default function Profile() {
                 <div className="profile-top-name">Welcome, {user.name.split(' ')[0]}</div>
                 <div className="profile-top-sub">{user.email}</div>
               </div>
-            </div>
-            <div className="profile-top-bar-right">
-              <button className="btn btn-sm btn-outline-secondary" onClick={() => setShowApptModal(true)}>
-                <i className="fas fa-calendar-check me-1"></i>
-                <span className="d-none d-sm-inline">Book an Appointment</span>
-                <span className="d-sm-none">Book</span>
-              </button>
-              <button className="btn btn-sm btn-outline-danger" onClick={() => { logout(); navigate('/'); }}>
-                <i className="fas fa-sign-out-alt me-1"></i>
-                <span className="d-none d-sm-inline">Logout</span>
-              </button>
             </div>
           </div>
         </div>
@@ -857,43 +847,148 @@ export default function Profile() {
 
               {/* ── My Applications ── */}
               {tab === 'applications' && (
-                <div>
-                  <h4 className="profile-section-title mb-4">My Applications</h4>
-                  {dataLoading
-                    ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
-                    : applications.length === 0
-                    ? <JrAdvocateModal inline onSuccess={() => loadApplications()} />
-                    : (
-                      <>
-                        <div className="profile-table-wrap mb-4">
-                          <table className="profile-table">
-                            <thead>
-                              <tr><th>#</th><th>Applied For</th><th>Qualification</th><th>Applied On</th><th>Status</th></tr>
-                            </thead>
-                            <tbody>
-                              {applications.map((a, i) => {
-                                const statusColor = { pending: 'warning', reviewed: 'info', selected: 'success', rejected: 'danger' };
-                                return (
-                                  <tr key={a._id}>
-                                    <td><small className="text-muted">{i + 1}</small></td>
-                                    <td><strong>Jr. Advocate</strong><small className="d-block text-muted">{a.college || '—'}</small></td>
-                                    <td>{a.qualification}</td>
-                                    <td><small>{formatDate(a.createdAt)}</small></td>
-                                    <td>
-                                      <span className={`badge bg-${statusColor[a.status] || 'secondary'}`}>
-                                        {a.status.charAt(0).toUpperCase() + a.status.slice(1)}
-                                      </span>
-                                      {a.adminNotes && <small className="d-block text-muted mt-1">{a.adminNotes}</small>}
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
+                <div style={{ background: '#f5f7fb', borderRadius: 20, padding: '32px', maxWidth: 1200, margin: '0 auto' }}>
+
+                  {/* Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
+                    <div>
+                      <h4 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#1a1a2e', margin: 0 }}>My Applications</h4>
+                      <p style={{ color: '#6b7280', fontSize: '0.88rem', margin: '4px 0 0' }}>Manage all your Advocate applications from one place.</p>
+                    </div>
+                    {!showNewAppForm && (
+                      <button
+                        onClick={() => setShowNewAppForm(true)}
+                        style={{ background: 'linear-gradient(135deg,#C9A84C,#e6c96e)', color: '#fff', border: 'none', borderRadius: 30, padding: '10px 22px', fontWeight: 700, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', boxShadow: '0 4px 14px rgba(201,168,76,0.4)', transition: 'all 0.3s' }}
+                        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.background = 'linear-gradient(135deg,#b8942e,#C9A84C)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.background = 'linear-gradient(135deg,#C9A84C,#e6c96e)'; }}
+                      >
+                        <i className="fas fa-plus"></i> New Application
+                      </button>
+                    )}
+                  </div>
+
+                  {dataLoading ? (
+                    <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
+                  ) : (
+                    <>
+                      {/* New application form */}
+                      {showNewAppForm && (
+                        <div>
+                          <button
+                            onClick={() => setShowNewAppForm(false)}
+                            style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 20, padding: '6px 16px', fontSize: '0.82rem', color: '#6b7280', cursor: 'pointer', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}
+                          >
+                            <i className="fas fa-arrow-left"></i> Back to Applications
+                          </button>
+                          <JrAdvocateModal inline onSuccess={() => { loadApplications(); setShowNewAppForm(false); }} />
                         </div>
-                      </>
-                    )
-                  }
+                      )}
+
+                      {/* Application cards grid */}
+                      {!showNewAppForm && applications.length > 0 && (() => {
+                        const STATUS_MAP = {
+                          pending:  { label: 'Submitted',    color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
+                          reviewed: { label: 'Under Review', color: '#c2410c', bg: '#fff7ed', border: '#fed7aa' },
+                          selected: { label: 'Approved',     color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+                          rejected: { label: 'Rejected',     color: '#b91c1c', bg: '#fef2f2', border: '#fecaca' },
+                        };
+                        return (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
+                            {applications.map((a, i) => {
+                              const st = STATUS_MAP[a.status] || { label: a.status, color: '#6b7280', bg: '#f3f4f6', border: '#e5e7eb' };
+                              return (
+                                <div
+                                  key={a._id}
+                                  style={{ background: '#fff', borderRadius: 18, boxShadow: '0 4px 20px rgba(0,0,0,0.07)', padding: '24px', border: '1px solid #f0f0f0', transition: 'all 0.3s', cursor: 'default' }}
+                                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 10px 36px rgba(0,0,0,0.13)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.07)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                                >
+                                  {/* Card top */}
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
+                                    <div>
+                                      <div style={{ fontSize: '0.68rem', color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>Application #{i + 1}</div>
+                                      <div style={{ fontWeight: 800, fontSize: '1rem', color: '#1a1a2e', marginTop: 3 }}>Jr. Advocate</div>
+                                      <div style={{ fontSize: '0.72rem', color: '#9ca3af', fontFamily: 'monospace', marginTop: 2 }}>ID: {a._id.slice(-8).toUpperCase()}</div>
+                                    </div>
+                                    <span style={{ background: st.bg, color: st.color, border: `1px solid ${st.border}`, padding: '4px 12px', borderRadius: 20, fontSize: '0.7rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                                      {st.label}
+                                    </span>
+                                  </div>
+
+                                  {/* Details grid */}
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px', marginBottom: 18 }}>
+                                    {[
+                                      ['Application Type', 'Jr. Advocate'],
+                                      ['Qualification',    a.qualification || '—'],
+                                      ['College',          a.college || '—'],
+                                      ['Applied On',       formatDate(a.createdAt)],
+                                    ].map(([label, value]) => (
+                                      <div key={label}>
+                                        <div style={{ fontSize: '0.65rem', color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
+                                        <div style={{ fontSize: '0.8rem', color: '#374151', fontWeight: 600, marginTop: 2 }}>{value}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  {/* Progress */}
+                                  <div style={{ marginBottom: 16 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#9ca3af', marginBottom: 5 }}>
+                                      <span>Progress</span><span style={{ fontWeight: 700, color: '#15803d' }}>100%</span>
+                                    </div>
+                                    <div style={{ height: 6, background: '#f3f4f6', borderRadius: 10, overflow: 'hidden' }}>
+                                      <div style={{ height: '100%', width: '100%', background: 'linear-gradient(90deg,#C9A84C,#e6c96e)', borderRadius: 10 }}></div>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#d1d5db', marginTop: 4 }}>
+                                      <span>Personal</span><span>Education</span><span>Documents</span>
+                                    </div>
+                                  </div>
+
+                                  {/* Admin notes */}
+                                  {a.adminNotes && (
+                                    <div style={{ background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 8, padding: '8px 12px', marginBottom: 14, fontSize: '0.76rem', color: '#92400e' }}>
+                                      <i className="fas fa-sticky-note me-1"></i>{a.adminNotes}
+                                    </div>
+                                  )}
+
+                                  {/* Action buttons */}
+                                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                    <button
+                                      style={{ flex: 1, background: 'linear-gradient(135deg,#C9A84C,#e6c96e)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'opacity 0.2s' }}
+                                      onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                                      onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                                    >
+                                      <i className="fas fa-eye me-1"></i>View
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+
+                      {/* Empty state */}
+                      {!showNewAppForm && applications.length === 0 && (
+                        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                          <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '2px solid #fcd34d', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: '0 8px 24px rgba(201,168,76,0.2)' }}>
+                            <i className="fas fa-user-tie" style={{ fontSize: '2.2rem', color: '#C9A84C' }}></i>
+                          </div>
+                          <h5 style={{ color: '#1a1a2e', fontWeight: 800, marginBottom: 8 }}>No Applications Yet</h5>
+                          <p style={{ color: '#6b7280', marginBottom: 28, maxWidth: 340, margin: '0 auto 28px' }}>
+                            Click <strong style={{ color: '#C9A84C' }}>+ New Application</strong> to submit your first application.
+                          </p>
+                          <button
+                            onClick={() => setShowNewAppForm(true)}
+                            style={{ background: 'linear-gradient(135deg,#C9A84C,#e6c96e)', color: '#fff', border: 'none', borderRadius: 30, padding: '12px 32px', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', boxShadow: '0 4px 14px rgba(201,168,76,0.4)', transition: 'all 0.3s' }}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                          >
+                            <i className="fas fa-plus me-2"></i>New Application
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
 
