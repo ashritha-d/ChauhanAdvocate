@@ -11,7 +11,7 @@ export const getYouTubeVideos = () => api.get('/youtube-videos');
 export const getFacebookPosts = () => api.get('/facebook-posts');
 export const getMagazines = (params = {}) => api.get('/magazines', { params });
 export const checkMagazinePurchase          = (id, headers = {}) => api.get(`/magazines/${id}/purchase/status`, { headers });
-export const submitMagazineManualPayment    = (id, formData, headers = {}) => api.post(`/magazines/${id}/purchase/manual`, formData, { headers: { ...headers, 'Content-Type': 'multipart/form-data' } });
+export const submitMagazineManualPayment    = (id, formData, headers = {}) => api.post(`/magazines/${id}/purchase/manual`, formData, { headers });
 export const createMagazineRazorpayOrder    = (id, headers = {}) => api.post(`/magazines/${id}/purchase/razorpay/create-order`, {}, { headers });
 export const verifyMagazineRazorpayPayment  = (id, data, headers = {}) => api.post(`/magazines/${id}/purchase/razorpay/verify`, data, { headers });
 export const downloadMagazineFull           = (id, headers = {}) => api.get(`/magazines/${id}/download/full`, { headers });
@@ -44,11 +44,11 @@ export const markAllNotificationsRead = (headers) => api.put('/users/notificatio
 
 // ── Payments ──────────────────────────────────────────────────────────────────
 export const getPaymentSettings = () => api.get('/payments/payment-settings');
-export const submitManualPayment = (formData, headers = {}) => api.post('/payments/manual', formData, { headers: { ...headers, 'Content-Type': 'multipart/form-data' } });
-export const submitBookManualPayment = (formData, headers = {}) => api.post('/payments/book-manual', formData, { headers: { ...headers, 'Content-Type': 'multipart/form-data' } });
+export const submitManualPayment = (formData, headers = {}) => api.post('/payments/manual', formData, { headers });
+export const submitBookManualPayment = (formData, headers = {}) => api.post('/payments/book-manual', formData, { headers });
 
 // ── Jr Advocate Applications ──────────────────────────────────────────────────
-export const submitJrAdvocateApplication = (formData) => api.post('/jr-advocates', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const submitJrAdvocateApplication = (formData) => api.post('/jr-advocates', formData);
 export const getMyApplications = (headers) => api.get('/jr-advocates/my-applications', { headers });
 
 // ── News ──────────────────────────────────────────────────────────────────────

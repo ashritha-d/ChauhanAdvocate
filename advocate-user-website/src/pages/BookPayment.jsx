@@ -99,8 +99,8 @@ export default function BookPayment() {
       } else {
         setErr(data.message || 'Submission failed. Please try again.');
       }
-    } catch {
-      setErr('Network error. Please try again.');
+    } catch (err) {
+      setErr(err.response?.data?.message || err.message || 'Network error. Please try again.');
     }
     setLoading(false);
   };
