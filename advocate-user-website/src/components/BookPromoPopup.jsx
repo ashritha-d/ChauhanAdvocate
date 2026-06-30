@@ -43,10 +43,19 @@ export default function BookPromoPopup() {
   }, []);
 
   useEffect(() => {
-    if (!book) return;
+    if (!book || user) return;
     showTimer.current = setTimeout(() => { setVisible(true); track('impressions'); }, SHOW_DELAY);
     return () => clearTimeout(showTimer.current);
-  }, [book]);
+  }, [book, user]);
+
+  // Clear popup immediately if user logs in during the session
+  useEffect(() => {
+    if (user) {
+      setVisible(false);
+      clearTimeout(showTimer.current);
+      clearTimeout(reshowTimer.current);
+    }
+  }, [user]);
 
   const handleClose = () => {
     setVisible(false);
