@@ -190,7 +190,7 @@ export default function BookPayment() {
         <div style={cardStyle}>
           <div style={headerStyle}>
             <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>Complete Your Payment</div>
-            <div style={{ color: '#aaa', fontSize: '0.8rem', marginTop: 2 }}>Pay via UPI and submit your transaction details below</div>
+            <div style={{ color: '#aaa', fontSize: '0.8rem', marginTop: 2 }}>Pay via UPI ID or scan QR and submit your transaction details below</div>
           </div>
           <div style={bodyStyle}>
 
@@ -212,99 +212,86 @@ export default function BookPayment() {
               ))}
             </div>
 
-            {hasPricing ? (
-              <>
-                {/* Step 1: Choose payment method */}
-                <div className="mb-4">
-                  <div className="fw-semibold mb-2" style={{ fontSize: '0.88rem', color: '#374151' }}>
-                    <span style={{ background: '#C9A84C', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, marginRight: 8 }}>1</span>
-                    Choose Payment Method
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                    {METHODS.map(m => (
-                      <div
-                        key={m.id}
-                        onClick={() => { setMethod(m.id); setErr(''); }}
-                        style={{
-                          border: `2px solid ${method === m.id ? '#C9A84C' : '#e5e7eb'}`,
-                          borderRadius: 12,
-                          padding: '12px 8px',
-                          cursor: 'pointer',
-                          background: method === m.id ? '#f9f5e8' : '#fff',
-                          textAlign: 'center',
-                          position: 'relative',
-                          transition: 'all 0.2s',
-                          boxShadow: method === m.id ? '0 2px 12px rgba(201,168,76,0.2)' : 'none',
-                        }}
-                      >
-                        {method === m.id && (
-                          <div style={{ position: 'absolute', top: 6, right: 6, width: 16, height: 16, borderRadius: '50%', background: '#C9A84C', color: '#fff', fontSize: 9, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <i className="fas fa-check"></i>
-                          </div>
-                        )}
-                        <i className={`fas ${m.icon}`} style={{ fontSize: 20, color: '#C9A84C', display: 'block', marginBottom: 4 }}></i>
-                        <div style={{ fontWeight: 600, fontSize: '0.78rem', color: '#374151' }}>{m.label}</div>
-                        <div style={{ fontSize: '0.68rem', color: '#9ca3af' }}>{m.sub}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Step 2: UPI / QR details */}
-                <div className="mb-4">
-                  <div className="fw-semibold mb-2" style={{ fontSize: '0.88rem', color: '#374151' }}>
-                    <span style={{ background: '#C9A84C', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, marginRight: 8 }}>2</span>
-                    Transfer {amtDisplay} using the details below
-                  </div>
-                  <PaymentDetails s={settings} method={method} />
-                </div>
-
-                {/* Step 3: Submit UTR */}
-                <div className="mb-2">
-                  <div className="fw-semibold mb-3" style={{ fontSize: '0.88rem', color: '#374151' }}>
-                    <span style={{ background: '#C9A84C', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, marginRight: 8 }}>3</span>
-                    Submit Transaction Details
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label small fw-semibold">
-                      UTR / Transaction Reference Number <span className="text-danger">*</span>
-                    </label>
-                    <input
-                      className="form-control"
-                      value={utr}
-                      onChange={e => { setUtr(e.target.value); setErr(''); }}
-                      placeholder="e.g. 423198765432 or TXNID..."
-                      style={{ borderRadius: 10 }}
-                    />
-                    <div className="form-text">
-                      <i className="fas fa-info-circle me-1"></i>
-                      Find this in your UPI app after payment
-                    </div>
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label small fw-semibold">Payment Screenshot <span className="text-muted fw-normal">(optional but recommended)</span></label>
-                    <input
-                      type="file"
-                      className="form-control"
-                      accept="image/*"
-                      onChange={e => setScreenshot(e.target.files[0])}
-                      style={{ borderRadius: 10 }}
-                    />
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: 12, padding: '14px 18px', marginBottom: 20 }}>
-                <div className="fw-semibold mb-1" style={{ color: '#166534', fontSize: '0.88rem' }}>
-                  <i className="fas fa-info-circle me-2"></i>Cash on Delivery / Price on Contact
-                </div>
-                <p className="text-muted small mb-0">
-                  This book doesn't have a fixed online price. We will contact you on WhatsApp to confirm the price and payment method before dispatch.
-                </p>
+            {/* Step 1: Choose payment method */}
+            <div className="mb-4">
+              <div className="fw-semibold mb-2" style={{ fontSize: '0.88rem', color: '#374151' }}>
+                <span style={{ background: '#C9A84C', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, marginRight: 8 }}>1</span>
+                Choose Payment Method
               </div>
-            )}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                {METHODS.map(m => (
+                  <div
+                    key={m.id}
+                    onClick={() => { setMethod(m.id); setErr(''); }}
+                    style={{
+                      border: `2px solid ${method === m.id ? '#C9A84C' : '#e5e7eb'}`,
+                      borderRadius: 12,
+                      padding: '12px 8px',
+                      cursor: 'pointer',
+                      background: method === m.id ? '#f9f5e8' : '#fff',
+                      textAlign: 'center',
+                      position: 'relative',
+                      transition: 'all 0.2s',
+                      boxShadow: method === m.id ? '0 2px 12px rgba(201,168,76,0.2)' : 'none',
+                    }}
+                  >
+                    {method === m.id && (
+                      <div style={{ position: 'absolute', top: 6, right: 6, width: 16, height: 16, borderRadius: '50%', background: '#C9A84C', color: '#fff', fontSize: 9, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <i className="fas fa-check"></i>
+                      </div>
+                    )}
+                    <i className={`fas ${m.icon}`} style={{ fontSize: 20, color: '#C9A84C', display: 'block', marginBottom: 4 }}></i>
+                    <div style={{ fontWeight: 600, fontSize: '0.78rem', color: '#374151' }}>{m.label}</div>
+                    <div style={{ fontSize: '0.68rem', color: '#9ca3af' }}>{m.sub}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Step 2: UPI / QR details */}
+            <div className="mb-4">
+              <div className="fw-semibold mb-2" style={{ fontSize: '0.88rem', color: '#374151' }}>
+                <span style={{ background: '#C9A84C', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, marginRight: 8 }}>2</span>
+                {hasPricing ? `Transfer ${amtDisplay} using the details below` : 'Pay using the details below'}
+              </div>
+              <PaymentDetails s={settings} method={method} />
+            </div>
+
+            {/* Step 3: Submit UTR */}
+            <div className="mb-2">
+              <div className="fw-semibold mb-3" style={{ fontSize: '0.88rem', color: '#374151' }}>
+                <span style={{ background: '#C9A84C', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, marginRight: 8 }}>3</span>
+                Submit Transaction Details
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label small fw-semibold">
+                  UTR / Transaction Reference Number{hasPricing ? <span className="text-danger"> *</span> : <span className="text-muted fw-normal"> (optional)</span>}
+                </label>
+                <input
+                  className="form-control"
+                  value={utr}
+                  onChange={e => { setUtr(e.target.value); setErr(''); }}
+                  placeholder="e.g. 423198765432 or TXNID..."
+                  style={{ borderRadius: 10 }}
+                />
+                <div className="form-text">
+                  <i className="fas fa-info-circle me-1"></i>
+                  Find this in your UPI app after payment
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label small fw-semibold">Payment Screenshot <span className="text-muted fw-normal">(optional but recommended)</span></label>
+                <input
+                  type="file"
+                  className="form-control"
+                  accept="image/*"
+                  onChange={e => setScreenshot(e.target.files[0])}
+                  style={{ borderRadius: 10 }}
+                />
+              </div>
+            </div>
 
             {err && (
               <div className="alert alert-danger py-2 small" style={{ borderRadius: 10 }}>
@@ -320,9 +307,7 @@ export default function BookPayment() {
             >
               {loading
                 ? <><i className="fas fa-spinner fa-spin me-2"></i>Submitting...</>
-                : hasPricing
-                  ? <><i className="fas fa-paper-plane me-2"></i>Submit Payment Details</>
-                  : <><i className="fas fa-box me-2"></i>Place Order</>
+                : <><i className="fas fa-paper-plane me-2"></i>Submit Payment Details</>
               }
             </button>
 
