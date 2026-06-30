@@ -52,8 +52,9 @@ export function UserAuthProvider({ children }) {
           setUser(r.data.user);
           fetchUnreadCount();
           // Restore pending action after page refresh (user already logged in)
+          // 'order' is handled by Books.jsx via pendingAction localStorage — skip it here
           const pending = getPendingAction();
-          if (pending) openModal(pending, getPendingActionData());
+          if (pending && pending !== 'order') openModal(pending, getPendingActionData());
         } else {
           safeStorage('remove', 'userToken');
         }
@@ -67,8 +68,9 @@ export function UserAuthProvider({ children }) {
     setUser(userData);
     fetchUnreadCount();
     // Fire any pending modal intent
+    // 'order' is handled by Books.jsx via pendingAction localStorage — skip it here
     const pending = getPendingAction();
-    if (pending) openModal(pending, getPendingActionData());
+    if (pending && pending !== 'order') openModal(pending, getPendingActionData());
   };
 
   const logout = () => {

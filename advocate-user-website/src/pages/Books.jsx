@@ -53,26 +53,34 @@ export default function BooksPage() {
   useEffect(() => {
     if (loading || autoOpenDone.current) return;
 
-    let bookId = initialBookId.current;
+    const locationBookId = initialBookId.current;
 
-    if (!bookId && user && getPendingAction() === 'order') {
-      const data = getPendingActionData();
-      bookId = data?.bookId;
-      clearPendingAction();
-    }
-
-    autoOpenDone.current = true;
-
-    if (bookId && books.length) {
-      const book = books.find(b => b._id === bookId);
+    // If arriving via location state (direct navigation from popup for logged-in user)
+    if (locationBookId) {
+      autoOpenDone.current = true;
+      const book = books.find(b => b._id === locationBookId);
       if (book && book.stockStatus !== 'out_of_stock') {
         setSelectedBook({ title: book.name, price: book.price ? `₹${book.price}` : '', rawPrice: book.price || 0, _id: book._id });
       }
+      navigate('/books', { replace: true });
+      return;
     }
 
-    // Clear bookId from location state so a refresh doesn't re-open
-    if (initialBookId.current) {
-      navigate('/books', { replace: true });
+    // For pending actions from login redirect — wait until user is resolved
+    if (!user) return;
+
+    autoOpenDone.current = true;
+
+    if (getPendingAction() === 'order') {
+      const data = getPendingActionData();
+      const bookId = data?.bookId;
+      clearPendingAction();
+      if (bookId && books.length) {
+        const book = books.find(b => b._id === bookId);
+        if (book && book.stockStatus !== 'out_of_stock') {
+          setSelectedBook({ title: book.name, price: book.price ? `₹${book.price}` : '', rawPrice: book.price || 0, _id: book._id });
+        }
+      }
     }
   }, [loading, books, user, navigate]);
 
