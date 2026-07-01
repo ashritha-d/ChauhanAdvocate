@@ -258,7 +258,9 @@ export default function AdminManagement() {
                             onClick={() => handleToggle(a)}>
                             <i className={`fas fa-${a.isActive ? 'ban' : 'check'}`}></i>
                           </button>
-                          <button className="sa-action-btn sa-action-delete" title="Delete" onClick={() => openDelete(a)}><i className="fas fa-trash"></i></button>
+                          {a.role !== 'superadmin' && (
+                            <button className="sa-action-btn sa-action-delete" title="Delete" onClick={() => openDelete(a)}><i className="fas fa-trash"></i></button>
+                          )}
                         </div>
                       </td>
                     </tr>
