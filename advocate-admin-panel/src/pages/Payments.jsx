@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getPayments, getPaymentRevenue, exportPaymentsCsv } from '../api';
 import { formatDate } from '../utils/helpers';
 
@@ -65,6 +66,7 @@ export default function Payments() {
   };
 
   useEffect(() => { load(); loadRevenue(); }, [filter]);
+  usePolling(() => { load(); loadRevenue(); }, 30000);
 
   const handleExport = async () => {
     setExporting(true);

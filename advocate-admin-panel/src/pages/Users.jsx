@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import api, { safeStorage } from '../api/axios';
 
 function formatDate(d) {
@@ -50,6 +51,7 @@ export default function Users() {
   };
 
   useEffect(() => { loadUsers(); }, [page, search]);
+  usePolling(loadUsers, 30000);
 
   const handleSearchChange = (e) => { setSearch(e.target.value); setPage(1); };
 

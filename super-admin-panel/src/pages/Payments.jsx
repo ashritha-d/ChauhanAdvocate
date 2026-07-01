@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import api from '../api/axios';
 
 const STATUS_META = {
@@ -58,6 +59,7 @@ export default function Payments() {
   }, []);
 
   useEffect(() => { load(1); setPage(1); }, [statusFilter]);
+  usePolling(() => load(page), 30000);
 
   const openEdit = p => { setSelected(p); setForm({ status: p.status, adminNotes: p.adminNotes || '' }); setModal('edit'); };
 

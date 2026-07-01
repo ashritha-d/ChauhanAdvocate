@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getBookOrders, updateBookOrder, deleteBookOrder } from '../api';
 import { formatDate } from '../utils/helpers';
 import ConfirmModal from '../components/ConfirmModal';
@@ -85,6 +86,7 @@ export default function BookOrders() {
   };
 
   useEffect(() => { load(); }, [filter]);
+  usePolling(load, 30000);
 
   const handleView = async (item) => {
     setSelected(item);

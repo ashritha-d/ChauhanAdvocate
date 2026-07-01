@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import SEOHead from '../components/SEOHead';
 import { useNavigate } from 'react-router-dom';
 import { getPublicCourses } from '../api';
@@ -45,6 +46,7 @@ export default function Courses() {
   };
 
   useEffect(() => { fetchCourses(); }, []);
+  usePolling(fetchCourses, 60000);
 
   const handleEnroll = (course) => {
     if (!user) {

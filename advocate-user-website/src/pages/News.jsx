@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import usePolling from '../hooks/usePolling';
 import SEOHead from '../components/SEOHead';
 import { getNewsPage } from '../api';
 
@@ -35,6 +36,7 @@ export default function NewsPage() {
   }, [search, from, to]);
 
   useEffect(() => { load(1); }, [load]);
+  usePolling(() => load(page), 60000);
 
   const handleSearch = e => { e.preventDefault(); load(1); };
   const clearFilters = () => { setSearch(''); setFrom(''); setTo(''); };

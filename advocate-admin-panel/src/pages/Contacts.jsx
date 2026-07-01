@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getContacts, updateContact, deleteContact } from '../api';
 import { formatDateTime } from '../utils/helpers';
 import ConfirmModal from '../components/ConfirmModal';
@@ -13,6 +14,7 @@ export default function Contacts() {
 
   const load = () => { setLoading(true); getContacts(1,100).then(r => setItems(r.data.data||[])).catch(()=>{}).finally(()=>setLoading(false)); };
   useEffect(() => { load(); }, []);
+  usePolling(load, 30000);
 
   const markRead = async id => {
     try { await updateContact(id, { status: 'read' }); load(); } catch {}

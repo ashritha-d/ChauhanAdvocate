@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getDrafts, createDraft, updateDraft, deleteDraft, publishDraft, bulkDeleteDrafts, bulkPublishDrafts } from '../api';
 import ConfirmModal from '../components/ConfirmModal';
 import { mediaUrl, formatDate } from '../utils/helpers';
@@ -59,6 +60,7 @@ export default function Drafts() {
   };
 
   useEffect(() => { load(page, search, filterType, filterStatus); }, [page]);
+  usePolling(() => load(page, search, filterType, filterStatus), 30000);
 
   const handleSearch = () => { setPage(1); load(1, search, filterType, filterStatus); };
 

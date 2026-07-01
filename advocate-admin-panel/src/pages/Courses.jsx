@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import api from '../api/axios';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -215,6 +216,7 @@ export default function Courses() {
   };
 
   useEffect(() => { if (view === 'courses') loadCourses(); else loadEnrollments(); }, [view, enrolFilter]);
+  usePolling(() => { if (view === 'courses') loadCourses(); else loadEnrollments(); }, 30000);
 
   const openEdit = course => {
     stagedUploads.current = [];

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getAppointments, updateAppointment, deleteAppointment } from '../api';
 import { formatDate } from '../utils/helpers';
 import ConfirmModal from '../components/ConfirmModal';
@@ -98,6 +99,7 @@ export default function Appointments() {
   };
 
   useEffect(() => { load(); }, [filter]);
+  usePolling(load, 30000);
 
   const handleAction = async (id, status, extra = {}) => {
     setSaving(true);

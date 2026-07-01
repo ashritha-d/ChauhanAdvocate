@@ -1,4 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getBlogs, createBlog, updateBlog, deleteBlog } from '../api';
 import { formatDate } from '../utils/helpers';
 import ImageUpload from '../components/ImageUpload';
@@ -26,6 +27,7 @@ export default function Blogs() {
     getBlogs(1, 50).then(r => { const data = r.data.data || []; console.log('Loaded Blogs:', data); setItems(data); }).catch(() => {}).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
+  usePolling(load, 30000);
 
   const openCreate = () => { setForm(EMPTY); setEditing(null); setError(''); setShowForm(true); };
   const openEdit = item => { setForm({ ...item }); setEditing(item._id); setError(''); setShowForm(true); };

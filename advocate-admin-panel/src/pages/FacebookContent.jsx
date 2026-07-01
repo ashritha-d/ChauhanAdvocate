@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getFacebookContent, createFacebookContent, updateFacebookContent, deleteFacebookContent } from '../api';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -39,6 +40,7 @@ export default function FacebookContent() {
   };
 
   useEffect(() => { load(); }, []);
+  usePolling(load, 30000);
 
   const openAdd = () => {
     setEditing(null); setForm(EMPTY); setThumbFile(null); setThumbPreview('');

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getOrders, updateOrder, deleteOrder } from '../api';
 import { formatDate } from '../utils/helpers';
 import ConfirmModal from '../components/ConfirmModal';
@@ -25,6 +26,7 @@ export default function Orders() {
       .finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, [filter]);
+  usePolling(load, 30000);
 
   const handleView = async (item) => {
     setSelected(item);

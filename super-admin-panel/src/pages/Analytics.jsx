@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import api from '../api/axios';
 
@@ -21,7 +22,7 @@ export default function Analytics() {
   const [charts, setCharts]   = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const load = () => {
     Promise.all([
       api.get('/super-admin/analytics'),
       api.get('/super-admin/dashboard-stats'),
@@ -29,7 +30,9 @@ export default function Analytics() {
       setData(a.data.data);
       setCharts(d.data.data?.charts);
     }).catch(() => {}).finally(() => setLoading(false));
-  }, []);
+  };
+  useEffect(() => { load(); }, []);
+  usePolling(load, 60000);
 
   if (loading) return <div className="text-center py-5"><div className="spinner-border sa-spinner"></div></div>;
 

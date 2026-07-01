@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getMagazines, createMagazine, updateMagazine, deleteMagazine, bulkDeleteMagazines, bulkPublishMagazines, getMagazineStats } from '../api';
 import ConfirmModal from '../components/ConfirmModal';
 import { mediaUrl, formatDate } from '../utils/helpers';
@@ -84,6 +85,7 @@ export default function Magazines() {
   };
 
   useEffect(() => { load(page, search, filterCat, filterStatus, filterType); loadStats(); }, [page]);
+  usePolling(() => { load(page, search, filterCat, filterStatus, filterType); loadStats(); }, 30000);
 
   const handleSearch = () => { setPage(1); load(1, search, filterCat, filterStatus, filterType); };
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getNews, createNews, updateNews, deleteNews } from '../api';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -29,6 +30,7 @@ export default function News() {
     getNews().then(r => { const data = r.data.data || []; console.log('Loaded Latest News:', data); setItems(data); }).catch(() => {}).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
+  usePolling(load, 30000);
 
   const openCreate = () => { setForm(EMPTY); setEditing(null); setError(''); setShowForm(true); };
   const openEdit   = item => {

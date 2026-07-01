@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getHeroBanners, createHeroBanner, updateHeroBanner, deleteHeroBanner } from '../api';
 import ImageUpload from '../components/ImageUpload';
 import ConfirmModal from '../components/ConfirmModal';
@@ -21,6 +22,7 @@ export default function HeroBanners() {
     getHeroBanners().then(r => { const data = r.data.data || []; console.log('Loaded Hero Banners:', data); setItems(data); }).catch(()=>{}).finally(()=>setLoading(false));
   };
   useEffect(() => { load(); }, []);
+  usePolling(load, 30000);
 
   const openCreate = () => { setForm(EMPTY); setEditing(null); setError(''); setShowForm(true); };
   const openEdit = item => { setForm({ ...item }); setEditing(item._id); setError(''); setShowForm(true); };

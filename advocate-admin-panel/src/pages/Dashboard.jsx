@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getAppointments, getContacts, getServices, getBlogs } from '../api';
 import NotificationAnalytics from '../components/NotificationAnalytics';
 
@@ -21,7 +22,7 @@ export default function Dashboard({ onNavigate }) {
   const [recentAppts, setRecentAppts] = useState([]);
   const [recentContacts, setRecentContacts] = useState([]);
 
-  useEffect(() => {
+  const load = () => {
     Promise.all([
       getAppointments(1, 100),
       getContacts(1, 100),
@@ -39,7 +40,9 @@ export default function Dashboard({ onNavigate }) {
       setRecentAppts((appts.data.data || []).slice(0, 5));
       setRecentContacts((contacts.data.data || []).slice(0, 5));
     }).catch(() => {});
-  }, []);
+  };
+  useEffect(() => { load(); }, []);
+  usePolling(load, 30000);
 
   const STATUS_BADGE = { pending:'badge-pending', confirmed:'badge-confirmed', completed:'badge-completed', cancelled:'badge-cancelled' };
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getYouTubeVideos, createYouTubeVideo, updateYouTubeVideo, deleteYouTubeVideo } from '../api';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -27,6 +28,7 @@ export default function YouTubeVideos() {
   };
 
   useEffect(() => { load(); }, []);
+  usePolling(load, 30000);
 
   const openAdd = () => { setEditing(null); setForm(EMPTY); setShowForm(true); };
   const openEdit = v => { setEditing(v._id); setForm({ title: v.title, videoUrl: v.videoId, description: v.description || '', order: v.order, isActive: v.isActive }); setShowForm(true); };

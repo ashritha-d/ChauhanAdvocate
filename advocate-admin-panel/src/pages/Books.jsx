@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getBooks, createBook, updateBook, deleteBook } from '../api';
 import ConfirmModal from '../components/ConfirmModal';
 import { mediaUrl, formatDate } from '../utils/helpers';
@@ -36,6 +37,7 @@ export default function Books() {
   };
 
   useEffect(() => { load(); }, []);
+  usePolling(load, 30000);
 
   const filtered = items.filter(b =>
     !search || b.name.toLowerCase().includes(search.toLowerCase()) || (b.author || '').toLowerCase().includes(search.toLowerCase())

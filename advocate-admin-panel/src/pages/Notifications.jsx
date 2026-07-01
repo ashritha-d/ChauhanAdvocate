@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import api from '../api/axios';
 import { formatDate } from '../utils/helpers';
 
@@ -58,6 +59,7 @@ export default function Notifications() {
   };
 
   useEffect(() => { load(); }, []);
+  usePolling(load, 30000);
 
   const totalNew = (counts.users || 0) + (counts.appointments || 0) + (counts.bookorders || 0) + (counts.jradvocates || 0);
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import api from '../api/axios';
 
 const STATUS_META = {
@@ -56,6 +57,7 @@ export default function Appointments() {
   }, []);
 
   useEffect(() => { load(1); setPage(1); }, [search, statusFilter]);
+  usePolling(() => load(page), 30000);
 
   const openEdit = a => { setSelected(a); setForm({ status: a.status, adminNotes: a.adminNotes || '' }); setModal('edit'); };
 

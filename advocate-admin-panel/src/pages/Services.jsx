@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { getServices, createService, updateService, deleteService } from '../api';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -22,6 +23,7 @@ export default function Services() {
     getServices().then(r => { const data = r.data.data || []; console.log('Loaded Services:', data); setItems(data); }).catch(() => {}).finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
+  usePolling(load, 30000);
 
   const openCreate = () => { setForm(EMPTY); setEditing(null); setFeatInput(''); setError(''); setShowForm(true); };
   const openEdit = item => { setForm({ ...item, features: item.features || [] }); setEditing(item._id); setFeatInput(''); setError(''); setShowForm(true); };

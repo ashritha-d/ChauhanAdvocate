@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import api from '../api/axios';
 
 const ICONS = [
@@ -46,6 +47,7 @@ export default function Services() {
   };
 
   useEffect(() => { load(); }, []);
+  usePolling(load, 30000);
 
   const openCreate = () => { setForm(EMPTY); setEditing(null); setFeatInput(''); setError(''); setShowForm(true); };
   const openEdit   = item => { setForm({ ...item, features: item.features || [] }); setEditing(item._id); setFeatInput(''); setError(''); setShowForm(true); };

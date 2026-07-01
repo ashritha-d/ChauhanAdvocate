@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import api from '../api/axios';
 
 const ACTION_LABELS = {
@@ -36,6 +37,7 @@ export default function AuditLogs() {
   };
 
   useEffect(() => { loadLogs(1); }, [action]);
+  usePolling(() => loadLogs(1), 30000);
 
   const fmtDT = d => new Date(d).toLocaleString('en-IN', {
     day: '2-digit', month: 'short', year: 'numeric',

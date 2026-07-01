@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import api from '../api/axios';
 
 const FEATURES = [
@@ -29,9 +30,11 @@ export default function FeatureToggles() {
   const [saved, setSaved]       = useState(false);
   const [confirmKey, setConfirmKey] = useState(null);
 
-  useEffect(() => {
+  const load = () => {
     api.get('/super-admin/feature-toggles').then(r => setFeatures(r.data.data || {})).catch(() => {}).finally(() => setLoading(false));
-  }, []);
+  };
+  useEffect(() => { load(); }, []);
+  usePolling(load, 60000);
 
   const handleToggle = (key) => {
     const feat = FEATURES.find(f => f.key === key);

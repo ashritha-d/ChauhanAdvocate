@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import api from '../api/axios';
 
 function Toast({ msg, type, onClose }) {
@@ -43,6 +44,7 @@ export default function Users() {
   };
 
   useEffect(() => { load(1); setPage(1); }, [search, statusFilter]);
+  usePolling(() => load(page), 30000);
 
   const handleToggleStatus = async (u) => {
     try {

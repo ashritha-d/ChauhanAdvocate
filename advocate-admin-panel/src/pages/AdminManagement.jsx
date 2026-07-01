@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import api from '../api/axios';
 
 const ROLES = ['admin', 'editor', 'content_manager', 'support', 'superadmin'];
@@ -80,6 +81,7 @@ export default function AdminManagement() {
 
   useEffect(() => { loadAdmins(1); setPage(1); }, [search, roleFilter, statusFilter]);
   useEffect(() => { loadStats(); }, []);
+  usePolling(() => { loadAdmins(page); loadStats(); }, 30000);
 
   const openCreate = () => { setForm(emptyForm); setModal('create'); };
   const openEdit   = (a) => { setSelected(a); setForm({ name: a.name, username: a.username || '', email: a.email, phone: a.phone || '', password: '', role: a.role, isActive: a.isActive }); setModal('edit'); };

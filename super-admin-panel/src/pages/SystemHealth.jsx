@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import api from '../api/axios';
 
 export default function SystemHealth() {
@@ -16,6 +17,7 @@ export default function SystemHealth() {
   };
 
   useEffect(() => { load(); }, []);
+  usePolling(load, 30000);
 
   const refresh = () => { setRefreshing(true); load(); };
 

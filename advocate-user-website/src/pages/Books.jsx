@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import usePolling from '../hooks/usePolling';
 import SEOHead from '../components/SEOHead';
 import OrderModal from '../components/OrderModal';
 import { getBooks } from '../api';
@@ -48,6 +49,7 @@ export default function BooksPage() {
   }, []);
 
   useEffect(() => { fetchBooks(); }, [fetchBooks]);
+  usePolling(fetchBooks, 60000);
 
   // Auto-open book modal when arriving from popup or after login redirect
   useEffect(() => {

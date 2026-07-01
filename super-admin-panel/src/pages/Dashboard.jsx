@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import usePolling from '../hooks/usePolling';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
@@ -29,9 +30,11 @@ export default function Dashboard({ onNavigate }) {
   const [data, setData]     = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const load = () => {
     api.get('/super-admin/dashboard-stats').then(r => setData(r.data.data)).catch(() => {}).finally(() => setLoading(false));
-  }, []);
+  };
+  useEffect(() => { load(); }, []);
+  usePolling(load, 30000);
 
   const fmtAmt = a => `₹${(a || 0).toLocaleString('en-IN')}`;
   const fmtDT  = d => new Date(d).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });

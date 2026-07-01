@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import usePolling from '../hooks/usePolling';
 import { useNavigate } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
 import { useUserAuth } from '../context/UserAuthContext';
@@ -220,6 +221,7 @@ export default function MagazinesPage() {
   }, [filter]);
 
   useEffect(() => { fetchMagazines(); setPage(1); }, [fetchMagazines]);
+  usePolling(fetchMagazines, 60000);
 
   useEffect(() => {
     if (!user || !magazines.length) return;

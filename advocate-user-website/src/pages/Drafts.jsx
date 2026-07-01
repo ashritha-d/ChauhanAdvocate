@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import usePolling from '../hooks/usePolling';
 import SEOHead from '../components/SEOHead';
 import { getDrafts } from '../api';
 import { mediaUrl } from '../utils/helpers';
@@ -59,6 +60,7 @@ export default function DraftsPage() {
   }, []);
 
   useEffect(() => { fetchDrafts(); }, [fetchDrafts]);
+  usePolling(fetchDrafts, 60000);
 
   const handleDownload = (d) => {
     const file = d.contentDataJson?.file;
