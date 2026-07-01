@@ -4,6 +4,7 @@ const Appointment = require('../models/Appointment');
 const BookOrder = require('../models/BookOrder');
 const UserNotification = require('../models/UserNotification');
 const { generateUserToken } = require('../middleware/userAuth');
+const { sendOTPEmail } = require('../services/email');
 
 // ── Register ──────────────────────────────────────────────────────────────────
 exports.register = async (req, res) => {
@@ -100,6 +101,13 @@ exports.forgotPassword = async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     console.log(`[OTP for ${email}]: ${otp}`);
+
+    try {
+      await sendOTPEmail({ to: email, otp, name: user.name });
+    } catch (emailErr) {
+      console.error('[OTP Email Error]', emailErr.message);
+      return res.status(500).json({ success: false, message: 'Failed to send OTP email. Please try again.' });
+    }
 
     res.json({
       success: true,
