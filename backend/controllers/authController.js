@@ -105,8 +105,9 @@ exports.seedAdmin = async (req, res) => {
     if (exists) {
       exists.password = password;
       exists.name     = name;
+      exists.role     = 'superadmin';
       await exists.save();
-      return res.json({ success: true, message: 'Admin password reset successfully' });
+      return res.json({ success: true, message: 'Admin updated to superadmin successfully' });
     }
     await Admin.create({ name, email, password, role: 'superadmin' });
     res.json({ success: true, message: 'Superadmin created successfully' });
