@@ -1,29 +1,44 @@
-const nodemailer = require('nodemailer');
+const https = require('https');
 
-function getTransporter() {
-  const host = process.env.EMAIL_HOST;
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_PASS;
-
-  if (!host || !user || !pass) return null;
-
-  return nodemailer.createTransport({
-    host,
-    port: parseInt(process.env.EMAIL_PORT || '587'),
-    secure: process.env.EMAIL_SECURE === 'true',
-    auth: { user, pass },
-    connectionTimeout: 10000,
-    greetingTimeout: 8000,
-    socketTimeout: 10000,
+function brevoSend(payload) {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify(payload);
+    const req = https.request(
+      {
+        hostname: 'api.brevo.com',
+        path: '/v3/smtp/email',
+        method: 'POST',
+        headers: {
+          'api-key': process.env.BREVO_API_KEY,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(data),
+        },
+      },
+      (res) => {
+        let body = '';
+        res.on('data', (chunk) => (body += chunk));
+        res.on('end', () => {
+          if (res.statusCode >= 400) {
+            reject(new Error(`Brevo ${res.statusCode}: ${body}`));
+          } else {
+            resolve(body);
+          }
+        });
+      }
+    );
+    req.on('error', reject);
+    req.write(data);
+    req.end();
   });
 }
+
+const FROM = { name: 'Balu Law Chamber', email: process.env.EMAIL_USER || 'propmangeapp@gmail.com' };
 
 exports.sendPaymentReceipt = async ({
   to, bcc, receiptId, transactionId, appointmentId,
   name, phone, service, date, time, appointmentMode, amount, paymentMethod,
 }) => {
-  const transporter = getTransporter();
-  if (!transporter) {
+  if (!process.env.BREVO_API_KEY) {
     console.log('[Email LOG] Receipt would be sent to:', to);
     return;
   }
@@ -55,9 +70,7 @@ exports.sendPaymentReceipt = async ({
     <div class="badge">PAYMENT RECEIPT</div>
   </div>
   <div class="body">
-    <div class="success-badge">
-      ✅ Payment Successful — Appointment Confirmed!
-    </div>
+    <div class="success-badge">✅ Payment Successful — Appointment Confirmed!</div>
     <div class="row"><span class="label">Receipt ID</span><span class="value">${receiptId}</span></div>
     <div class="row"><span class="label">Transaction ID</span><span class="value">${transactionId}</span></div>
     <div class="row"><span class="label">Appointment ID</span><span class="value">${appointmentId}</span></div>
@@ -82,20 +95,19 @@ exports.sendPaymentReceipt = async ({
 </body>
 </html>`;
 
-  await transporter.sendMail({
-    from: `"Balu Law Chamber" <${process.env.EMAIL_USER}>`,
-    to,
-    bcc: bcc || undefined,
+  await brevoSend({
+    sender: FROM,
+    to: [{ email: to }],
+    ...(bcc && { bcc: [{ email: bcc }] }),
     subject: `Payment Receipt — ${receiptId} | Balu Law Chamber`,
-    html,
+    htmlContent: html,
   });
 
   console.log('[Email SENT] Receipt to:', to);
 };
 
 exports.sendOTPEmail = async ({ to, otp, name }) => {
-  const transporter = getTransporter();
-  if (!transporter) {
+  if (!process.env.BREVO_API_KEY) {
     console.log('[Email LOG] OTP would be sent to:', to, '| OTP:', otp);
     return;
   }
@@ -134,11 +146,11 @@ exports.sendOTPEmail = async ({ to, otp, name }) => {
 </body>
 </html>`;
 
-  await transporter.sendMail({
-    from: `"Balu Law Chamber" <${process.env.EMAIL_USER}>`,
-    to,
+  await brevoSend({
+    sender: FROM,
+    to: [{ email: to }],
     subject: 'Password Reset OTP — Balu Law Chamber',
-    html,
+    htmlContent: html,
   });
 
   console.log('[Email SENT] OTP to:', to);
