@@ -110,9 +110,7 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="d-flex justify-content-end mb-3">
-              <Link to="/forgot-password" className="auth-link">Forgot password?</Link>
-            </div>
+
 
             <button type="submit" className="btn btn-gold w-100 py-3" disabled={loading}>
               {loading

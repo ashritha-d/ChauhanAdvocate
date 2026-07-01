@@ -13,7 +13,6 @@ import Home from './pages/Home';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
 import Profile from './pages/Profile';
 import Gallery from './pages/Gallery';
 import Courses from './pages/Courses';
@@ -198,11 +197,6 @@ export default function App() {
             <Route path="/register" element={
               <AuthLayout>
                 <Register />
-              </AuthLayout>
-            } />
-            <Route path="/forgot-password" element={
-              <AuthLayout>
-                <ForgotPassword />
               </AuthLayout>
             } />
             <Route path="/profile" element={
