@@ -225,23 +225,23 @@ export default function AdminManagement() {
                         <div className="d-flex align-items-center gap-2">
                           <div className="sa-table-avatar">{a.name.charAt(0).toUpperCase()}</div>
                           <div>
-                            <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#e2e8f0' }}>{a.name}</div>
-                            <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{a.email}</div>
+                            <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#111827' }}>{a.name}</div>
+                            <div style={{ fontSize: '0.75rem', color: '#4b5563' }}>{a.email}</div>
                             {a.phone && <div style={{ fontSize: '0.72rem', color: '#6b7280' }}>{a.phone}</div>}
                           </div>
                         </div>
                       </td>
                       <td><RoleBadge role={a.role} /></td>
                       <td>
-                        <span style={{ background: a.isActive ? '#065f4622' : '#991b1b22', color: a.isActive ? '#34d399' : '#f87171', padding: '3px 12px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600 }}>
+                        <span style={{ background: a.isActive ? '#dcfce7' : '#fee2e2', color: a.isActive ? '#166534' : '#991b1b', padding: '3px 12px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600 }}>
                           {a.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </td>
-                      <td style={{ fontSize: '0.8rem', color: '#9ca3af' }}>
+                      <td style={{ fontSize: '0.8rem', color: '#374151' }}>
                         <div>{fmtDT(a.lastLogin)}</div>
                         {a.lastLoginIp && <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>{a.lastLoginIp}</div>}
                       </td>
-                      <td style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{fmtDate(a.createdAt)}</td>
+                      <td style={{ fontSize: '0.8rem', color: '#374151' }}>{fmtDate(a.createdAt)}</td>
                       <td className="px-4">
                         <div className="d-flex gap-1">
                           <button className="sa-action-btn sa-action-edit" title="Edit" onClick={() => openEdit(a)}><i className="fas fa-edit"></i></button>

@@ -141,19 +141,19 @@ export default function Users() {
                         <div className="d-flex align-items-center gap-2">
                           <div className="sa-table-avatar" style={{ background: '#0d6efd' }}>{(u.name || 'U').charAt(0).toUpperCase()}</div>
                           <div>
-                            <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#e2e8f0' }}>{u.name}</div>
-                            <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{u.email || 'No email'}</div>
+                            <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#111827' }}>{u.name}</div>
+                            <div style={{ fontSize: '0.75rem', color: '#4b5563' }}>{u.email || 'No email'}</div>
                           </div>
                         </div>
                       </td>
-                      <td style={{ fontSize: '0.83rem', color: '#9ca3af' }}>{u.phone}</td>
+                      <td style={{ fontSize: '0.83rem', color: '#374151' }}>{u.phone}</td>
                       <td>
-                        <span style={{ background: u.isActive ? '#065f4622' : '#991b1b22', color: u.isActive ? '#34d399' : '#f87171', padding: '3px 12px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600 }}>
+                        <span style={{ background: u.isActive ? '#dcfce7' : '#fee2e2', color: u.isActive ? '#166534' : '#991b1b', padding: '3px 12px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600 }}>
                           {u.isActive ? 'Active' : 'Suspended'}
                         </span>
                       </td>
-                      <td style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{fmtDT(u.lastLogin)}</td>
-                      <td style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{fmtDate(u.createdAt)}</td>
+                      <td style={{ fontSize: '0.8rem', color: '#374151' }}>{fmtDT(u.lastLogin)}</td>
+                      <td style={{ fontSize: '0.8rem', color: '#374151' }}>{fmtDate(u.createdAt)}</td>
                       <td className="px-4">
                         <div className="d-flex gap-1">
                           <button className="sa-action-btn sa-action-edit" title="Send Notification" onClick={() => { setSelected(u); setModal('notify'); }}>

@@ -170,18 +170,18 @@ export default function Payments() {
                     return (
                       <tr key={p._id}>
                         <td className="px-4">
-                          <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#e2e8f0' }}>{p.clientName}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{p.clientPhone}</div>
+                          <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#111827' }}>{p.clientName}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#4b5563' }}>{p.clientPhone}</div>
                         </td>
                         <td style={{ fontWeight: 700, color: '#C9A84C', fontSize: '0.95rem' }}>{fmtAmt(p.amount)}</td>
-                        <td style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{METHOD_LABELS[p.paymentMethod] || p.paymentMethod}</td>
-                        <td style={{ fontSize: '0.75rem', color: '#6b7280', fontFamily: 'monospace' }}>{p.utrNumber || p.transactionId || '—'}</td>
+                        <td style={{ fontSize: '0.8rem', color: '#374151' }}>{METHOD_LABELS[p.paymentMethod] || p.paymentMethod}</td>
+                        <td style={{ fontSize: '0.75rem', color: '#374151', fontFamily: 'monospace' }}>{p.utrNumber || p.transactionId || '—'}</td>
                         <td>
                           <span style={{ background: sm.color + '22', color: sm.color, padding: '3px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600 }}>
                             {sm.label}
                           </span>
                         </td>
-                        <td style={{ fontSize: '0.78rem', color: '#9ca3af' }}>{fmtDate(p.createdAt)}</td>
+                        <td style={{ fontSize: '0.78rem', color: '#374151' }}>{fmtDate(p.createdAt)}</td>
                         <td className="px-4">
                           <div className="d-flex gap-1">
                             {p.status === 'pending_verification' && (

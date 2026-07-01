@@ -169,12 +169,12 @@ export default function Appointments() {
                     return (
                       <tr key={a._id}>
                         <td className="px-4">
-                          <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#e2e8f0' }}>{a.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{a.email}</div>
+                          <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#111827' }}>{a.name}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#4b5563' }}>{a.email}</div>
                           <div style={{ fontSize: '0.72rem', color: '#6b7280' }}>{a.phone}</div>
                         </td>
-                        <td style={{ fontSize: '0.83rem', color: '#9ca3af', maxWidth: 140 }}>{a.service}</td>
-                        <td style={{ fontSize: '0.8rem', color: '#9ca3af' }}>
+                        <td style={{ fontSize: '0.83rem', color: '#374151', maxWidth: 140 }}>{a.service}</td>
+                        <td style={{ fontSize: '0.8rem', color: '#374151' }}>
                           <div>{fmtDate(a.date)}</div>
                           <div>{a.time}</div>
                         </td>
