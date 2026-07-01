@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const { login } = useAuth();
-  const [form, setForm]       = useState({ email: 'admin@advocatechauhan.com', password: 'Admin@123456' });
+  const [form, setForm]       = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
   const [showPwd, setShowPwd] = useState(false);
