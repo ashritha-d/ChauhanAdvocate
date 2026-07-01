@@ -445,8 +445,8 @@ body {
 
 /* ── Table ── */
 .sa-table { color: #111827; }
-.sa-table thead tr { background: #1a1f2e; }
-.sa-table thead th { color: #f1f5f9; font-size: 0.8rem; font-weight: 700; border-bottom: 1px solid #1e2436; padding: 13px 16px; letter-spacing: 0.5px; text-transform: uppercase; }
+.sa-table thead tr { background: #f1f5f9; }
+.sa-table thead th { color: #111827; font-size: 0.8rem; font-weight: 700; border-bottom: 1px solid #e2e8f0; padding: 13px 16px; letter-spacing: 0.5px; text-transform: uppercase; }
 .sa-table tbody tr { border-bottom: 1px solid #f0f0f0; transition: background 0.15s; }
 .sa-table tbody tr:hover { background: #f0f4ff; }
 .sa-table tbody td { padding: 13px 16px; vertical-align: middle; border: none; font-size: 0.9rem; color: #111827; font-weight: 450; }
