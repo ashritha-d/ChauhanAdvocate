@@ -253,11 +253,13 @@ export default function AdminManagement() {
                         <div className="d-flex gap-1">
                           <button className="sa-action-btn sa-action-edit" title="Edit" onClick={() => openEdit(a)}><i className="fas fa-edit"></i></button>
                           <button className="sa-action-btn sa-action-key" title="Reset Password" onClick={() => openReset(a)}><i className="fas fa-key"></i></button>
-                          <button className="sa-action-btn" title={a.isActive ? 'Deactivate' : 'Activate'}
-                            style={{ background: a.isActive ? '#7f1d1d33' : '#06402a33', color: a.isActive ? '#f87171' : '#34d399', border: 'none' }}
-                            onClick={() => handleToggle(a)}>
-                            <i className={`fas fa-${a.isActive ? 'ban' : 'check'}`}></i>
-                          </button>
+                          {a.role !== 'superadmin' && (
+                            <button className="sa-action-btn" title={a.isActive ? 'Deactivate' : 'Activate'}
+                              style={{ background: a.isActive ? '#7f1d1d33' : '#06402a33', color: a.isActive ? '#f87171' : '#34d399', border: 'none' }}
+                              onClick={() => handleToggle(a)}>
+                              <i className={`fas fa-${a.isActive ? 'ban' : 'check'}`}></i>
+                            </button>
+                          )}
                           {a.role !== 'superadmin' && (
                             <button className="sa-action-btn sa-action-delete" title="Delete" onClick={() => openDelete(a)}><i className="fas fa-trash"></i></button>
                           )}
