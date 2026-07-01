@@ -138,9 +138,14 @@ export default function AdminManagement() {
           <h4 className="sa-page-title"><i className="fas fa-shield-alt me-2"></i>Admin Management</h4>
           <p className="sa-page-subtitle">Create, edit and manage all administrator accounts</p>
         </div>
-        <button className="sa-btn-primary" onClick={openCreate}>
-          <i className="fas fa-plus me-2"></i>Add Admin
-        </button>
+        <div style={{ textAlign: 'right' }}>
+          <button className="sa-btn-primary" onClick={openCreate} disabled={stats && stats.nonSuperAdminCount >= 3} title={stats && stats.nonSuperAdminCount >= 3 ? 'Admin limit reached (max 3)' : ''}>
+            <i className="fas fa-plus me-2"></i>Add Admin
+          </button>
+          {stats && stats.nonSuperAdminCount >= 3 && (
+            <div style={{ fontSize: '0.72rem', color: '#f87171', marginTop: 4 }}>Limit reached (3/3)</div>
+          )}
+        </div>
       </div>
 
       {/* Stats */}

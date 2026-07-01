@@ -52,10 +52,11 @@ exports.getAllAdmins = async (req, res) => {
 // GET /api/admin-management/stats
 exports.getStats = async (req, res) => {
   try {
-    const [total, active, inactive, recentLogins, recentCreated] = await Promise.all([
+    const [total, active, inactive, nonSuperAdminCount, recentLogins, recentCreated] = await Promise.all([
       Admin.countDocuments({ deletedAt: null }),
       Admin.countDocuments({ deletedAt: null, isActive: true }),
       Admin.countDocuments({ deletedAt: null, isActive: false }),
+      Admin.countDocuments({ deletedAt: null, role: { $ne: 'superadmin' } }),
       Admin.find({ deletedAt: null, lastLogin: { $ne: null } })
            .sort({ lastLogin: -1 }).limit(5)
            .select('name email role lastLogin lastLoginIp'),
@@ -63,7 +64,7 @@ exports.getStats = async (req, res) => {
            .sort({ createdAt: -1 }).limit(5)
            .select('name email role isActive createdAt'),
     ]);
-    res.json({ success: true, data: { total, active, inactive, recentLogins, recentCreated } });
+    res.json({ success: true, data: { total, active, inactive, nonSuperAdminCount, recentLogins, recentCreated } });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -83,8 +84,14 @@ exports.createAdmin = async (req, res) => {
       return res.status(409).json({ success: false, message: 'Email or username already in use' });
     }
 
-    // Only superadmin can create another superadmin
+    // Hard limit: maximum 3 admins (excluding superadmin accounts)
+    const adminCount = await Admin.countDocuments({ role: { $ne: 'superadmin' } });
     const assignedRole = role || 'admin';
+    if (assignedRole !== 'superadmin' && adminCount >= 3) {
+      return res.status(403).json({ success: false, message: 'Admin limit reached. Maximum 3 admins allowed.' });
+    }
+
+    // Only superadmin can create another superadmin
     if (assignedRole === 'superadmin' && req.admin.role !== 'superadmin') {
       return res.status(403).json({ success: false, message: 'Only superadmin can create another superadmin' });
     }
