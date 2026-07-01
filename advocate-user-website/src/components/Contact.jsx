@@ -1,5 +1,3 @@
-import { useState } from 'react';
-import { sendContact } from '../api';
 import { useSite } from '../context/SiteContext';
 
 const SOCIALS = [
@@ -12,32 +10,6 @@ const SOCIALS = [
 
 export default function Contact() {
   const { settings: s } = useSite();
-  const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
-  const [submitting, setSubmitting] = useState(false);
-  const [alert, setAlert] = useState(null);
-  const [sent, setSent] = useState(false);
-
-  const showAlert = (type, msg) => {
-    setAlert({ type, msg });
-    if (type !== 'success') setTimeout(() => setAlert(null), 6000);
-  };
-
-  const handleSubmit = async e => {
-    e.preventDefault();
-    if (!e.target.checkValidity()) { e.target.classList.add('was-validated'); return; }
-    setSubmitting(true);
-    try {
-      const r = await sendContact(form);
-      if (r.data.success) {
-        setSent(true);
-        setForm({ name: '', email: '', phone: '', subject: '', message: '' });
-        e.target.classList.remove('was-validated');
-      } else { showAlert('danger', r.data.message || 'Something went wrong.'); }
-    } catch { showAlert('danger', 'Server error. Please try again later.'); }
-    setSubmitting(false);
-  };
-
-  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 
   const phone   = s.contact_phone   || '9392538226';
   const phone2  = s.contact_phone2  || '9441335292';
@@ -58,11 +30,11 @@ export default function Contact() {
           <p className="section-subtitle">We're here to help with your legal needs</p>
         </div>
 
-        {/* Three equal-height columns */}
+        {/* Two equal-height columns */}
         <div className="row g-4 contact-equal-row">
 
           {/* ── Column 1: Contact Details ── */}
-          <div className="col-lg-4 col-md-6 d-flex" data-aos="fade-up" data-aos-delay="0">
+          <div className="col-lg-6 d-flex" data-aos="fade-up" data-aos-delay="0">
             <div className="contact-panel contact-panel--details w-100">
               <div className="contact-panel-header">
                 <div className="contact-panel-icon"><i className="fas fa-address-card"></i></div>
@@ -145,7 +117,7 @@ export default function Contact() {
           </div>
 
           {/* ── Column 2: Location (Map) ── */}
-          <div className="col-lg-4 col-md-6 d-flex" data-aos="fade-up" data-aos-delay="100">
+          <div className="col-lg-6 d-flex" data-aos="fade-up" data-aos-delay="100">
             <div className="contact-panel contact-panel--map w-100">
               <div className="contact-panel-header">
                 <div className="contact-panel-icon"><i className="fas fa-map-marked-alt"></i></div>
@@ -157,7 +129,7 @@ export default function Contact() {
                   src={mapEmbed}
                   width="100%"
                   height="100%"
-                  style={{ border: 0, display: 'block', minHeight: 300 }}
+                  style={{ border: 0, display: 'block', minHeight: 380 }}
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
@@ -166,76 +138,6 @@ export default function Contact() {
               <div className="contact-map-address">
                 <i className="fas fa-map-marker-alt text-gold me-2"></i>
                 <span>{address}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Column 3: Send Message ── */}
-          <div className="col-lg-4 col-md-12 d-flex" data-aos="fade-up" data-aos-delay="200">
-            <div className="contact-panel contact-panel--form w-100">
-              <div className="contact-panel-header">
-                <div className="contact-panel-icon"><i className="fas fa-paper-plane"></i></div>
-                <h5>Send Us a Message</h5>
-              </div>
-
-              <div className="contact-panel-body contact-form-body">
-                {sent ? (
-                  <div className="form-success-screen form-success-inline">
-                    <div className="form-success-icon"><i className="fas fa-check-circle"></i></div>
-                    <h5 className="form-success-title">Message Sent Successfully!</h5>
-                    <p className="form-success-msg">
-                      Thank you for reaching out. We have received your message and will get back to you as soon as possible.
-                    </p>
-                    <p className="form-success-note">
-                      <i className="fas fa-clock me-1 text-gold"></i>
-                      Expected response time: within 24 hours during business days.
-                    </p>
-                    <button className="btn btn-gold mt-3 px-4" onClick={() => setSent(false)}>
-                      <i className="fas fa-envelope me-2"></i>Send Another Message
-                    </button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} noValidate className="d-flex flex-column h-100">
-                    <div className="row g-3 flex-grow-1">
-                      <div className="col-12">
-                        <input type="text" className="form-control" value={form.name} onChange={set('name')} placeholder="Your Full Name *" required />
-                      </div>
-                      <div className="col-12">
-                        <input type="email" className="form-control" value={form.email} onChange={set('email')} placeholder="Email Address *" required />
-                      </div>
-                      <div className="col-12">
-                        <input type="tel" className="form-control" value={form.phone} onChange={set('phone')} placeholder="Phone Number" />
-                      </div>
-                      <div className="col-12">
-                        <input type="text" className="form-control" value={form.subject} onChange={set('subject')} placeholder="Subject *" required />
-                      </div>
-                      <div className="col-12 d-flex flex-column flex-grow-1">
-                        <textarea
-                          className="form-control contact-msg-area"
-                          value={form.message}
-                          onChange={set('message')}
-                          placeholder="Your Message *"
-                          required
-                        ></textarea>
-                      </div>
-                    </div>
-                    <div className="mt-3">
-                      <button type="submit" className="btn btn-gold w-100 py-3" disabled={submitting}>
-                        {submitting
-                          ? <><i className="fas fa-spinner fa-spin me-2"></i>Sending...</>
-                          : <><i className="fas fa-paper-plane me-2"></i>Send Message</>
-                        }
-                      </button>
-                    </div>
-                    {alert && (
-                      <div className={`alert alert-${alert.type} mt-3 mb-0 d-flex align-items-start gap-2`}>
-                        <i className="fas fa-exclamation-circle mt-1 flex-shrink-0"></i>
-                        <span>{alert.msg}</span>
-                        <button type="button" className="btn-close ms-auto flex-shrink-0" onClick={() => setAlert(null)}></button>
-                      </div>
-                    )}
-                  </form>
-                )}
               </div>
             </div>
           </div>

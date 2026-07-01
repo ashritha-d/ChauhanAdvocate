@@ -50,20 +50,51 @@ h1,h2,h3,h4,h5 { font-family: 'Inter', sans-serif; }
 .page-card-body { padding: 24px; }
 
 /* ── Table ── */
-.table-responsive { border-radius: 12px; overflow: hidden; }
+.table-responsive { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,.06); }
 .admin-table { margin: 0; }
-.admin-table thead th { background: #f8f9fa; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #666; border: none; padding: 14px 16px; }
-.admin-table tbody td { padding: 14px 16px; vertical-align: middle; border-color: #f0f0f0; font-size: .88rem; }
-.admin-table tbody tr:hover { background: #fafbff; }
+.admin-table thead th {
+  background: var(--dark);
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .9px;
+  color: #fff;
+  border: none;
+  padding: 15px 16px;
+  white-space: nowrap;
+}
+.admin-table tbody td {
+  padding: 13px 16px;
+  vertical-align: middle;
+  border-color: #f0f0f0;
+  font-size: .9rem;
+  color: #2d2d2d;
+  font-weight: 450;
+}
+.admin-table tbody tr:hover { background: #f0f4ff; }
+.admin-table tbody tr:nth-child(even) { background: #fafbff; }
+.admin-table tbody tr:nth-child(even):hover { background: #eef2ff; }
+
+/* Action buttons in tables */
+.admin-table .btn-sm { padding: 5px 10px; font-size: .8rem; }
 
 /* ── Badge ── */
-.status-badge { padding: 4px 12px; border-radius: 50px; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
-.badge-active { background: #e8f5e9; color: #2e7d32; }
-.badge-inactive { background: #fce4ec; color: #c62828; }
-.badge-pending { background: #fff3e0; color: #e65100; }
-.badge-confirmed { background: #e3f2fd; color: #1565c0; }
-.badge-completed { background: #e8f5e9; color: #2e7d32; }
-.badge-cancelled { background: #fce4ec; color: #c62828; }
+.status-badge { padding: 5px 13px; border-radius: 50px; font-size: .73rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; display: inline-block; }
+.badge-active    { background: #d1fae5; color: #065f46; }
+.badge-inactive  { background: #fee2e2; color: #991b1b; }
+.badge-pending   { background: #fef3c7; color: #92400e; }
+.badge-confirmed { background: #dbeafe; color: #1e40af; }
+.badge-completed { background: #d1fae5; color: #065f46; }
+.badge-cancelled { background: #fee2e2; color: #991b1b; }
+.badge-rescheduled { background: #ede9fe; color: #5b21b6; }
+.badge-published { background: #d1fae5; color: #065f46; }
+.badge-draft     { background: #f3f4f6; color: #374151; }
+.badge-paid      { background: #d1fae5; color: #065f46; }
+.badge-failed    { background: #fee2e2; color: #991b1b; }
+.badge-refunded  { background: #dbeafe; color: #1e40af; }
+.badge-pending-verification { background: #fef3c7; color: #92400e; }
+.badge-unread    { background: #fef3c7; color: #92400e; }
+.badge-read      { background: #f3f4f6; color: #374151; }
 
 /* ── Forms ── */
 .form-control, .form-select { border: 2px solid #f0f0f0; border-radius: 10px; padding: 10px 14px; font-size: .9rem; transition: border-color .2s; }
@@ -128,8 +159,8 @@ h1,h2,h3,h4,h5 { font-family: 'Inter', sans-serif; }
   .stat-icon { width: 44px; height: 44px; font-size: 1.1rem; }
 
   /* Tables */
-  .admin-table thead th { padding: 10px 12px; font-size: .71rem; }
-  .admin-table tbody td { padding: 10px 12px; font-size: .83rem; }
+  .admin-table thead th { padding: 11px 12px; font-size: .74rem; }
+  .admin-table tbody td { padding: 11px 12px; font-size: .85rem; }
 
   /* Search input fills width on mobile */
   .search-input { width: 100%; min-width: 0; }
