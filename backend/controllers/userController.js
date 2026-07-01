@@ -106,7 +106,7 @@ exports.forgotPassword = async (req, res) => {
       await sendOTPEmail({ to: email, otp, name: user.name });
     } catch (emailErr) {
       console.error('[OTP Email Error]', emailErr.message);
-      return res.status(500).json({ success: false, message: 'Failed to send OTP email. Please try again.' });
+      return res.status(500).json({ success: false, message: `Email error: ${emailErr.message || 'unknown error'}` });
     }
 
     res.json({
