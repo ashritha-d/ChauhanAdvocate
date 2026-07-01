@@ -319,12 +319,14 @@ export default function AdminManagement() {
                       <input className="form-control sa-input" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="Min 6 characters" />
                     </div>
                   )}
-                  <div className="col-md-6">
-                    <label className="sa-label">Role *</label>
-                    <select className="form-select sa-input" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
-                      {ROLES.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
-                    </select>
-                  </div>
+                  {(modal === 'create' || selected?.role !== 'superadmin') && (
+                    <div className="col-md-6">
+                      <label className="sa-label">Role *</label>
+                      <select className="form-select sa-input" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
+                        {ROLES.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+                      </select>
+                    </div>
+                  )}
                   <div className="col-md-6">
                     <label className="sa-label">Status</label>
                     <select className="form-select sa-input" value={form.isActive ? 'active' : 'inactive'} onChange={e => setForm(f => ({ ...f, isActive: e.target.value === 'active' }))}>
