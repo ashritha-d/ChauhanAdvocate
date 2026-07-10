@@ -42,8 +42,7 @@ export default function SiteSettings() {
       }
 
       const allChanges = { ...changes, ...uploadedUrls };
-      const payload = Object.entries(allChanges).map(([key, value]) => ({ key, value }));
-      if (payload.length) await api.put('/site-settings', { settings: payload });
+      if (Object.keys(allChanges).length) await api.put('/site-settings', allChanges);
 
       setSettings(s => {
         const updated = { ...s };
