@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 
 const SITE_URL = 'https://ashritha-d.github.io/ChauhanAdvocate';
-const DEFAULT_IMAGE = `${SITE_URL}/advocate.jpeg`;
+const DEFAULT_IMAGE = `${SITE_URL}/adv-photo.jpeg`;
 const SITE_NAME = 'Advocate Chauhan – Balu Law Chamber';
 
 export default function SEOHead({

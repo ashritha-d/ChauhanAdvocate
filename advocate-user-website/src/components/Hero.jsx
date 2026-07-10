@@ -73,7 +73,7 @@ export default function Hero() {
           <div className="col-lg-5 text-center mt-5 mt-lg-0" data-aos="fade-left" data-aos-duration="1000">
             <div className="hero-image-wrap">
               <img
-                src={s.advocate_photo ? mediaUrl(s.advocate_photo) : (import.meta.env.BASE_URL + 'advocate.jpeg')}
+                src={s.advocate_photo ? mediaUrl(s.advocate_photo) : (import.meta.env.BASE_URL + 'adv-photo.jpeg')}
                 alt={advocateName}
                 className="hero-img"
                 onError={e => { e.target.src = import.meta.env.BASE_URL + 'placeholder-lawyer.svg'; }}

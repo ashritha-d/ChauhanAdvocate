@@ -106,7 +106,7 @@ const jsonLd = {
         'Expert legal representation in criminal, civil, family, corporate, property, and constitutional law. Serving Hyderabad since 2009.',
       url: 'https://ashritha-d.github.io/ChauhanAdvocate/',
       telephone: '+91-93925-38226',
-      image: 'https://ashritha-d.github.io/ChauhanAdvocate/advocate.jpeg',
+      image: 'https://ashritha-d.github.io/ChauhanAdvocate/adv-photo.jpeg',
       address: {
         '@type': 'PostalAddress',
         streetAddress: 'Balu Law Chamber, Hasthinapuram',
@@ -143,7 +143,7 @@ const jsonLd = {
       url: 'https://ashritha-d.github.io/ChauhanAdvocate/',
       telephone: '+91-93925-38226',
       priceRange: '₹₹',
-      image: 'https://ashritha-d.github.io/ChauhanAdvocate/advocate.jpeg',
+      image: 'https://ashritha-d.github.io/ChauhanAdvocate/adv-photo.jpeg',
       address: {
         '@type': 'PostalAddress',
         streetAddress: 'Hasthinapuram',
