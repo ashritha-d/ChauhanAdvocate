@@ -35,12 +35,11 @@ export default function Drafts() {
               priceBadge: isPaid ? `₹${price}` : 'Free',
               buttonText: isPaid ? `Buy Now — ₹${price}` : (file ? 'Download Free' : 'Not Available'),
               isButton: true,
-              onClick: isPaid
-                ? () => { navigate('/drafts'); }
-                : () => {
-                    if (!user) { navigate('/login', { state: { from: '/drafts' } }); return; }
-                    doDownload(file ? mediaUrl(file) : null, d.title);
-                  },
+              onClick: () => {
+                if (!user) { navigate('/login', { state: { from: '/drafts' } }); return; }
+                if (isPaid) { navigate('/drafts'); return; }
+                doDownload(file ? mediaUrl(file) : null, d.title);
+              },
             };
           }));
         } else {
