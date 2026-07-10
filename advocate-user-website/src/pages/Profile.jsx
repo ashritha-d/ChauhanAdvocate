@@ -9,7 +9,7 @@ import {
   markNotificationRead, markAllNotificationsRead, getMyApplications,
   getMyEnrollments, getPublicCourse, updateCourseProgress,
   getMyMagazinePurchases, downloadMagazineFull, getDrafts,
-  getMyInternships,
+  getMyInternships, getMyDraftPurchases,
 } from '../api';
 import { mediaUrl } from '../utils/helpers';
 import AppointmentModal from '../components/AppointmentModal';
@@ -195,6 +195,8 @@ export default function Profile() {
   const [notifications, setNotifications] = useState([]);
   const [myMagazines, setMyMagazines] = useState([]);
   const [myDrafts, setMyDrafts] = useState(null);
+  const [myDraftPurchases, setMyDraftPurchases] = useState(null);
+  const [myDownloadedIds, setMyDownloadedIds] = useState([]);
   const [myInternships, setMyInternships] = useState(null);
   const [dataLoading, setDataLoading] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -293,10 +295,20 @@ export default function Profile() {
     if (myDrafts !== null) return;
     setDataLoading(true);
     try {
-      const r = await getDrafts();
-      const data = r.data?.success && r.data.data?.length ? r.data.data : DRAFT_FALLBACK;
-      setMyDrafts(data);
-    } catch { setMyDrafts(DRAFT_FALLBACK); }
+      const [draftsRes, purchasesRes] = await Promise.all([
+        getDrafts(),
+        getMyDraftPurchases(authHeader()),
+      ]);
+      setMyDrafts(draftsRes.data?.success ? (draftsRes.data.data || []) : []);
+      setMyDraftPurchases(purchasesRes.data?.success ? (purchasesRes.data.data || []) : []);
+      try {
+        const ids = JSON.parse(localStorage.getItem('downloadedDraftIds') || '[]');
+        setMyDownloadedIds(ids);
+      } catch { setMyDownloadedIds([]); }
+    } catch {
+      setMyDrafts([]);
+      setMyDraftPurchases([]);
+    }
     setDataLoading(false);
   };
 
@@ -817,60 +829,112 @@ export default function Profile() {
               {tab === 'drafts' && (
                 <div>
                   <div className="d-flex align-items-center justify-content-between mb-4">
-                    <h4 className="profile-section-title mb-0">Legal Drafts</h4>
+                    <h4 className="profile-section-title mb-0">My Drafts</h4>
                     <button className="btn btn-gold btn-sm" onClick={() => navigate('/drafts')}>
-                      <i className="fas fa-file-alt me-1"></i>Browse Drafts
+                      <i className="fas fa-th-large me-1"></i>Browse All Drafts
                     </button>
                   </div>
-                  {dataLoading || myDrafts === null
-                    ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
-                    : (
-                      <div className="row g-3">
-                        {myDrafts.map((d, i) => {
-                          const isPaid = d.accessType === 'paid';
-                          const file   = d.contentDataJson?.file;
-                          return (
-                          <div className="col-md-6" key={d._id || i}>
-                            <div className="profile-course-card">
-                              <div className="profile-course-header">
-                                <div className="profile-course-title">{d.title}</div>
-                                <span className={`badge ${isPaid ? 'bg-warning text-dark' : 'bg-success'}`} style={{ fontSize: '0.7rem' }}>
-                                  {isPaid ? `₹${d.price}` : 'FREE'}
-                                </span>
+                  {dataLoading || myDrafts === null ? (
+                    <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
+                  ) : (
+                    <>
+                      {/* Purchased Drafts */}
+                      <h6 className="fw-bold mb-3" style={{ color: 'var(--gold)' }}>
+                        <i className="fas fa-shopping-cart me-2"></i>Purchased Drafts
+                        {myDraftPurchases?.length > 0 && <span className="badge bg-warning text-dark ms-2">{myDraftPurchases.length}</span>}
+                      </h6>
+                      {!myDraftPurchases?.length ? (
+                        <div className="text-center py-3 mb-4" style={{ background: '#f9f9f9', borderRadius: 12 }}>
+                          <p className="text-muted small mb-2">No purchased drafts yet.</p>
+                          <button className="btn btn-gold btn-sm" onClick={() => navigate('/drafts')}>Browse Paid Drafts</button>
+                        </div>
+                      ) : (
+                        <div className="row g-3 mb-4">
+                          {myDraftPurchases.map(p => {
+                            const draft = p.draftId;
+                            const file  = draft?.contentDataJson?.file;
+                            const isApproved = p.status === 'approved';
+                            const statusColor = { pending_verification: 'warning', approved: 'success', rejected: 'danger' };
+                            const statusLabel = { pending_verification: 'Pending Verification', approved: 'Approved — Download Ready', rejected: 'Rejected' };
+                            return (
+                              <div className="col-md-6" key={p._id}>
+                                <div className="profile-course-card">
+                                  <div className="profile-course-header">
+                                    <div className="profile-course-title">{p.draftTitle || draft?.title || 'Draft'}</div>
+                                    <span className={`badge bg-${statusColor[p.status] || 'secondary'}`} style={{ fontSize: '0.68rem' }}>
+                                      {statusLabel[p.status] || p.status}
+                                    </span>
+                                  </div>
+                                  <div className="text-muted small mb-2">
+                                    <i className="fas fa-credit-card me-1" style={{ color: 'var(--gold)' }}></i>
+                                    Paid — ₹{p.amount} · UTR: {p.utrNumber || '—'}
+                                  </div>
+                                  <div className="text-muted small mb-3">{formatDate(p.createdAt)}</div>
+                                  {isApproved && file ? (
+                                    <button className="btn btn-gold btn-sm w-100" onClick={() => {
+                                      const url = file.startsWith('http') ? file : mediaUrl(file);
+                                      const a = document.createElement('a');
+                                      a.href = url; a.download = (p.draftTitle || 'draft') + '.pdf'; a.target = '_blank';
+                                      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                                    }}>
+                                      <i className="fas fa-download me-1"></i>Download PDF
+                                    </button>
+                                  ) : (
+                                    <div className={`alert alert-${statusColor[p.status] || 'secondary'} py-2 mb-0 small text-center`}>
+                                      {p.status === 'pending_verification' ? 'Payment pending verification. Access granted within 24 hrs.' : p.status === 'rejected' ? 'Payment rejected. Contact support.' : 'Download will be available after approval.'}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                              <div className="text-muted small mb-2">
-                                <i className="fas fa-file-pdf me-1" style={{ color: 'var(--gold)' }}></i>
-                                Legal Document Template
-                              </div>
-                              {isPaid ? (
-                                <button
-                                  className="btn btn-sm w-100 btn-warning"
-                                  onClick={() => navigate('/drafts')}
-                                >
-                                  <i className="fas fa-shopping-cart me-1"></i>
-                                  Buy Now — ₹{d.price}
-                                </button>
-                              ) : (
-                                <button
-                                  className={`btn btn-sm w-100 ${file ? 'btn-gold' : 'btn-outline-secondary'}`}
-                                  onClick={() => {
-                                    if (!file) { alert(`"${d.title}" is not available for download yet.`); return; }
-                                    const a = document.createElement('a');
-                                    a.href = mediaUrl(file); a.download = d.title + '.pdf'; a.target = '_blank';
-                                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                                  }}
-                                >
-                                  <i className={`fas ${file ? 'fa-download' : 'fa-lock'} me-1`}></i>
-                                  {file ? 'Download PDF' : 'Not Available Yet'}
-                                </button>
-                              )}
-                            </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Downloaded Drafts */}
+                      <h6 className="fw-bold mb-3" style={{ color: 'var(--gold)' }}>
+                        <i className="fas fa-download me-2"></i>Downloaded Drafts
+                        {myDownloadedIds.length > 0 && <span className="badge bg-success ms-2">{myDownloadedIds.length}</span>}
+                      </h6>
+                      {(() => {
+                        const downloaded = myDrafts.filter(d => myDownloadedIds.includes(d._id));
+                        return downloaded.length === 0 ? (
+                          <div className="text-center py-3" style={{ background: '#f9f9f9', borderRadius: 12 }}>
+                            <p className="text-muted small mb-2">No downloads yet.</p>
+                            <button className="btn btn-outline-secondary btn-sm" onClick={() => navigate('/drafts')}>Browse Free Drafts</button>
                           </div>
-                          );
-                        })}
-                      </div>
-                    )
-                  }
+                        ) : (
+                          <div className="row g-3">
+                            {downloaded.map(d => {
+                              const file = d.contentDataJson?.file;
+                              return (
+                                <div className="col-md-6" key={d._id}>
+                                  <div className="profile-course-card">
+                                    <div className="profile-course-header">
+                                      <div className="profile-course-title">{d.title}</div>
+                                      <span className="badge bg-success" style={{ fontSize: '0.68rem' }}>FREE</span>
+                                    </div>
+                                    <div className="text-muted small mb-3">
+                                      <i className="fas fa-check-circle me-1 text-success"></i>Downloaded
+                                    </div>
+                                    <button className="btn btn-gold btn-sm w-100" onClick={() => {
+                                      if (!file) { alert('File not available.'); return; }
+                                      const url = file.startsWith('http') ? file : mediaUrl(file);
+                                      const a = document.createElement('a');
+                                      a.href = url; a.download = d.title + '.pdf'; a.target = '_blank';
+                                      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                                    }}>
+                                      <i className="fas fa-download me-1"></i>Download Again
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+                    </>
+                  )}
                 </div>
               )}
 
