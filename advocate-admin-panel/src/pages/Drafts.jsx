@@ -309,7 +309,7 @@ export default function Drafts() {
                 </h5>
                 <button className="btn-close" onClick={() => setShowForm(false)}></button>
               </div>
-              <form onSubmit={handleSave}>
+              <form id="draft-form" onSubmit={handleSave}>
                 <div className="modal-body">
                   {error && <div className="alert alert-danger py-2">{error}</div>}
                   <div className="row g-3">
@@ -389,16 +389,16 @@ export default function Drafts() {
                     </div>
                   </div>
                 </div>
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-light" onClick={() => setShowForm(false)}>Cancel</button>
-                  <button type="submit" className="btn btn-gold" disabled={saving}>
-                    {saving
-                      ? <><i className="fas fa-spinner fa-spin me-1"></i>Saving...</>
-                      : <><i className="fas fa-save me-1"></i>Save Draft</>
-                    }
-                  </button>
-                </div>
               </form>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-light" onClick={() => setShowForm(false)}>Cancel</button>
+                <button type="submit" form="draft-form" className="btn btn-gold" disabled={saving}>
+                  {saving
+                    ? <><i className="fas fa-spinner fa-spin me-1"></i>Saving...</>
+                    : <><i className="fas fa-save me-1"></i>Save Draft</>
+                  }
+                </button>
+              </div>
             </div>
           </div>
         </div>
