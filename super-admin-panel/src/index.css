@@ -527,6 +527,10 @@ body {
   border: 1px solid #1e2436 !important;
   border-radius: 16px !important;
   box-shadow: 0 24px 80px rgba(0,0,0,0.6) !important;
+  max-height: 90vh !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .sa-modal-header {
@@ -535,14 +539,20 @@ body {
   color: #e2e8f0 !important;
   border-radius: 16px 16px 0 0 !important;
   padding: 16px 20px !important;
+  flex-shrink: 0 !important;
 }
 
-.sa-modal-body { padding: 20px !important; }
+.sa-modal-body {
+  padding: 20px !important;
+  overflow-y: auto !important;
+  flex: 1 1 auto !important;
+}
 
 .sa-modal-footer {
   background: #13151f !important;
   border-top: 1px solid #1e2436 !important;
   padding: 14px 20px !important;
+  flex-shrink: 0 !important;
 }
 
 /* ── Spinner ── */
