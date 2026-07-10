@@ -826,33 +826,48 @@ export default function Profile() {
                     ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
                     : (
                       <div className="row g-3">
-                        {myDrafts.map((d, i) => (
+                        {myDrafts.map((d, i) => {
+                          const isPaid = d.accessType === 'paid';
+                          const file   = d.contentDataJson?.file;
+                          return (
                           <div className="col-md-6" key={d._id || i}>
                             <div className="profile-course-card">
                               <div className="profile-course-header">
                                 <div className="profile-course-title">{d.title}</div>
-                                {d.category && <span className="badge bg-warning text-dark">{d.category}</span>}
+                                <span className={`badge ${isPaid ? 'bg-warning text-dark' : 'bg-success'}`} style={{ fontSize: '0.7rem' }}>
+                                  {isPaid ? `₹${d.price}` : 'FREE'}
+                                </span>
                               </div>
                               <div className="text-muted small mb-2">
                                 <i className="fas fa-file-pdf me-1" style={{ color: 'var(--gold)' }}></i>
                                 Legal Document Template
                               </div>
-                              {d.description && <p className="text-muted small mb-3">{d.description}</p>}
-                              <button
-                                className={`btn btn-sm w-100 ${d.file ? 'btn-gold' : 'btn-outline-secondary'}`}
-                                onClick={() => {
-                                  if (!d.file) { alert(`"${d.title}" is not available for download yet.`); return; }
-                                  const a = document.createElement('a');
-                                  a.href = mediaUrl(d.file); a.download = d.title + '.pdf'; a.target = '_blank';
-                                  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                                }}
-                              >
-                                <i className={`fas ${d.file ? 'fa-download' : 'fa-lock'} me-1`}></i>
-                                {d.file ? 'Download PDF' : 'Not Available Yet'}
-                              </button>
+                              {isPaid ? (
+                                <button
+                                  className="btn btn-sm w-100 btn-warning"
+                                  onClick={() => navigate('/drafts')}
+                                >
+                                  <i className="fas fa-shopping-cart me-1"></i>
+                                  Buy Now — ₹{d.price}
+                                </button>
+                              ) : (
+                                <button
+                                  className={`btn btn-sm w-100 ${file ? 'btn-gold' : 'btn-outline-secondary'}`}
+                                  onClick={() => {
+                                    if (!file) { alert(`"${d.title}" is not available for download yet.`); return; }
+                                    const a = document.createElement('a');
+                                    a.href = mediaUrl(file); a.download = d.title + '.pdf'; a.target = '_blank';
+                                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                                  }}
+                                >
+                                  <i className={`fas ${file ? 'fa-download' : 'fa-lock'} me-1`}></i>
+                                  {file ? 'Download PDF' : 'Not Available Yet'}
+                                </button>
+                              )}
                             </div>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )
                   }
