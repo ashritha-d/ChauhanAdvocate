@@ -104,6 +104,8 @@ app.use('/api/super-admin',      require('./routes/superAdmin'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/courses', require('./routes/courses'));
 app.use('/api/news',    require('./routes/news'));
+app.use('/api/internships',     require('./routes/internships'));
+app.use('/api/draft-purchases', require('./routes/draftPurchases'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));

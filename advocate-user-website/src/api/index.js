@@ -67,3 +67,12 @@ export const getPublicCourse = (id, headers = {}) => api.get(`/courses/public/${
 export const enrollCourse = (data, headers) => api.post('/courses/enroll', data, { headers });
 export const getMyEnrollments = (headers) => api.get('/courses/my-enrollments', { headers });
 export const updateCourseProgress = (data, headers) => api.post('/courses/progress', data, { headers });
+
+// ── Internship Programme ────────────────────────────────────────────────────
+export const submitInternshipApplication = (formData) => api.post('/internships', formData);
+export const getMyInternships = (headers) => api.get('/internships/my-applications', { headers });
+
+// ── Draft Purchases ────────────────────────────────────────────────────────
+export const purchaseDraft = (draftId, formData, headers = {}) => api.post(`/draft-purchases/${draftId}`, formData, { headers });
+export const checkDraftPurchase = (draftId, headers = {}) => api.get(`/draft-purchases/check/${draftId}`, { headers });
+export const getMyDraftPurchases = (headers = {}) => api.get('/draft-purchases/my', { headers });

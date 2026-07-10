@@ -19,10 +19,11 @@ const NAV = [
     { icon: 'fab fa-facebook',       label: 'Facebook Content', page: 'facebook' },
   ]},
   { label: 'Inquiries', items: [
-    { icon: 'fas fa-calendar-alt',   label: 'Appointments',   page: 'appointments' },
-    { icon: 'fas fa-book',           label: 'Book Orders',    page: 'bookorders' },
-    { icon: 'fas fa-user-tie',       label: 'Jr. Advocates',  page: 'jradvocates' },
-    { icon: 'fas fa-credit-card',    label: 'Payments',       page: 'payments' },
+    { icon: 'fas fa-calendar-alt',   label: 'Appointments',      page: 'appointments' },
+    { icon: 'fas fa-book',           label: 'Book Orders',       page: 'bookorders' },
+    { icon: 'fas fa-user-tie',       label: 'Jr. Advocates',     page: 'jradvocates' },
+    { icon: 'fas fa-graduation-cap', label: 'Internship Appls.', page: 'internships' },
+    { icon: 'fas fa-credit-card',    label: 'Payments',          page: 'payments' },
   ]},
   { label: 'Alerts', items: [
     { icon: 'fas fa-bell', label: 'All Notifications', page: 'notifications' },

@@ -122,5 +122,15 @@ export const createBook     = (data)       => api.post('/books', data, { headers
 export const updateBook     = (id, data)   => api.put(`/books/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const deleteBook     = (id)         => api.delete(`/books/${id}`);
 
+// Internship Applications
+export const getInternships        = (params = {}) => api.get('/internships', { params });
+export const updateInternship      = (id, data)    => api.put(`/internships/${id}`, data);
+export const deleteInternship      = (id)          => api.delete(`/internships/${id}`);
+
+// Draft Purchases
+export const getDraftPurchases     = (params = {}) => api.get('/draft-purchases', { params });
+export const updateDraftPurchase   = (id, data)    => api.put(`/draft-purchases/${id}`, data);
+export const deleteDraftPurchase   = (id)          => api.delete(`/draft-purchases/${id}`);
+
 // Upload
 export const uploadFile = (formData) => api.post('/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });

@@ -25,6 +25,19 @@ export default function JoinUs() {
     }
   };
 
+  const handleInternshipClick = () => {
+    if (!user) {
+      navigate('/login', { state: { from: '/internship-payment' } });
+      return;
+    }
+    sessionStorage.setItem('pendingInternship', JSON.stringify({
+      name: user.name || '',
+      email: user.email || '',
+      phone: user.phone || '',
+    }));
+    navigate('/internship-payment');
+  };
+
   const items = [
     {
       img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`,
@@ -60,10 +73,10 @@ export default function JoinUs() {
     {
       img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`,
       title: 'LLB Internship Programme',
-      description: '45-Day internship with live legal training, practical case exposure, mentorship and a certificate upon completion. Ideal for law students.',
-      buttonText: 'Apply Now',
+      description: '45-Day internship with live legal training, practical case exposure, mentorship and a certificate upon completion. Ideal for law students. Enrolment fee: ₹1,000.',
+      buttonText: 'Enroll Now — ₹1,000',
       isButton: true,
-      onClick: handleApplyClick,
+      onClick: handleInternshipClick,
       badge: '45 Days · Certificate',
     },
   ];

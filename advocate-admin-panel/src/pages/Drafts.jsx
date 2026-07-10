@@ -14,7 +14,7 @@ const TYPE_META = {
   youtube:   { label: 'YouTube',   icon: 'fab fa-youtube',         color: '#dc3545' },
 };
 
-const EMPTY = { title: '', contentType: 'blog', contentDataJson: '', status: 'draft', createdBy: '' };
+const EMPTY = { title: '', contentType: 'blog', contentDataJson: '', status: 'draft', createdBy: '', accessType: 'free', price: '' };
 const LIMIT  = 20;
 
 export default function Drafts() {
@@ -80,8 +80,10 @@ export default function Drafts() {
       contentDataJson: item.contentDataJson && typeof item.contentDataJson === 'object'
         ? JSON.stringify(item.contentDataJson, null, 2)
         : (item.contentDataJson || ''),
-      status:    item.status || 'draft',
-      createdBy: item.createdBy || ''
+      status:     item.status || 'draft',
+      createdBy:  item.createdBy || '',
+      accessType: item.accessType || 'free',
+      price:      item.price != null ? String(item.price) : '',
     });
     setEditing(item._id);
     setError('');
@@ -100,6 +102,8 @@ export default function Drafts() {
       fd.append('contentDataJson', form.contentDataJson || '{}');
       fd.append('status', form.status);
       fd.append('createdBy', form.createdBy);
+      fd.append('accessType', form.accessType || 'free');
+      if (form.accessType === 'paid' && form.price) fd.append('price', form.price);
       if (thumbFile) fd.append('thumbnail', thumbFile);
       if (draftDocFile) fd.append('draftFile', draftDocFile);
       if (editing) await updateDraft(editing, fd);
@@ -256,6 +260,10 @@ export default function Drafts() {
                       <span className={`status-badge ${item.status === 'published' ? 'badge-active' : 'badge-inactive'}`}>
                         {item.status === 'published' ? 'Published' : 'Draft'}
                       </span>
+                      {' '}
+                      <span className={`badge ${item.accessType === 'paid' ? 'bg-warning text-dark' : 'bg-success'}`} style={{ fontSize: '0.65rem' }}>
+                        {item.accessType === 'paid' ? `₹${item.price || '?'}` : 'FREE'}
+                      </span>
                     </td>
                     <td>{formatDate(item.lastSavedAt || item.updatedAt)}</td>
                     <td><small className="text-muted">{item.createdBy || '—'}</small></td>
@@ -325,14 +333,34 @@ export default function Drafts() {
                         ))}
                       </select>
                     </div>
-                    <div className="col-md-6">
+                    <div className="col-md-4">
                       <label className="form-label">Status</label>
                       <select className="form-select" value={form.status} onChange={set('status')}>
                         <option value="draft">Draft</option>
                         <option value="published">Published</option>
                       </select>
                     </div>
-                    <div className="col-md-6">
+                    <div className="col-md-4">
+                      <label className="form-label">Access Type</label>
+                      <select className="form-select" value={form.accessType} onChange={set('accessType')}>
+                        <option value="free">Free</option>
+                        <option value="paid">Paid</option>
+                      </select>
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label">Price (₹) {form.accessType !== 'paid' && <small className="text-muted fw-normal">— only for Paid</small>}</label>
+                      <input
+                        className="form-control"
+                        type="number"
+                        min="1"
+                        value={form.price}
+                        onChange={set('price')}
+                        placeholder="e.g. 99"
+                        disabled={form.accessType !== 'paid'}
+                        required={form.accessType === 'paid'}
+                      />
+                    </div>
+                    <div className="col-12">
                       <label className="form-label">Created By</label>
                       <input className="form-control" value={form.createdBy} onChange={set('createdBy')} placeholder="Author name or ID" />
                     </div>

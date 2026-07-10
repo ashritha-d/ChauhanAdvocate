@@ -9,6 +9,7 @@ import {
   markNotificationRead, markAllNotificationsRead, getMyApplications,
   getMyEnrollments, getPublicCourse, updateCourseProgress,
   getMyMagazinePurchases, downloadMagazineFull, getDrafts,
+  getMyInternships,
 } from '../api';
 import { mediaUrl } from '../utils/helpers';
 import AppointmentModal from '../components/AppointmentModal';
@@ -21,6 +22,7 @@ const TABS = [
   { id: 'courses',       icon: 'fa-graduation-cap', label: 'My Courses' },
   { id: 'magazines',     icon: 'fa-book-open',      label: 'My Magazines' },
   { id: 'drafts',        icon: 'fa-file-alt',       label: 'Drafts' },
+  { id: 'internship',    icon: 'fa-graduation-cap', label: 'My Internship' },
   { id: 'applications',  icon: 'fa-user-tie',       label: 'My Applications' },
   { id: 'notifications', icon: 'fa-bell',           label: 'Notifications' },
   { id: 'settings',      icon: 'fa-user-cog',       label: 'Profile Settings' },
@@ -193,6 +195,7 @@ export default function Profile() {
   const [notifications, setNotifications] = useState([]);
   const [myMagazines, setMyMagazines] = useState([]);
   const [myDrafts, setMyDrafts] = useState(null);
+  const [myInternships, setMyInternships] = useState(null);
   const [dataLoading, setDataLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const fileInputRef = useRef();
@@ -222,6 +225,7 @@ export default function Profile() {
     if (tab === 'courses') loadEnrollments();
     if (tab === 'magazines') loadMyMagazines();
     if (tab === 'drafts') loadDrafts();
+    if (tab === 'internship') loadInternships();
     if (tab === 'applications') loadApplications();
     if (tab === 'notifications') loadNotifications();
   }, [tab, user]);
@@ -293,6 +297,16 @@ export default function Profile() {
       const data = r.data?.success && r.data.data?.length ? r.data.data : DRAFT_FALLBACK;
       setMyDrafts(data);
     } catch { setMyDrafts(DRAFT_FALLBACK); }
+    setDataLoading(false);
+  };
+
+  const loadInternships = async () => {
+    if (myInternships !== null) return;
+    setDataLoading(true);
+    try {
+      const r = await getMyInternships(authHeader());
+      setMyInternships(r.data.success ? (r.data.data || []) : []);
+    } catch { setMyInternships([]); }
     setDataLoading(false);
   };
 
@@ -842,6 +856,87 @@ export default function Profile() {
                       </div>
                     )
                   }
+                </div>
+              )}
+
+              {/* ── My Internship ── */}
+              {tab === 'internship' && (
+                <div>
+                  <div className="d-flex align-items-center justify-content-between mb-4">
+                    <h4 className="profile-section-title mb-0">My Internship</h4>
+                    <button className="btn btn-gold btn-sm" onClick={() => navigate('/#join')}>
+                      <i className="fas fa-graduation-cap me-1"></i>Apply / Enroll
+                    </button>
+                  </div>
+                  {dataLoading || myInternships === null ? (
+                    <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
+                  ) : myInternships.length === 0 ? (
+                    <div className="text-center py-5">
+                      <i className="fas fa-graduation-cap fa-3x mb-3" style={{ color: 'var(--gold)', opacity: 0.5 }}></i>
+                      <h5>No Internship Applications</h5>
+                      <p className="text-muted">Enroll in the LLB Internship Programme to start your legal career.</p>
+                      <button className="btn btn-gold mt-2" onClick={() => navigate('/#join')}>
+                        <i className="fas fa-graduation-cap me-2"></i>Enroll Now — ₹1,000
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="row g-3">
+                      {myInternships.map((item) => {
+                        const payColor = { pending_verification: 'warning', paid: 'success', rejected: 'danger' };
+                        const payLabel = { pending_verification: 'Payment Pending Verification', paid: 'Payment Verified', rejected: 'Payment Rejected' };
+                        const stColor = { pending: 'secondary', under_review: 'info', selected: 'success', rejected: 'danger', completed: 'primary' };
+                        const stLabel = { pending: 'Pending Review', under_review: 'Under Review', selected: 'Selected', rejected: 'Rejected', completed: 'Completed' };
+                        return (
+                          <div className="col-md-6" key={item._id}>
+                            <div className="profile-course-card">
+                              <div className="profile-course-header">
+                                <div className="profile-course-title">{item.programmeName || 'LLB Internship Programme'}</div>
+                              </div>
+                              <div className="d-flex flex-column gap-2 mb-3">
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <span className="text-muted small">Application Status</span>
+                                  <span className={`badge bg-${stColor[item.status] || 'secondary'}`}>{stLabel[item.status] || item.status}</span>
+                                </div>
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <span className="text-muted small">Payment</span>
+                                  <span className={`badge bg-${payColor[item.paymentStatus] || 'secondary'}`}>{payLabel[item.paymentStatus] || item.paymentStatus}</span>
+                                </div>
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <span className="text-muted small">Amount</span>
+                                  <span className="fw-bold" style={{ color: 'var(--gold)' }}>₹{item.amount || 1000}</span>
+                                </div>
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <span className="text-muted small">Applied On</span>
+                                  <span className="small">{formatDate(item.createdAt)}</span>
+                                </div>
+                                {item.utrNumber && (
+                                  <div className="d-flex justify-content-between align-items-center">
+                                    <span className="text-muted small">UTR / Ref</span>
+                                    <span className="small" style={{ fontFamily: 'monospace' }}>{item.utrNumber}</span>
+                                  </div>
+                                )}
+                                {item.notes && (
+                                  <div className="mt-2 p-2" style={{ background: '#f9f5e8', borderRadius: 8, fontSize: '0.82rem', color: '#92650a' }}>
+                                    <i className="fas fa-comment me-1"></i>{item.notes}
+                                  </div>
+                                )}
+                              </div>
+                              {item.paymentStatus === 'pending_verification' && (
+                                <div className="alert alert-warning py-2 mb-0 small">
+                                  <i className="fas fa-clock me-1"></i>Payment is being verified. We'll update you within 24 hours.
+                                </div>
+                              )}
+                              {item.status === 'selected' && item.paymentStatus === 'paid' && (
+                                <div className="alert alert-success py-2 mb-0 small">
+                                  <i className="fas fa-check-circle me-1"></i>Congratulations! You've been selected. Check your email/WhatsApp for details.
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 

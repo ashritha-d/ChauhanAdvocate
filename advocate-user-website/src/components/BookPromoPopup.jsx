@@ -5,10 +5,10 @@ import { mediaUrl } from '../utils/helpers';
 import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
 
-const SHOW_DELAY   = 1500;   // ms after page load before first show
-const RESHOW_DELAY = 30000;  // ms after close before reshowing
-
-const STATS_KEY = 'bookPromoStats';
+const SHOW_DELAY     = 1500;
+const RESHOW_DELAY   = 20 * 60 * 1000; // 20 minutes
+const LAST_SHOWN_KEY = 'bookPromoLastShown';
+const STATS_KEY      = 'bookPromoStats';
 
 function track(field) {
   try {
@@ -44,6 +44,9 @@ export default function BookPromoPopup() {
 
   useEffect(() => {
     if (!book || user) return;
+    const lastShown = parseInt(localStorage.getItem(LAST_SHOWN_KEY) || '0', 10);
+    const elapsed = Date.now() - lastShown;
+    if (elapsed < RESHOW_DELAY) return; // shown recently, skip
     showTimer.current = setTimeout(() => { setVisible(true); track('impressions'); }, SHOW_DELAY);
     return () => clearTimeout(showTimer.current);
   }, [book, user]);
@@ -59,8 +62,13 @@ export default function BookPromoPopup() {
 
   const handleClose = () => {
     setVisible(false);
+    localStorage.setItem(LAST_SHOWN_KEY, String(Date.now()));
     clearTimeout(reshowTimer.current);
-    reshowTimer.current = setTimeout(() => { setVisible(true); track('impressions'); }, RESHOW_DELAY);
+    reshowTimer.current = setTimeout(() => {
+      localStorage.removeItem(LAST_SHOWN_KEY);
+      setVisible(true);
+      track('impressions');
+    }, RESHOW_DELAY);
   };
 
   const handleBuyNow = () => {

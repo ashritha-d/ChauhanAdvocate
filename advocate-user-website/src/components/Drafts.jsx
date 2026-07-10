@@ -4,26 +4,14 @@ import { getDrafts } from '../api';
 import { mediaUrl } from '../utils/helpers';
 import SliderSection from './SliderSection';
 
-const FREE_COUNT = 3;
-const PAID_PRICE = 50;
-
-function handleDownload(href, title) {
+function doDownload(href, title) {
   if (!href || href === '#') {
-    alert(`"${title}" is not available for download yet. Please contact us to request this draft.`);
+    alert(`"${title}" is not available for download yet.`);
     return;
   }
   const a = document.createElement('a');
-  a.href = href;
-  a.download = title + '.pdf';
-  a.target = '_blank';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
-
-function handlePurchase(title) {
-  const msg = encodeURIComponent(`Hello, I would like to purchase the legal draft: "${title}" for ₹${PAID_PRICE}. Please guide me on the payment process.`);
-  window.open(`https://wa.me/919392538226?text=${msg}`, '_blank');
+  a.href = href; a.download = title + '.pdf'; a.target = '_blank';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
 export default function Drafts() {
@@ -33,21 +21,20 @@ export default function Drafts() {
     getDrafts()
       .then(r => {
         if (r.data?.success && r.data.data.length) {
-          setItems(r.data.data.map((d, idx) => {
-            const isFree = idx < FREE_COUNT;
+          setItems(r.data.data.map((d) => {
+            const isPaid = d.accessType === 'paid';
+            const price  = d.price || 0;
+            const file   = d.contentDataJson?.file;
             return {
               img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`,
               title: d.title,
-              description: d.description || (d.category ? `Category: ${d.category}` : ''),
-              priceBadge: isFree ? 'Free' : `₹${PAID_PRICE}`,
-              isFree,
-              buttonText: isFree
-                ? (d.file ? 'Download Free' : 'Not Available')
-                : `Purchase ₹${PAID_PRICE}`,
+              description: d.contentDataJson?.description || '',
+              priceBadge: isPaid ? `₹${price}` : 'Free',
+              buttonText: isPaid ? `Buy Now — ₹${price}` : (file ? 'Download Free' : 'Not Available'),
               isButton: true,
-              onClick: isFree
-                ? () => handleDownload(d.file ? mediaUrl(d.file) : null, d.title)
-                : () => handlePurchase(d.title),
+              onClick: isPaid
+                ? () => { window.location.href = '/ChauhanAdvocate/drafts'; }
+                : () => doDownload(file ? mediaUrl(file) : null, d.title),
             };
           }));
         } else {

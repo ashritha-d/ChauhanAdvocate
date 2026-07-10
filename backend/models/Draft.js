@@ -8,6 +8,8 @@ const draftSchema = new mongoose.Schema({
   contentDataJson: { type: mongoose.Schema.Types.Mixed, default: {} },
   thumbnail:       { type: String, default: '' },
   status:          { type: String, enum: ['draft', 'published'], default: 'draft' },
+  accessType:      { type: String, enum: ['free', 'paid'], default: 'free' },
+  price:           { type: Number, default: 0 },
   lastSavedAt:     { type: Date, default: Date.now },
   createdBy:       { type: String, default: '' },
   order:           { type: Number, default: 0 }

@@ -22,6 +22,7 @@ import BooksPage from './pages/Books';
 import NewsPage from './pages/News';
 import Payment from './pages/Payment';
 import BookPayment from './pages/BookPayment';
+import InternshipPayment from './pages/InternshipPayment';
 import NewsTicker from './components/NewsTicker';
 import Contact from './components/Contact';
 import BookPromoPopup from './components/BookPromoPopup';
@@ -227,6 +228,11 @@ export default function App() {
             <Route path="/book-payment" element={
               <AppLayout hideFooterExtras>
                 <BookPayment />
+              </AppLayout>
+            } />
+            <Route path="/internship-payment" element={
+              <AppLayout hideFooterExtras>
+                <InternshipPayment />
               </AppLayout>
             } />
             <Route path="/contact" element={
