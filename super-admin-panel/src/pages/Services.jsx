@@ -197,7 +197,7 @@ export default function Services() {
                 </h5>
                 <button className="btn-close btn-close-white" onClick={() => setShowForm(false)}></button>
               </div>
-              <form onSubmit={handleSave}>
+              <form id="service-form" onSubmit={handleSave}>
                 <div className="modal-body sa-modal-body">
                   {error && <div className="alert alert-danger py-2 mb-3">{error}</div>}
                   <div className="row g-3">
@@ -281,13 +281,13 @@ export default function Services() {
                     </div>
                   </div>
                 </div>
+              </form>
                 <div className="modal-footer sa-modal-footer">
                   <button type="button" className="btn sa-btn-outline" onClick={() => setShowForm(false)}>Cancel</button>
-                  <button type="submit" className="btn sa-btn-primary" disabled={saving}>
+                  <button type="submit" form="service-form" className="btn sa-btn-primary" disabled={saving}>
                     {saving ? <><i className="fas fa-spinner fa-spin me-1"></i>Saving…</> : (editing ? 'Update Service' : 'Create Service')}
                   </button>
                 </div>
-              </form>
             </div>
           </div>
         </div>
