@@ -192,7 +192,7 @@ export default function Payment() {
                 </span>
                 <span style={{ background: appt.appointmentMode === 'online' ? 'rgba(59,130,246,0.1)' : 'rgba(201,168,76,0.15)', color: appt.appointmentMode === 'online' ? '#1d4ed8' : '#92650a', padding: '3px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>
                   <i className={`fas ${appt.appointmentMode === 'online' ? 'fa-video' : 'fa-building'} me-1`}></i>
-                  {appt.appointmentMode === 'online' ? 'Online' : 'Offline'}
+                  {appt.appointmentMode === 'online' ? 'On Call' : 'At Office'}
                 </span>
               </div>
               {[

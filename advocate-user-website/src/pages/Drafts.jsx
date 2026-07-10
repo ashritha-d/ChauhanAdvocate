@@ -6,6 +6,8 @@ import { mediaUrl } from '../utils/helpers';
 
 const PER_PAGE = 9;
 const DOWNLOADS_KEY = 'downloadedDraftIds';
+const FREE_COUNT = 3;
+const PAID_PRICE = 50;
 
 const TYPE_BADGE = {
   blog:      { cls: 'bg-info text-dark',    label: 'Blog' },
@@ -74,6 +76,11 @@ export default function DraftsPage() {
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     saveDownload(d._id);
     setDownloads(getDownloads());
+  };
+
+  const handlePurchase = (d) => {
+    const msg = encodeURIComponent(`Hello, I would like to purchase the legal draft: "${d.title}" for ₹${PAID_PRICE}. Please guide me on the payment process.`);
+    window.open(`https://wa.me/919392538226?text=${msg}`, '_blank');
   };
 
   const switchView = (v) => { setView(v); setSearch(''); setFilterType('all'); setPage(1); };
@@ -209,9 +216,11 @@ export default function DraftsPage() {
           <>
             <div className="draft-grid">
               {paginated.map((d, i) => {
+                const globalIdx  = (page - 1) * PER_PAGE + i;
+                const isFree     = globalIdx < FREE_COUNT;
                 const description = d.contentDataJson?.description || '';
-                const hasFile     = !!(d.contentDataJson?.file);
-                const badge       = TYPE_BADGE[d.contentType] || { cls: 'bg-secondary', label: d.contentType };
+                const hasFile    = !!(d.contentDataJson?.file);
+                const badge      = TYPE_BADGE[d.contentType] || { cls: 'bg-secondary', label: d.contentType };
 
                 return (
                   <div key={d._id} className="draft-grid-item card-fade-in" style={{ animationDelay: `${i * 80}ms` }}>
@@ -226,6 +235,9 @@ export default function DraftsPage() {
                           <i className="fas fa-file-contract"></i>
                         </div>
                         <span className={`draft-type-badge badge ${badge.cls}`}>{badge.label}</span>
+                        <span className={`draft-price-badge ${isFree ? 'draft-price-free' : 'draft-price-paid'}`}>
+                          {isFree ? 'FREE' : `₹${PAID_PRICE}`}
+                        </span>
                         {downloads.includes(d._id) && (
                           <span className="draft-downloaded-badge"><i className="fas fa-check-circle"></i></span>
                         )}
@@ -243,13 +255,23 @@ export default function DraftsPage() {
                       </div>
 
                       <div className="draft-card-footer">
-                        <button
-                          className={`btn btn-sm w-100 ${hasFile ? 'btn-gold' : 'btn-outline-secondary'}`}
-                          onClick={() => handleDownload(d)}
-                        >
-                          <i className={`fas ${hasFile ? 'fa-download' : 'fa-lock'} me-1`}></i>
-                          {hasFile ? 'Download PDF' : 'Not Available'}
-                        </button>
+                        {isFree ? (
+                          <button
+                            className={`btn btn-sm w-100 ${hasFile ? 'btn-gold' : 'btn-outline-secondary'}`}
+                            onClick={() => handleDownload(d)}
+                          >
+                            <i className={`fas ${hasFile ? 'fa-download' : 'fa-lock'} me-1`}></i>
+                            {hasFile ? 'Download Free' : 'Not Available'}
+                          </button>
+                        ) : (
+                          <button
+                            className="btn btn-sm w-100 draft-purchase-btn"
+                            onClick={() => handlePurchase(d)}
+                          >
+                            <i className="fas fa-shopping-cart me-1"></i>
+                            Purchase — ₹{PAID_PRICE}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

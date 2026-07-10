@@ -57,6 +57,15 @@ export default function JoinUs() {
       isButton: true,
       onClick: handleApplyClick,
     },
+    {
+      img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`,
+      title: 'LLB Internship Programme',
+      description: '45-Day internship with live legal training, practical case exposure, mentorship and a certificate upon completion. Ideal for law students.',
+      buttonText: 'Apply Now',
+      isButton: true,
+      onClick: handleApplyClick,
+      badge: '45 Days · Certificate',
+    },
   ];
 
   return (

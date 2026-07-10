@@ -114,8 +114,8 @@ export default function AppointmentModal({ onClose }) {
               <label className="form-label form-label-sm">Appointment Type</label>
               <div className="d-flex gap-3 mt-1">
                 {[
-                  { value: 'offline', label: `Offline — ₹${APPT_FEES.offline}`, icon: 'fa-building' },
-                  { value: 'online',  label: `Online — ₹${APPT_FEES.online}`,   icon: 'fa-video' },
+                  { value: 'offline', label: `At Office — ₹${APPT_FEES.offline}`, icon: 'fa-building' },
+                  { value: 'online',  label: `On Call — ₹${APPT_FEES.online}`,   icon: 'fa-phone' },
                 ].map(({ value, label, icon }) => (
                   <label key={value} className={`appt-type-card appt-type-card-sm${form.appointmentMode === value ? ' active' : ''}`} style={{ flex:1, cursor:'pointer' }}>
                     <input type="radio" name="appointmentMode" value={value} checked={form.appointmentMode === value} onChange={set('appointmentMode')} style={{ display:'none' }} />

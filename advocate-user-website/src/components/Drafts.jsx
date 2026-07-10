@@ -4,12 +4,14 @@ import { getDrafts } from '../api';
 import { mediaUrl } from '../utils/helpers';
 import SliderSection from './SliderSection';
 
+const FREE_COUNT = 3;
+const PAID_PRICE = 50;
+
 function handleDownload(href, title) {
   if (!href || href === '#') {
     alert(`"${title}" is not available for download yet. Please contact us to request this draft.`);
     return;
   }
-  // Force download
   const a = document.createElement('a');
   a.href = href;
   a.download = title + '.pdf';
@@ -19,22 +21,35 @@ function handleDownload(href, title) {
   document.body.removeChild(a);
 }
 
+function handlePurchase(title) {
+  const msg = encodeURIComponent(`Hello, I would like to purchase the legal draft: "${title}" for ₹${PAID_PRICE}. Please guide me on the payment process.`);
+  window.open(`https://wa.me/919392538226?text=${msg}`, '_blank');
+}
+
 export default function Drafts() {
-  // null = still fetching; avoids flashing placeholder drafts on first load
   const [items, setItems] = useState(null);
 
   useEffect(() => {
     getDrafts()
       .then(r => {
         if (r.data?.success && r.data.data.length) {
-          setItems(r.data.data.map(d => ({
-            img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`,
-            title: d.title,
-            description: d.description || (d.category ? `Category: ${d.category}` : ''),
-            buttonText: d.file ? 'Download PDF' : 'Not Available',
-            isButton: true,
-            onClick: () => handleDownload(d.file ? mediaUrl(d.file) : null, d.title),
-          })));
+          setItems(r.data.data.map((d, idx) => {
+            const isFree = idx < FREE_COUNT;
+            return {
+              img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`,
+              title: d.title,
+              description: d.description || (d.category ? `Category: ${d.category}` : ''),
+              priceBadge: isFree ? 'Free' : `₹${PAID_PRICE}`,
+              isFree,
+              buttonText: isFree
+                ? (d.file ? 'Download Free' : 'Not Available')
+                : `Purchase ₹${PAID_PRICE}`,
+              isButton: true,
+              onClick: isFree
+                ? () => handleDownload(d.file ? mediaUrl(d.file) : null, d.title)
+                : () => handlePurchase(d.title),
+            };
+          }));
         } else {
           setItems([]);
         }

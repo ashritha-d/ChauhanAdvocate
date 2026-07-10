@@ -15,6 +15,7 @@ import Appointment from '../components/Appointment';
 import Blogs from '../components/Blogs';
 import FAQs from '../components/FAQs';
 import Contact from '../components/Contact';
+import FlashFlyerPopup from '../components/FlashFlyerPopup';
 import { useUserAuth } from '../context/UserAuthContext';
 
 export default function Home() {
@@ -34,6 +35,7 @@ export default function Home() {
         description="Advocate Chauhan – Balu Law Chamber, Hasthinapuram, LB Nagar. 15+ years expertise in criminal, civil, family, corporate, and property law. 500+ cases won. Book a consultation today."
         canonical="/"
       />
+      <FlashFlyerPopup />
       <Hero />
       <Services />
       <LatestUpdates />

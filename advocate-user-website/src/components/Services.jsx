@@ -11,6 +11,9 @@ const FALLBACK = [
     features:['Title Verification','Sale / Purchase Deeds','Property Disputes','RERA Matters','Tenant Issues','Legal Opinions on Property Matters'] },
   { _id:'8', title:'Legal Opinion',      icon:'fas fa-file-alt',      shortDescription:'Professional legal opinions on property matters, contracts, business transactions and regulatory compliance to help you make informed decisions.' },
   { _id:'6', title:'Constitutional Law', icon:'fas fa-scroll',        shortDescription:'Writ petitions, PIL filings and constitutional matters before High Courts and Supreme Court.' },
+  { _id:'9', title:'LLB Internship Programme', icon:'fas fa-graduation-cap', shortDescription:'Practical legal internship for law students — 45 days of hands-on court exposure with certificate.',
+    features:['45-Day Duration','Certificate Provided','Practical Legal Learning','Live Interactive Classes','Hands-on Legal Exposure','Suitable for Law Students'],
+    cta: 'Enroll Now', ctaLink: '#join' },
 ];
 
 export default function Services() {
@@ -47,6 +50,11 @@ export default function Services() {
                   <ul className="service-features mt-3">
                     {s.features.map(f => <li key={f}>{f}</li>)}
                   </ul>
+                )}
+                {s.cta && (
+                  <a href={s.ctaLink || '#'} className="btn btn-gold btn-sm mt-3 w-100">
+                    <i className="fas fa-arrow-right me-1"></i>{s.cta}
+                  </a>
                 )}
               </div>
             ))}

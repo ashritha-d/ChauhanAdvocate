@@ -53,7 +53,7 @@ export default function AppointmentSuccessCard({ booked, onBookAnother, onClose,
             { icon: 'fa-briefcase', label: 'Service', value: booked.service },
             { icon: 'fa-calendar-alt', label: 'Date', value: formatDate(booked.date) },
             { icon: 'fa-clock', label: 'Time', value: booked.time },
-            { icon: booked.appointmentMode === 'online' ? 'fa-video' : 'fa-building', label: 'Appointment Type', value: booked.appointmentMode === 'online' ? 'Online Appointment' : 'Offline Appointment' },
+            { icon: booked.appointmentMode === 'online' ? 'fa-phone' : 'fa-building', label: 'Appointment Type', value: booked.appointmentMode === 'online' ? 'On Call' : 'At Office' },
           ].filter(r => r.value).map(({ icon, label, value }) => (
             <div className="appt-success-row" key={label}>
               <span className="appt-success-label">

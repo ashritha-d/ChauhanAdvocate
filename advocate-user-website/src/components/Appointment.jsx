@@ -139,8 +139,8 @@ export default function Appointment() {
                       <label className="form-label">Appointment Type *</label>
                       <div className="d-flex gap-3 mt-1">
                         {[
-                          { value: 'offline', label: 'Offline — ₹2', icon: 'fa-building' },
-                          { value: 'online',  label: 'Online — ₹1',  icon: 'fa-video' },
+                          { value: 'offline', label: 'At Office — ₹2', icon: 'fa-building' },
+                          { value: 'online',  label: 'On Call — ₹1',   icon: 'fa-phone' },
                         ].map(({ value, label, icon }) => (
                           <label key={value} className={`appt-type-card${form.appointmentMode === value ? ' active' : ''}`} style={{ flex:1, cursor:'pointer' }}>
                             <input type="radio" name="appointmentMode" value={value} checked={form.appointmentMode === value} onChange={set('appointmentMode')} style={{ display:'none' }} />
@@ -160,7 +160,7 @@ export default function Appointment() {
                         <div className="d-flex justify-content-between align-items-center">
                           <div>
                             <div className="small text-muted mb-1"><i className="fas fa-shield-alt me-1 text-success"></i>Secure Online Payment</div>
-                            <div className="fw-semibold small">{form.appointmentMode === 'online' ? 'Online' : 'Offline'} Consultation Fee</div>
+                            <div className="fw-semibold small">{form.appointmentMode === 'online' ? 'On Call' : 'At Office'} Consultation Fee</div>
                           </div>
                           <div className="text-end">
                             <div style={{ fontSize:'1.4rem', fontWeight:700, color:'#C9A84C' }}>
