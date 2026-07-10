@@ -54,9 +54,16 @@ export default function Navbar() {
   }, [menuOpen]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
+    const onScroll = () => {
+      const s = window.scrollY > 50;
+      setScrolled(s);
+      document.body.classList.toggle('nav-scrolled', s);
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      document.body.classList.remove('nav-scrolled');
+    };
   }, []);
 
   useEffect(() => {

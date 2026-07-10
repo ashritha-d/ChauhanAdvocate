@@ -629,7 +629,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   transition: height 0.3s ease;
 }
 /* When navbar scrolls it shrinks (padding 16px→10px, ~12px less) */
-.navbar.scrolled + .nav-spacer { height: 104px; }
+body.nav-scrolled .nav-spacer { height: 104px; }
 
 /* ══════════════════════════════════════════════════════════════
    NEWS TICKER — sticky right below navbar, no margin-top needed
@@ -646,8 +646,8 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   overflow: hidden;
   transition: top 0.3s ease;
 }
-/* Sync with scrolled navbar */
-.navbar.scrolled ~ .news-ticker-section { top: 104px; }
+/* Sync with scrolled navbar — body class set by Navbar.jsx scroll handler */
+body.nav-scrolled .news-ticker-section { top: 104px; }
 
 .news-ticker-wrap {
   display: flex;
