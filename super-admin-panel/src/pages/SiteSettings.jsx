@@ -1,18 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import api from '../api/axios';
 
-const GROUPS = ['general', 'hero', 'about', 'contact', 'social', 'seo', 'payment'];
+const GROUPS = ['general', 'hero', 'advocate', 'about', 'contact', 'social', 'seo', 'payment'];
 
-const GROUP_LABELS = { general: 'General', hero: 'Hero Section', about: 'About', contact: 'Contact', social: 'Social Media', seo: 'SEO', payment: 'Payment' };
-const GROUP_ICONS  = { general: 'fas fa-cog', hero: 'fas fa-image', about: 'fas fa-info-circle', contact: 'fas fa-phone', social: 'fas fa-share-alt', seo: 'fas fa-search', payment: 'fas fa-credit-card' };
+const GROUP_LABELS = { general: 'General', hero: 'Hero Section', advocate: 'Advocate Profile', about: 'About', contact: 'Contact', social: 'Social Media', seo: 'SEO', payment: 'Payment' };
+const GROUP_ICONS  = { general: 'fas fa-cog', hero: 'fas fa-image', advocate: 'fas fa-user-tie', about: 'fas fa-info-circle', contact: 'fas fa-phone', social: 'fas fa-share-alt', seo: 'fas fa-search', payment: 'fas fa-credit-card' };
 
 export default function SiteSettings() {
-  const [settings, setSettings] = useState({});
-  const [loading, setLoading]   = useState(true);
-  const [saving, setSaving]     = useState(false);
+  const [settings, setSettings]       = useState({});
+  const [loading, setLoading]         = useState(true);
+  const [saving, setSaving]           = useState(false);
   const [activeGroup, setActiveGroup] = useState('general');
-  const [changes, setChanges]   = useState({});
-  const [saved, setSaved]       = useState(false);
+  const [changes, setChanges]         = useState({});
+  const [fileChanges, setFileChanges] = useState({});
+  const [saved, setSaved]             = useState(false);
+  const fileRefs = useRef({});
 
   useEffect(() => {
     api.get('/site-settings/admin/all').then(r => {
@@ -29,17 +31,29 @@ export default function SiteSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload = Object.entries(changes).map(([key, value]) => ({ key, value }));
-      await api.put('/site-settings', { settings: payload });
-      // merge changes into settings
+      // Upload any image files first
+      const fileKeys = Object.keys(fileChanges);
+      const uploadedUrls = {};
+      for (const key of fileKeys) {
+        const fd = new FormData();
+        fd.append('file', fileChanges[key]);
+        const r = await api.post('/site-settings/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+        if (r.data.url) uploadedUrls[key] = r.data.url;
+      }
+
+      const allChanges = { ...changes, ...uploadedUrls };
+      const payload = Object.entries(allChanges).map(([key, value]) => ({ key, value }));
+      if (payload.length) await api.put('/site-settings', { settings: payload });
+
       setSettings(s => {
         const updated = { ...s };
-        Object.entries(changes).forEach(([key, value]) => {
+        Object.entries(allChanges).forEach(([key, value]) => {
           if (updated[key]) updated[key] = { ...updated[key], value };
         });
         return updated;
       });
       setChanges({});
+      setFileChanges({});
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch {}
@@ -58,7 +72,7 @@ export default function SiteSettings() {
           <h4 className="sa-page-title"><i className="fas fa-cog me-2"></i>Site Settings</h4>
           <p className="sa-page-subtitle">Configure all website settings — name, contact, social, SEO, and more</p>
         </div>
-        <button className="btn sa-btn-primary" onClick={handleSave} disabled={saving || Object.keys(changes).length === 0}>
+        <button className="btn sa-btn-primary" onClick={handleSave} disabled={saving || (Object.keys(changes).length === 0 && Object.keys(fileChanges).length === 0)}>
           {saving ? <><i className="fas fa-spinner fa-spin me-2"></i>Saving…</> : saved ? <><i className="fas fa-check me-2"></i>Saved!</> : <><i className="fas fa-save me-2"></i>Save Changes {Object.keys(changes).length > 0 && `(${Object.keys(changes).length})`}</>}
         </button>
       </div>
@@ -94,12 +108,29 @@ export default function SiteSettings() {
                       <label className="sa-label">{s.label || s.key}</label>
                       {s.type === 'textarea' ? (
                         <textarea className="form-control sa-input" rows={3} value={getValue(s)} onChange={e => handleChange(s.key, e.target.value)} />
-                      ) : s.type === 'image' || s.type === 'url' ? (
+                      ) : s.type === 'image' ? (
+                        <div>
+                          <input
+                            type="file" accept="image/*"
+                            className="form-control sa-input mb-2"
+                            ref={el => fileRefs.current[s.key] = el}
+                            onChange={e => {
+                              const f = e.target.files[0];
+                              if (f) setFileChanges(c => ({ ...c, [s.key]: f }));
+                            }}
+                          />
+                          {fileChanges[s.key] && (
+                            <div style={{ fontSize: '0.75rem', color: '#34d399', marginBottom: 6 }}>
+                              <i className="fas fa-check-circle me-1"></i>{fileChanges[s.key].name} selected
+                            </div>
+                          )}
+                          {getValue(s) && (
+                            <img src={getValue(s)} alt="" style={{ height: 70, borderRadius: 8, objectFit: 'cover', border: '1px solid #2d3748' }} onError={e => e.target.style.display = 'none'} />
+                          )}
+                        </div>
+                      ) : s.type === 'url' ? (
                         <div>
                           <input className="form-control sa-input" type="text" value={getValue(s)} onChange={e => handleChange(s.key, e.target.value)} placeholder="URL or path" />
-                          {getValue(s) && s.type === 'image' && (
-                            <img src={getValue(s)} alt="" style={{ marginTop: 8, height: 60, borderRadius: 6, objectFit: 'cover', border: '1px solid #2d3748' }} onError={e => e.target.style.display = 'none'} />
-                          )}
                         </div>
                       ) : (
                         <input className="form-control sa-input" type={s.type === 'email' ? 'email' : s.type === 'phone' ? 'tel' : 'text'} value={getValue(s)} onChange={e => handleChange(s.key, e.target.value)} />
