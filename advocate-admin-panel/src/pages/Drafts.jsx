@@ -310,7 +310,7 @@ export default function Drafts() {
                 <button className="btn-close" onClick={() => setShowForm(false)}></button>
               </div>
               <form id="draft-form" onSubmit={handleSave}>
-                <div className="modal-body">
+                <div className="modal-body" style={{ overflowY: 'auto', maxHeight: '65vh' }}>
                   {error && <div className="alert alert-danger py-2">{error}</div>}
                   <div className="row g-3">
                     <div className="col-md-8">
