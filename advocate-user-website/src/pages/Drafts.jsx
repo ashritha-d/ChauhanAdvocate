@@ -76,6 +76,7 @@ export default function DraftsPage() {
   usePolling(fetchDrafts, 60000);
 
   const handleDownload = (d) => {
+    if (!user) { navigate('/login', { state: { from: '/drafts' } }); return; }
     const file = d.contentDataJson?.file;
     if (!file) {
       alert(`"${d.title}" is not available for download yet. Please contact us to request this draft.`);

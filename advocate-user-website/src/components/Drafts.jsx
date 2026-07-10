@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getDrafts } from '../api';
 import { mediaUrl } from '../utils/helpers';
+import { useUserAuth } from '../context/UserAuthContext';
 import SliderSection from './SliderSection';
 
 function doDownload(href, title) {
@@ -15,6 +16,8 @@ function doDownload(href, title) {
 }
 
 export default function Drafts() {
+  const navigate = useNavigate();
+  const { user } = useUserAuth();
   const [items, setItems] = useState(null);
 
   useEffect(() => {
@@ -33,8 +36,11 @@ export default function Drafts() {
               buttonText: isPaid ? `Buy Now — ₹${price}` : (file ? 'Download Free' : 'Not Available'),
               isButton: true,
               onClick: isPaid
-                ? () => { window.location.href = '/ChauhanAdvocate/drafts'; }
-                : () => doDownload(file ? mediaUrl(file) : null, d.title),
+                ? () => { navigate('/drafts'); }
+                : () => {
+                    if (!user) { navigate('/login', { state: { from: '/drafts' } }); return; }
+                    doDownload(file ? mediaUrl(file) : null, d.title);
+                  },
             };
           }));
         } else {
@@ -42,7 +48,7 @@ export default function Drafts() {
         }
       })
       .catch(() => setItems([]));
-  }, []);
+  }, [user]);
 
   const fallback = [
     { img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`, title: 'Rental Agreement Draft', description: 'Standard rental agreement template for residential properties.', buttonText: 'Not Available', isButton: true, onClick: () => alert('This draft is not available yet. Please contact us.') },
