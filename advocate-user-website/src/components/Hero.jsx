@@ -87,7 +87,7 @@ export default function Hero() {
             {/* ── Biography ── */}
             <div className="hero-bio" style={{ maxWidth: 660, marginBottom: '1.8rem' }}>
               {/* Always-visible paragraphs */}
-              {BIO_PARAS.slice(0, 3).map((para, i) => (
+              {BIO_PARAS.slice(0, 2).map((para, i) => (
                 <p key={i} className="hero-bio-para">{para}</p>
               ))}
 
@@ -100,7 +100,7 @@ export default function Hero() {
                   transition: 'max-height 0.55s cubic-bezier(0.4,0,0.2,1)',
                 }}
               >
-                {BIO_PARAS.slice(3).map((para, i) => (
+                {BIO_PARAS.slice(2).map((para, i) => (
                   <p key={i} className="hero-bio-para">{para}</p>
                 ))}
               </div>
