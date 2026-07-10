@@ -37,8 +37,10 @@ export default function Drafts() {
   const [alert, setAlert]               = useState(null);
   const [thumbFile, setThumbFile]       = useState(null);
   const [thumbPreview, setThumbPreview] = useState('');
+  const [draftDocFile, setDraftDocFile] = useState(null);
   const [preview, setPreview]           = useState(null);
-  const thumbRef = useRef();
+  const thumbRef    = useRef();
+  const draftDocRef = useRef();
 
   const showToast = (type, msg) => { setAlert({ type, msg }); setTimeout(() => setAlert(null), 4000); };
 
@@ -67,6 +69,7 @@ export default function Drafts() {
   const openCreate = () => {
     setForm(EMPTY); setEditing(null); setError('');
     setThumbFile(null); setThumbPreview('');
+    setDraftDocFile(null);
     setShowForm(true);
   };
 
@@ -83,6 +86,7 @@ export default function Drafts() {
     setEditing(item._id);
     setError('');
     setThumbFile(null);
+    setDraftDocFile(null);
     setThumbPreview(item.thumbnail ? mediaUrl(item.thumbnail) : '');
     setShowForm(true);
   };
@@ -97,6 +101,7 @@ export default function Drafts() {
       fd.append('status', form.status);
       fd.append('createdBy', form.createdBy);
       if (thumbFile) fd.append('thumbnail', thumbFile);
+      if (draftDocFile) fd.append('draftFile', draftDocFile);
       if (editing) await updateDraft(editing, fd);
       else await createDraft(fd);
       showToast('success', editing ? 'Draft updated!' : 'Draft saved!');
@@ -344,6 +349,29 @@ export default function Drafts() {
                           </button>
                         </div>
                       )}
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label">
+                        Draft Document <small className="text-muted fw-normal">(PDF or Word .docx — optional)</small>
+                      </label>
+                      <input
+                        type="file"
+                        className="form-control"
+                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        ref={draftDocRef}
+                        onChange={e => setDraftDocFile(e.target.files[0] || null)}
+                      />
+                      {draftDocFile && (
+                        <div className="mt-2 d-flex align-items-center gap-2">
+                          <i className="fas fa-file-alt text-success"></i>
+                          <span className="small">{draftDocFile.name}</span>
+                          <button type="button" className="btn btn-sm btn-outline-danger py-0 px-2"
+                            onClick={() => { setDraftDocFile(null); if (draftDocRef.current) draftDocRef.current.value = ''; }}>
+                            <i className="fas fa-times"></i>
+                          </button>
+                        </div>
+                      )}
+                      <small className="text-muted">This file will be downloadable by users on the website.</small>
                     </div>
                     <div className="col-12">
                       <label className="form-label">

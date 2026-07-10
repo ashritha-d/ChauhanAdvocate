@@ -32,7 +32,11 @@ exports.create = async (req, res) => {
     if (typeof data.contentDataJson === 'string') {
       try { data.contentDataJson = JSON.parse(data.contentDataJson); } catch { data.contentDataJson = {}; }
     }
-    if (req.file) data.thumbnail = req.file.path;
+    if (req.files?.thumbnail?.[0]) data.thumbnail = req.files.thumbnail[0].path;
+    if (req.files?.draftFile?.[0]) {
+      if (!data.contentDataJson || typeof data.contentDataJson !== 'object') data.contentDataJson = {};
+      data.contentDataJson.file = req.files.draftFile[0].path;
+    }
     data.lastSavedAt = new Date();
     const item = await Draft.create(data);
     res.status(201).json({ success: true, data: item });
@@ -45,7 +49,11 @@ exports.update = async (req, res) => {
     if (typeof data.contentDataJson === 'string') {
       try { data.contentDataJson = JSON.parse(data.contentDataJson); } catch { data.contentDataJson = {}; }
     }
-    if (req.file) data.thumbnail = req.file.path;
+    if (req.files?.thumbnail?.[0]) data.thumbnail = req.files.thumbnail[0].path;
+    if (req.files?.draftFile?.[0]) {
+      if (!data.contentDataJson || typeof data.contentDataJson !== 'object') data.contentDataJson = {};
+      data.contentDataJson.file = req.files.draftFile[0].path;
+    }
     data.lastSavedAt = new Date();
     const item = await Draft.findByIdAndUpdate(req.params.id, data, { new: true, runValidators: true });
     if (!item) return res.status(404).json({ success: false, message: 'Not found' });
