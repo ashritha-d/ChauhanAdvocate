@@ -187,18 +187,22 @@ export default function Services() {
 
       {/* Create / Edit modal */}
       {showForm && (
-        <div className="modal show d-block" style={{ background: 'rgba(0,0,0,0.75)' }}>
-          <div className="modal-dialog modal-lg modal-dialog-scrollable">
-            <div className="modal-content sa-modal">
-              <div className="modal-header sa-modal-header">
+        <div className="modal show d-block" style={{ background: 'rgba(0,0,0,0.75)', overflow: 'hidden' }}>
+          <div className="modal-dialog modal-lg" style={{ margin: '1.75rem auto', height: 'calc(100vh - 3.5rem)', display: 'flex', alignItems: 'stretch' }}>
+            <div className="modal-content sa-modal" style={{ display: 'flex', flexDirection: 'column', height: '100%', maxHeight: '90vh', margin: 'auto 0' }}>
+
+              {/* ── Fixed Header ── */}
+              <div className="modal-header sa-modal-header" style={{ flexShrink: 0 }}>
                 <h5 className="modal-title fw-bold">
                   <i className="fas fa-briefcase me-2" style={{ color: '#C9A84C' }}></i>
                   {editing ? 'Edit Service' : 'Add Service'}
                 </h5>
                 <button className="btn-close btn-close-white" onClick={() => setShowForm(false)}></button>
               </div>
-              <form id="service-form" onSubmit={handleSave}>
-                <div className="modal-body sa-modal-body">
+
+              {/* ── Scrollable Body ── */}
+              <div className="sa-modal-body" style={{ flex: '1 1 auto', overflowY: 'auto', padding: '20px' }}>
+                <form id="service-form" onSubmit={handleSave}>
                   {error && <div className="alert alert-danger py-2 mb-3">{error}</div>}
                   <div className="row g-3">
                     <div className="col-md-8">
@@ -236,7 +240,7 @@ export default function Services() {
 
                     <div className="col-12">
                       <label className="sa-label">Full Description *</label>
-                      <textarea className="form-control sa-input" rows={3} value={form.description} onChange={set('description')} required placeholder="Detailed description of the service..."></textarea>
+                      <textarea className="form-control sa-input" rows={4} value={form.description} onChange={set('description')} required placeholder="Detailed description of the service..."></textarea>
                     </div>
 
                     <div className="col-12">
@@ -264,30 +268,29 @@ export default function Services() {
                     </div>
 
                     <div className="col-md-6">
-                      <div className="d-flex align-items-center gap-3">
-                        <div className="form-check form-switch mb-0">
-                          <input className="form-check-input" type="checkbox" checked={form.isActive} onChange={toggle('isActive')} id="chk-active" />
-                          <label className="form-check-label sa-label mb-0" htmlFor="chk-active">Active</label>
-                        </div>
+                      <div className="form-check form-switch mb-0">
+                        <input className="form-check-input" type="checkbox" checked={form.isActive} onChange={toggle('isActive')} id="chk-active" />
+                        <label className="form-check-label sa-label mb-0" htmlFor="chk-active">Active</label>
                       </div>
                     </div>
                     <div className="col-md-6">
-                      <div className="d-flex align-items-center gap-3">
-                        <div className="form-check form-switch mb-0">
-                          <input className="form-check-input" type="checkbox" checked={form.isFeatured} onChange={toggle('isFeatured')} id="chk-featured" />
-                          <label className="form-check-label sa-label mb-0" htmlFor="chk-featured">Featured</label>
-                        </div>
+                      <div className="form-check form-switch mb-0">
+                        <input className="form-check-input" type="checkbox" checked={form.isFeatured} onChange={toggle('isFeatured')} id="chk-featured" />
+                        <label className="form-check-label sa-label mb-0" htmlFor="chk-featured">Featured</label>
                       </div>
                     </div>
                   </div>
-                </div>
-              </form>
-                <div className="modal-footer sa-modal-footer">
-                  <button type="button" className="btn sa-btn-outline" onClick={() => setShowForm(false)}>Cancel</button>
-                  <button type="submit" form="service-form" className="btn sa-btn-primary" disabled={saving}>
-                    {saving ? <><i className="fas fa-spinner fa-spin me-1"></i>Saving…</> : (editing ? 'Update Service' : 'Create Service')}
-                  </button>
-                </div>
+                </form>
+              </div>
+
+              {/* ── Fixed Footer ── */}
+              <div className="modal-footer sa-modal-footer" style={{ flexShrink: 0 }}>
+                <button type="button" className="btn sa-btn-outline" onClick={() => setShowForm(false)}>Cancel</button>
+                <button type="submit" form="service-form" className="btn sa-btn-primary" disabled={saving}>
+                  {saving ? <><i className="fas fa-spinner fa-spin me-1"></i>Saving…</> : (editing ? 'Update Service' : 'Create Service')}
+                </button>
+              </div>
+
             </div>
           </div>
         </div>
