@@ -42,7 +42,6 @@ export default function DraftsPage() {
   const [search, setSearch]       = useState('');
   const [filterType, setFilterType] = useState('all');
   const [page, setPage]           = useState(1);
-  const [view, setView]           = useState('browse');
   const [downloads, setDownloads] = useState(getDownloads);
   // Purchase modal state
   const [payModal, setPayModal]       = useState(null); // draft object
@@ -119,15 +118,9 @@ export default function DraftsPage() {
     setPayLoading(false);
   };
 
-  const switchView = (v) => { setView(v); setSearch(''); setFilterType('all'); setPage(1); };
+  const contentTypes = ['all', ...new Set(drafts.map(d => d.contentType).filter(Boolean))];
 
-  const sourceList = view === 'mydownloads'
-    ? drafts.filter(d => downloads.includes(d._id))
-    : drafts;
-
-  const contentTypes = ['all', ...new Set(sourceList.map(d => d.contentType).filter(Boolean))];
-
-  const filtered = sourceList.filter(d => {
+  const filtered = drafts.filter(d => {
     const matchType = filterType === 'all' || d.contentType === filterType;
     const q = search.toLowerCase();
     const matchSearch = !q ||
@@ -154,25 +147,6 @@ export default function DraftsPage() {
           <p className="section-subtitle">Download professionally drafted legal document templates</p>
         </div>
 
-        {/* View toggle */}
-        <div className="draft-view-tabs mb-4">
-          <button
-            className={`draft-tab-btn ${view === 'browse' ? 'active' : ''}`}
-            onClick={() => switchView('browse')}
-          >
-            <i className="fas fa-th-large me-2"></i>Browse Library
-          </button>
-          <button
-            className={`draft-tab-btn ${view === 'mydownloads' ? 'active' : ''}`}
-            onClick={() => switchView('mydownloads')}
-          >
-            <i className="fas fa-download me-2"></i>My Downloads
-            {downloads.length > 0 && (
-              <span className="draft-tab-count">{downloads.length}</span>
-            )}
-          </button>
-        </div>
-
         {/* Search + filter controls */}
         <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-3">
           <div style={{ position: 'relative', flex: '1 1 260px', maxWidth: 400 }}>
@@ -180,7 +154,7 @@ export default function DraftsPage() {
             <input
               type="text"
               className="form-control"
-              placeholder={view === 'mydownloads' ? 'Search my downloads…' : 'Search drafts…'}
+              placeholder="Search drafts…"
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1); }}
               style={{ paddingLeft: 40, borderRadius: 30, border: '1px solid #ddd' }}
@@ -222,26 +196,16 @@ export default function DraftsPage() {
           </div>
         ) : paginated.length === 0 ? (
           <div className="text-center py-5">
-            <i className={`fas ${view === 'mydownloads' ? 'fa-download' : 'fa-file-alt'} fa-3x mb-3`} style={{ color: 'var(--gold)' }}></i>
+            <i className="fas fa-file-alt fa-3x mb-3" style={{ color: 'var(--gold)' }}></i>
             <h5>
-              {view === 'mydownloads' && !search && filterType === 'all'
-                ? 'No Downloads Yet'
-                : search || filterType !== 'all'
-                  ? 'No drafts match your filters'
-                  : 'No Legal Drafts Yet'}
+              {search || filterType !== 'all' ? 'No drafts match your filters' : 'No Legal Drafts Yet'}
             </h5>
             <p className="text-muted">
-              {view === 'mydownloads' && !search && filterType === 'all'
-                ? 'Drafts you download will appear here for quick access.'
-                : search || filterType !== 'all'
-                  ? 'Try a different keyword or clear the type filter.'
-                  : 'Legal draft templates are being prepared. Check back soon!'}
+              {search || filterType !== 'all'
+                ? 'Try a different keyword or clear the type filter.'
+                : 'Legal draft templates are being prepared. Check back soon!'}
             </p>
-            {view === 'mydownloads' && !search && filterType === 'all' ? (
-              <button className="btn btn-gold mt-3 px-4" onClick={() => switchView('browse')}>
-                <i className="fas fa-th-large me-2"></i>Browse Library
-              </button>
-            ) : (search || filterType !== 'all') && (
+            {(search || filterType !== 'all') && (
               <button className="btn btn-outline-secondary btn-sm mt-2"
                 onClick={() => { setSearch(''); setFilterType('all'); }}>
                 Clear Filters
