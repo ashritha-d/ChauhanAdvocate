@@ -66,6 +66,21 @@ export default function Navbar() {
     };
   }, []);
 
+  // Keep --nav-bottom CSS variable in sync with actual navbar bottom edge.
+  // This drives the nav-spacer height and news-ticker sticky top on all screen sizes.
+  useEffect(() => {
+    const navbar = document.getElementById('mainNavbar');
+    if (!navbar) return;
+    const update = () => {
+      const bottom = Math.round(navbar.getBoundingClientRect().bottom);
+      document.documentElement.style.setProperty('--nav-bottom', bottom + 'px');
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(navbar);
+    return () => ro.disconnect();
+  }, []);
+
   useEffect(() => {
     const handler = e => {
       if (navRef.current && !navRef.current.contains(e.target)) setUserMenuOpen(false);

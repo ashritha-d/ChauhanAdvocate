@@ -621,19 +621,20 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 
 /* ══════════════════════════════════════════════════════════════
    NAV SPACER — pushes content below fixed TopBar + Navbar
-   TopBar: 40px  +  Navbar: ~76px  =  116px
+   --nav-bottom is set dynamically by Navbar.jsx ResizeObserver
+   so it matches the real rendered navbar bottom on every screen size.
+   Fallback: TopBar 40px + Navbar ~76px = 116px
 ══════════════════════════════════════════════════════════════ */
+:root { --nav-bottom: 116px; }
 .nav-spacer {
-  height: 116px;
+  height: var(--nav-bottom);
   flex-shrink: 0;
   transition: height 0.3s ease;
 }
-/* When navbar scrolls it shrinks (padding 16px→10px, ~12px less) */
-body.nav-scrolled .nav-spacer { height: 104px; }
 
 /* ══════════════════════════════════════════════════════════════
-   NEWS TICKER — sticky right below navbar, no margin-top needed
-   (nav-spacer handles the offset)
+   NEWS TICKER — sticky right below navbar on all screen sizes.
+   top tracks --nav-bottom so it never overlaps the header.
 ══════════════════════════════════════════════════════════════ */
 .news-ticker-section {
   background: linear-gradient(to right, var(--gold-dark, #a8893a), var(--gold, #c9a84c), #d4b05a, var(--gold, #c9a84c));
@@ -641,13 +642,13 @@ body.nav-scrolled .nav-spacer { height: 104px; }
   border-bottom: 2px solid rgba(0,0,0,0.12);
   box-shadow: 0 3px 14px rgba(201,168,76,0.45);
   position: sticky;
-  top: 116px;
+  top: var(--nav-bottom);
   z-index: 1039;
+  width: 100%;
+  max-width: 100%;
   overflow: hidden;
   transition: top 0.3s ease;
 }
-/* Sync with scrolled navbar — body class set by Navbar.jsx scroll handler */
-body.nav-scrolled .news-ticker-section { top: 104px; }
 
 .news-ticker-wrap {
   display: flex;
@@ -865,10 +866,25 @@ body.nav-scrolled .news-ticker-section { top: 104px; }
 .news-card-readmore:hover { gap: 8px; color: var(--gold); }
 
 /* Responsive */
+@media (max-width: 767px) {
+  /* Ticker: ensure full-width, no horizontal overflow */
+  .news-ticker-section { width: 100%; box-sizing: border-box; }
+  .news-ticker-wrap   { height: 42px; overflow: hidden; }
+  .news-ticker-label  { padding: 0 10px; font-size: 0.68rem; letter-spacing: 0.3px; }
+  .news-ticker-label::after { width: 24px; }
+  .news-ticker-item   { font-size: 0.76rem; gap: 6px; padding: 0 14px; }
+  .news-ticker-viewall { padding: 0 8px; font-size: 0.7rem; }
+}
+
+@media (max-width: 480px) {
+  .news-ticker-wrap   { height: 40px; }
+  .news-ticker-label  { padding: 0 8px; font-size: 0.65rem; letter-spacing: 0; }
+  .news-ticker-item   { font-size: 0.72rem; gap: 4px; padding: 0 10px; }
+  .news-ticker-date   { display: none; }
+  .news-ticker-viewall { display: none; }
+}
+
 @media (max-width: 576px) {
-  .news-ticker-label { padding: 0 12px; font-size: 0.7rem; }
-  .news-ticker-item { font-size: 0.78rem; }
-  .news-ticker-viewall { padding: 0 10px; }
   .news-page-hero { padding: 90px 0 32px; }
   .news-filter-bar { padding: 14px 16px; }
 }
