@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
+import { getLiveStatus } from '../api';
 
 const PUBLIC_NAV_LINKS = [
   { id: 'home',      label: 'Home',      page: null,          icon: 'fa-home' },
@@ -43,6 +44,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen]           = useState(false);
   const [userMenuOpen, setUserMenuOpen]   = useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
+  const [liveSession, setLiveSession]     = useState(null);
   const navRef = useRef(null);
   const { user, logout, unreadCount, openModal } = useUserAuth();
   const navigate = useNavigate();
@@ -65,6 +67,20 @@ export default function Navbar() {
       document.body.classList.remove('nav-scrolled');
     };
   }, []);
+
+  // Poll live session status for the Live button indicator
+  const pollLive = useCallback(async () => {
+    try {
+      const r = await getLiveStatus();
+      setLiveSession(r.data.data || null);
+    } catch { /* silent */ }
+  }, []);
+
+  useEffect(() => {
+    pollLive();
+    const id = setInterval(pollLive, 60000);
+    return () => clearInterval(id);
+  }, [pollLive]);
 
   // Keep --nav-bottom CSS variable in sync with actual navbar bottom edge.
   // This drives the nav-spacer height and news-ticker sticky top on all screen sizes.
@@ -173,6 +189,16 @@ export default function Navbar() {
                   >{link.label}</Link>
                 : <a key={link.id} className="nav-link" href={`#${link.id}`} onClick={handleSection(link.id)}>{link.label}</a>
             ))}
+
+            {/* Live Button */}
+            <Link
+              to="/live"
+              className={`live-nav-btn${liveSession?.status === 'live' ? ' live-nav-btn--live' : liveSession?.status === 'upcoming' ? ' live-nav-btn--upcoming' : ''}`}
+              onClick={close}
+            >
+              {liveSession?.status === 'live' && <span className="live-nav-dot" />}
+              <i className="fas fa-video me-1" />Live
+            </Link>
 
             <button className="btn btn-gold ms-2" onClick={handleAppointment}>
               Book an Appointment
@@ -288,6 +314,22 @@ export default function Navbar() {
                   <i className={`fas ${link.icon} mobile-drawer-link-icon`}></i>{link.label}
                 </a>
           ))}
+
+          {/* Live link in mobile drawer */}
+          <Link
+            to="/live"
+            className={`mobile-drawer-link${liveSession?.status === 'live' ? ' mobile-drawer-live-active' : ''}`}
+            onClick={close}
+          >
+            <i className={`fas fa-video mobile-drawer-link-icon${liveSession?.status === 'live' ? ' live-icon-pulse' : ''}`} />
+            Live
+            {liveSession?.status === 'live' && (
+              <span className="mobile-drawer-badge" style={{ background: '#dc3545' }}>LIVE</span>
+            )}
+            {liveSession?.status === 'upcoming' && (
+              <span className="mobile-drawer-badge" style={{ background: '#f59e0b', color: '#1a1a2e' }}>SOON</span>
+            )}
+          </Link>
 
           <div
             className="mobile-drawer-link mobile-drawer-appt-link"

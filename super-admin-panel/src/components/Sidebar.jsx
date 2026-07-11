@@ -14,6 +14,7 @@ const NAV = [
   { section: 'Content', items: [
     { icon: 'fas fa-layer-group',    label: 'Content Hub',   page: 'content' },
     { icon: 'fas fa-briefcase',      label: 'Services',      page: 'services' },
+    { icon: 'fas fa-video',          label: 'Live Sessions', page: 'livesessions' },
   ]},
   { section: 'Configuration', items: [
     { icon: 'fas fa-cog',            label: 'Site Settings', page: 'sitesettings' },

@@ -106,6 +106,7 @@ app.use('/api/courses', require('./routes/courses'));
 app.use('/api/news',    require('./routes/news'));
 app.use('/api/internships',     require('./routes/internships'));
 app.use('/api/draft-purchases', require('./routes/draftPurchases'));
+app.use('/api/live',           require('./routes/live'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));

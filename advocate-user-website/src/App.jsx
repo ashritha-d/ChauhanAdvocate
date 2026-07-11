@@ -20,6 +20,7 @@ import MagazinesPage from './pages/Magazines';
 import DraftsPage from './pages/Drafts';
 import BooksPage from './pages/Books';
 import NewsPage from './pages/News';
+import LivePage from './pages/Live';
 import Payment from './pages/Payment';
 import BookPayment from './pages/BookPayment';
 import InternshipPayment from './pages/InternshipPayment';
@@ -245,6 +246,7 @@ export default function App() {
             <Route path="/magazines" element={<AppLayout><MagazinesPage /></AppLayout>} />
             <Route path="/drafts"    element={<AppLayout><DraftsPage /></AppLayout>} />
             <Route path="/books"     element={<AppLayout><BooksPage /></AppLayout>} />
+            <Route path="/live"      element={<AppLayout><LivePage /></AppLayout>} />
 
             {/* Tab shortcut redirects */}
             <Route path="/appointments"  element={<Navigate to="/profile?tab=appointments"  replace />} />

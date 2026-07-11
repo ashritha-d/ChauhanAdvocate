@@ -17,6 +17,7 @@ import Notifications from './pages/Notifications';
 import ContentOverview from './pages/ContentOverview';
 import SiteSettings from './pages/SiteSettings';
 import Services from './pages/Services';
+import LiveSessions from './pages/LiveSessions';
 
 const PAGES = {
   dashboard:       Dashboard,
@@ -33,6 +34,7 @@ const PAGES = {
   content:         ContentOverview,
   sitesettings:    SiteSettings,
   services:        Services,
+  livesessions:    LiveSessions,
 };
 
 function SuperAdminApp() {
