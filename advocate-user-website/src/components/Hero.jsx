@@ -81,8 +81,7 @@ export default function Hero() {
 
           <div className="col-lg-7" data-aos="fade-right" data-aos-duration="1000">
             <h1 className="hero-title display-3 fw-bold mb-4">
-              <span className="d-block">{s.hero_title || 'Your Trusted'}</span>
-              <span className="text-gold" style={{whiteSpace:'nowrap'}}>Legal Advocate</span>
+              {s.hero_title || 'Your Trusted'} <span className="text-gold">Legal Advocate</span>
             </h1>
             {/* ── Biography ── */}
             <div className="hero-bio" style={{ maxWidth: 660, marginBottom: '1.8rem' }}>
