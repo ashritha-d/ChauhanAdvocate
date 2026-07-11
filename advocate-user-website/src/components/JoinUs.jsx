@@ -41,6 +41,23 @@ export default function JoinUs() {
   const items = [
     {
       img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`,
+      title: 'LLB Internship Programme',
+      description: '45-Day internship with live legal training, practical case exposure, mentorship and a certificate upon completion. Ideal for law students. Enrolment fee: ₹1,000.',
+      buttonText: 'Enroll Now — ₹1,000',
+      isButton: true,
+      onClick: handleInternshipClick,
+      badge: '45 Days · Certificate',
+    },
+    {
+      img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`,
+      title: 'Join as Jr. Advocate',
+      description: 'Start your legal career with us. Apply for a junior advocate position with full details and resume.',
+      buttonText: 'Apply Now',
+      isButton: true,
+      onClick: handleApplyClick,
+    },
+    {
+      img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`,
       title: 'WhatsApp Legal Updates Group',
       description: 'Join our exclusive WhatsApp group for daily legal updates, case studies, and quick legal tips.',
       buttonText: 'Join Now',
@@ -61,23 +78,6 @@ export default function JoinUs() {
       description: 'Get our comprehensive monthly newsletter featuring landmark judgments, legal amendments, and expert commentary.',
       buttonText: 'Subscribe',
       href: '#contact',
-    },
-    {
-      img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`,
-      title: 'Join as Jr. Advocate',
-      description: 'Start your legal career with us. Apply for a junior advocate position with full details and resume.',
-      buttonText: 'Apply Now',
-      isButton: true,
-      onClick: handleApplyClick,
-    },
-    {
-      img: `${import.meta.env.BASE_URL}placeholder-lawyer.svg`,
-      title: 'LLB Internship Programme',
-      description: '45-Day internship with live legal training, practical case exposure, mentorship and a certificate upon completion. Ideal for law students. Enrolment fee: ₹1,000.',
-      buttonText: 'Enroll Now — ₹1,000',
-      isButton: true,
-      onClick: handleInternshipClick,
-      badge: '45 Days · Certificate',
     },
   ];
 
