@@ -1,16 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getYouTubeVideos, getFacebookPosts, getMagazines, getDrafts, getBooks, getLiveStatus } from '../api';
+import { getLiveStatus, getUpcomingSessions } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
-import { mediaUrl, formatDate } from '../utils/helpers';
-
-const TYPE_META = {
-  youtube:  { label: 'YouTube',  color: '#ff0000', btnText: 'Watch',    icon: 'fab fa-youtube' },
-  facebook: { label: 'Facebook', color: '#1877f2', btnText: 'View Post', icon: 'fab fa-facebook' },
-  magazine: { label: 'Magazine', color: '#8B0000', btnText: 'View PDF',  icon: 'fas fa-book-open' },
-  draft:    { label: 'Draft',    color: '#2c5f2e', btnText: 'Download',  icon: 'fas fa-file-alt' },
-  book:     { label: 'Book',     color: '#a8893a', btnText: 'Order Now', icon: 'fas fa-book' },
-};
 
 const PLATFORM_ICONS = {
   'Google Meet':      'fab fa-google',
@@ -21,70 +12,6 @@ const PLATFORM_ICONS = {
   'Other':            'fas fa-video',
 };
 
-function buildItems(results) {
-  const [yt, fb, mag, dr, bk] = results;
-  const all = [];
-
-  if (yt.status === 'fulfilled' && yt.value.data?.success) {
-    yt.value.data.data.slice(0, 6).forEach(v => all.push({
-      type: 'youtube', id: v._id,
-      title: v.title,
-      thumb: `https://img.youtube.com/vi/${v.videoId}/hqdefault.jpg`,
-      href: `https://youtu.be/${v.videoId}`,
-      external: true,
-      date: v.createdAt,
-    }));
-  }
-  if (fb.status === 'fulfilled' && fb.value.data?.success) {
-    fb.value.data.data.slice(0, 6).forEach(p => all.push({
-      type: 'facebook', id: p._id,
-      title: p.title,
-      thumb: p.thumbnail ? mediaUrl(p.thumbnail) : 'https://placehold.co/300x170/1877f2/ffffff?text=Facebook',
-      href: p.facebookUrl || '#',
-      external: true,
-      date: p.date || p.createdAt,
-    }));
-  }
-  if (mag.status === 'fulfilled' && mag.value.data?.success) {
-    mag.value.data.data.slice(0, 6).forEach(m => all.push({
-      type: 'magazine', id: m._id,
-      title: m.title,
-      thumb: m.coverImage ? mediaUrl(m.coverImage) : 'https://placehold.co/300x170/1a1a2e/c9a84c?text=Magazine',
-      href: m.pdfFile ? mediaUrl(m.pdfFile) : '#',
-      external: true,
-      date: m.publishedDate || m.createdAt,
-      description: m.description,
-    }));
-  }
-  if (dr.status === 'fulfilled' && dr.value.data?.success) {
-    dr.value.data.data.slice(0, 6).forEach(d => all.push({
-      type: 'draft', id: d._id,
-      title: d.title,
-      thumb: 'https://placehold.co/300x170/1a1a2e/c9a84c?text=Legal+Draft',
-      href: d.file ? mediaUrl(d.file) : '#',
-      external: true,
-      date: d.date || d.createdAt,
-      description: d.category ? `Category: ${d.category}` : d.description,
-    }));
-  }
-  if (bk.status === 'fulfilled' && bk.value.data?.success) {
-    bk.value.data.data.slice(0, 6).forEach(b => all.push({
-      type: 'book', id: b._id,
-      title: b.name,
-      thumb: b.image ? mediaUrl(b.image) : 'https://placehold.co/300x170/1a1a2e/c9a84c?text=Book',
-      href: '#books',
-      external: false,
-      date: b.createdAt,
-      price: `₹${b.price}`,
-      author: b.author,
-    }));
-  }
-
-  all.sort((a, b) => new Date(b.date) - new Date(a.date));
-  return all;
-}
-
-/* ── effective status from stored status + current time ── */
 function getEffectiveStatus(s, now) {
   if (!s) return null;
   if (s.status === 'cancelled') return 'cancelled';
@@ -115,7 +42,6 @@ function getCountdown(s, now) {
   };
 }
 
-/* ── Live session card (pinned first in slider) ── */
 function LiveSessionCard({ session }) {
   const { user } = useUserAuth();
   const navigate = useNavigate();
@@ -218,87 +144,83 @@ function LiveSessionCard({ session }) {
 
 /* ── Main Component ── */
 export default function LatestUpdates() {
-  const [items, setItems]         = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [allFailed, setAllFailed] = useState(false);
-  const [liveSession, setLive]    = useState(null);
-  const [retryKey, setRetryKey]   = useState(0);
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
   const trackRef = useRef(null);
 
-  const fetchLive = useCallback(async () => {
+  const loadSessions = useCallback(async () => {
     try {
-      const r = await getLiveStatus();
-      const s = r.data.data;
-      if (s && s.displayInUpdates !== false && s.status !== 'ended' && s.status !== 'cancelled') {
-        setLive(s);
-      } else {
-        setLive(null);
+      const [currResult, upcResult] = await Promise.allSettled([
+        getLiveStatus(),
+        getUpcomingSessions(),
+      ]);
+
+      const seen = new Set();
+      const all  = [];
+
+      // Current / actively live session goes first
+      if (currResult.status === 'fulfilled') {
+        const s = currResult.value?.data?.data;
+        if (s && s.displayInUpdates !== false && s.status !== 'ended' && s.status !== 'cancelled') {
+          seen.add(s._id);
+          all.push(s);
+        }
       }
-    } catch { setLive(null); }
+
+      // All upcoming sessions (dedup against current)
+      if (upcResult.status === 'fulfilled') {
+        const list = upcResult.value?.data?.data || [];
+        list.forEach(s => {
+          if (!seen.has(s._id) && s.displayInUpdates !== false) {
+            seen.add(s._id);
+            all.push(s);
+          }
+        });
+      }
+
+      setSessions(all);
+    } catch { /* silent */ }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
     setLoading(true);
-    setAllFailed(false);
-    // Fetch live status in the same batch so it renders with the cards on first paint
-    Promise.allSettled([
-      getYouTubeVideos(),
-      getFacebookPosts(),
-      getMagazines(),
-      getDrafts(),
-      getBooks(),
-      getLiveStatus(),
-    ])
-      .then(([yt, fb, mag, dr, bk, liveResult]) => {
-        const built = buildItems([yt, fb, mag, dr, bk]);
-        setItems(built);
-        if (built.length === 0 && [yt, fb, mag, dr, bk].every(r => r.status === 'rejected')) {
-          setAllFailed(true);
-        }
-        // Set live session from the same batch
-        if (liveResult.status === 'fulfilled') {
-          const s = liveResult.value?.data?.data;
-          if (s && s.displayInUpdates !== false && s.status !== 'ended' && s.status !== 'cancelled') {
-            setLive(s);
-          } else {
-            setLive(null);
-          }
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [retryKey]);
+    loadSessions();
+  }, [retryKey, loadSessions]);
 
-  // Poll live status every 60s independently
+  // Refresh live status every 60 s
   useEffect(() => {
-    const id = setInterval(fetchLive, 60000);
+    const id = setInterval(loadSessions, 60000);
     return () => clearInterval(id);
-  }, [fetchLive]);
+  }, [loadSessions]);
 
-  // After data loads, reset scroll to position 0 so the live card (first item) is always visible
+  // After render, reset scroll so first card is always visible
   useEffect(() => {
-    if (!loading && trackRef.current) {
-      trackRef.current.scrollLeft = 0;
-    }
+    if (!loading && trackRef.current) trackRef.current.scrollLeft = 0;
   }, [loading]);
 
   const scroll = dir => trackRef.current?.scrollBy({ left: dir * 320, behavior: 'smooth' });
 
-  if (!loading && items.length === 0 && !allFailed && !liveSession) return null;
-
-  if (!loading && allFailed && !liveSession) {
+  /* ── Empty state ── */
+  if (!loading && sessions.length === 0) {
     return (
       <section id="latest-updates" className="section-padding bg-light">
         <div className="container-fluid px-3 px-md-4">
           <div className="latest-header mb-4" data-aos="fade-right">
-            <span className="latest-badge">LATEST</span>
+            <span className="latest-badge">LIVE</span>
             <h2 className="section-title d-inline ms-3 mb-0">
-              Latest <span className="text-gold">Updates</span>
+              Live <span className="text-gold">Sessions</span>
             </h2>
           </div>
-          <div className="text-center py-4">
-            <p className="text-muted mb-3">Could not load latest updates — the server may still be starting up.</p>
+          <div className="text-center py-5">
+            <div style={{ fontSize: '3rem', opacity: 0.18, marginBottom: 16 }}>
+              <i className="fas fa-broadcast-tower" />
+            </div>
+            <h5 style={{ color: '#555', marginBottom: 8 }}>No Live Sessions Available Currently</h5>
+            <p className="text-muted mb-3">Please check back later for upcoming live sessions.</p>
             <button className="btn btn-gold btn-sm" onClick={() => setRetryKey(k => k + 1)}>
-              <i className="fas fa-redo me-2"></i>Try Again
+              <i className="fas fa-sync-alt me-2" />Refresh
             </button>
           </div>
         </div>
@@ -306,27 +228,25 @@ export default function LatestUpdates() {
     );
   }
 
+  /* ── Carousel ── */
   return (
     <section id="latest-updates" className="section-padding bg-light">
       <div className="container-fluid px-3 px-md-4">
         <div className="latest-header mb-4" data-aos="fade-right">
-          <span className="latest-badge">LATEST</span>
+          <span className="latest-badge">LIVE</span>
           <h2 className="section-title d-inline ms-3 mb-0">
-            Latest <span className="text-gold">Updates</span>
+            Live <span className="text-gold">Sessions</span>
           </h2>
           <p className="section-subtitle mt-2 ms-1 mb-0">
-            Freshly added content across all categories
+            Upcoming and active live legal sessions
           </p>
         </div>
 
         <div className="latest-slider-outer">
           <button className="slider-scroll-btn" onClick={() => scroll(-1)} aria-label="Scroll left">&#8249;</button>
           <div className="latest-scroll" ref={trackRef}>
-            {/* Pinned Live Session card — always first */}
-            {liveSession && <LiveSessionCard key={liveSession._id} session={liveSession} />}
-
             {loading
-              ? Array.from({ length: 6 }).map((_, i) => (
+              ? Array.from({ length: 3 }).map((_, i) => (
                   <div className="skeleton-latest-card" key={i}>
                     <div className="skeleton-shimmer skeleton-latest-img" />
                     <div className="skeleton-shimmer skeleton-latest-line" style={{ width: '85%' }} />
@@ -334,47 +254,10 @@ export default function LatestUpdates() {
                     <div className="skeleton-shimmer skeleton-latest-btn" />
                   </div>
                 ))
-              : items.map((item, i) => {
-                  const meta = TYPE_META[item.type];
-                  return (
-                    <div className="latest-card" key={`${item.type}-${item.id}`} data-aos="fade-up" data-aos-delay={Math.min(i * 40, 200)}>
-                      <div className="latest-card-img">
-                        <img
-                          src={item.thumb}
-                          alt={item.title}
-                          onError={e => {
-                            e.target.src = `https://placehold.co/300x170/1a1a2e/c9a84c?text=${encodeURIComponent(meta.label)}`;
-                          }}
-                        />
-                        <span className="latest-type-pill" style={{ background: meta.color }}>
-                          <i className={`${meta.icon} me-1`}></i>{meta.label}
-                        </span>
-                        {item.type === 'youtube' && (
-                          <div className="video-play-overlay">
-                            <div className="video-play-btn">&#9654;</div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="latest-card-body">
-                        <div className="latest-card-title" title={item.title}>{item.title}</div>
-                        {item.author && <div className="latest-card-meta">{item.author}</div>}
-                        {item.description && <div className="latest-card-desc">{item.description}</div>}
-                        {item.price && <div className="latest-card-price">{item.price}</div>}
-                        <div className="latest-card-date">
-                          <i className="fas fa-calendar-alt me-1"></i>{formatDate(item.date)}
-                        </div>
-                        <a
-                          href={item.href}
-                          target={item.external ? '_blank' : undefined}
-                          rel={item.external ? 'noopener noreferrer' : undefined}
-                          className="btn btn-gold btn-sm w-100 mt-auto"
-                        >
-                          {meta.btnText} <i className="fas fa-arrow-right ms-1"></i>
-                        </a>
-                      </div>
-                    </div>
-                  );
-                })}
+              : sessions.map(session => (
+                  <LiveSessionCard key={session._id} session={session} />
+                ))
+            }
           </div>
           <button className="slider-scroll-btn" onClick={() => scroll(1)} aria-label="Scroll right">&#8250;</button>
         </div>

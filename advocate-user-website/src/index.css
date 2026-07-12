@@ -574,13 +574,13 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .footer-social a:hover { background: var(--gold); color: #fff; }
 
 /* ── WhatsApp ── */
-.whatsapp-float { position: fixed; bottom: 28px; right: 28px; width: 56px; height: 56px; background: #25d366; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; text-decoration: none; box-shadow: 0 6px 20px rgba(37,211,102,0.4); z-index: 1000; transition: all 0.3s; }
+.whatsapp-float { position: fixed; bottom: 100px; right: 28px; width: 56px; height: 56px; background: #25d366; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; text-decoration: none; box-shadow: 0 6px 20px rgba(37,211,102,0.4); z-index: 1000; transition: all 0.3s; }
 .whatsapp-float:hover { transform: scale(1.1); color: #fff; }
 .whatsapp-tooltip { position: absolute; right: 66px; background: #333; color: #fff; padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
 .whatsapp-float:hover .whatsapp-tooltip { opacity: 1; }
 
 /* ── Phone Float Button ── */
-.phone-float { position: fixed; bottom: 96px; right: 28px; width: 56px; height: 56px; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; text-decoration: none; box-shadow: 0 6px 20px rgba(201,168,76,0.45); z-index: 1000; transition: all 0.3s; }
+.phone-float { position: fixed; bottom: 28px; right: 28px; width: 56px; height: 56px; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; text-decoration: none; box-shadow: 0 6px 20px rgba(201,168,76,0.45); z-index: 1000; transition: all 0.3s; }
 .phone-float:hover { transform: scale(1.1); color: #fff; }
 .phone-tooltip { position: absolute; right: 68px; background: rgba(0,0,0,0.75); color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 0.78rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
 .phone-float:hover .phone-tooltip { opacity: 1; }
@@ -599,7 +599,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .video-card-title { padding: 10px 14px 12px; font-size: 0.85rem; font-weight: 600; color: #fff; line-height: 1.4; }
 
 /* ── Back to Top ── */
-.back-to-top { position: fixed; bottom: 164px; right: 28px; width: 44px; height: 44px; background: var(--gold); color: #fff; border: none; border-radius: 50%; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(201,168,76,0.4); opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 999; }
+.back-to-top { position: fixed; bottom: 176px; right: 30px; width: 44px; height: 44px; background: var(--gold); color: #fff; border: none; border-radius: 50%; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(201,168,76,0.4); opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 999; }
 .back-to-top.show { opacity: 1; pointer-events: auto; }
 .back-to-top:hover { transform: translateY(-3px); }
 
@@ -642,15 +642,15 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   box-shadow: 0 3px 14px rgba(201,168,76,0.45);
   width: 100%;
   max-width: 100%;
-  overflow: hidden;
-  transition: top 0.3s ease;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
 .news-ticker-wrap {
   display: flex;
   align-items: center;
-  height: 44px;
-  overflow: hidden;
+  height: 50px;
+  min-height: 50px;
 }
 
 /* "Latest News" label */
@@ -718,6 +718,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   padding: 0 8px;
   white-space: nowrap;
   font-size: 0.83rem;
+  line-height: 1.2;
 }
 
 .news-ticker-dot {
@@ -865,7 +866,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 @media (max-width: 767px) {
   /* Ticker: ensure full-width, no horizontal overflow */
   .news-ticker-section { width: 100%; box-sizing: border-box; }
-  .news-ticker-wrap   { height: 42px; overflow: hidden; }
+  .news-ticker-wrap   { height: 48px; min-height: 48px; }
   .news-ticker-label  { padding: 0 10px; font-size: 0.68rem; letter-spacing: 0.3px; }
   .news-ticker-label::after { width: 24px; }
   .news-ticker-item   { font-size: 0.76rem; gap: 6px; padding: 0 14px; }
@@ -873,7 +874,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 }
 
 @media (max-width: 480px) {
-  .news-ticker-wrap   { height: 40px; }
+  .news-ticker-wrap   { height: 46px; min-height: 46px; }
   .news-ticker-label  { padding: 0 8px; font-size: 0.65rem; letter-spacing: 0; }
   .news-ticker-item   { font-size: 0.72rem; gap: 4px; padding: 0 10px; }
   .news-ticker-date   { display: none; }
@@ -1318,10 +1319,10 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .contact-panel-footer { padding: 12px 18px; }
   .contact-map-address { padding: 12px 18px; }
 
-  /* Floating buttons */
+  /* Floating buttons — phone lowest, WhatsApp above, back-to-top at top; 14px gap */
   .phone-float    { width: 50px; height: 50px; font-size: 1.2rem; bottom: 20px;  right: 16px; }
   .whatsapp-float { width: 50px; height: 50px; font-size: 1.4rem; bottom: 84px;  right: 16px; }
-  .back-to-top    { width: 40px; height: 40px; font-size: 0.9rem; bottom: 148px; right: 18px; }
+  .back-to-top    { width: 40px; height: 40px; font-size: 0.9rem; bottom: 150px; right: 18px; }
 
   /* Footer */
   .footer-top { padding: 40px 0 24px; }
@@ -1404,10 +1405,10 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .contact-form-card { padding: 14px 10px; }
   .contact-info-card { padding: 14px 10px; }
 
-  /* Floating buttons */
-  .phone-float    { width: 44px; height: 44px; font-size: 1rem;  bottom: 14px; right: 12px; }
-  .whatsapp-float { width: 44px; height: 44px; font-size: 1.2rem; bottom: 70px; right: 12px; }
-  .back-to-top    { width: 36px; height: 36px; font-size: 0.8rem; bottom: 128px; right: 14px; }
+  /* Floating buttons — 12px gap between each */
+  .phone-float    { width: 44px; height: 44px; font-size: 1rem;  bottom: 14px;  right: 12px; }
+  .whatsapp-float { width: 44px; height: 44px; font-size: 1.2rem; bottom: 70px;  right: 12px; }
+  .back-to-top    { width: 36px; height: 36px; font-size: 0.8rem; bottom: 126px; right: 14px; }
 
   .jr-modal { padding: 20px 14px; }
   .footer-top { padding: 32px 0 20px; }
@@ -1898,9 +1899,9 @@ body.drawer-open { overflow: hidden !important; }
 /* ── Safe-area global support ── */
 @supports (padding: env(safe-area-inset-bottom)) {
   .footer { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
-  .phone-float    { bottom: calc(16px + env(safe-area-inset-bottom)); }
-  .whatsapp-float { bottom: calc(72px + env(safe-area-inset-bottom)); }
-  .back-to-top    { bottom: calc(130px + env(safe-area-inset-bottom)); }
+  .phone-float    { bottom: calc(14px  + env(safe-area-inset-bottom)); }
+  .whatsapp-float { bottom: calc(70px  + env(safe-area-inset-bottom)); }
+  .back-to-top    { bottom: calc(126px + env(safe-area-inset-bottom)); }
 }
 
 /* ── Prevent horizontal scroll site-wide on mobile ── */
