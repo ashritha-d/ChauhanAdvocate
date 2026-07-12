@@ -229,7 +229,6 @@ export default function LatestUpdates() {
     try {
       const r = await getLiveStatus();
       const s = r.data.data;
-      // Only pin in Latest Updates if displayInUpdates is true and not ended/cancelled
       if (s && s.displayInUpdates !== false && s.status !== 'ended' && s.status !== 'cancelled') {
         setLive(s);
       } else {
@@ -241,30 +240,46 @@ export default function LatestUpdates() {
   useEffect(() => {
     setLoading(true);
     setAllFailed(false);
+    // Fetch live status in the same batch so it renders with the cards on first paint
     Promise.allSettled([
       getYouTubeVideos(),
       getFacebookPosts(),
       getMagazines(),
       getDrafts(),
       getBooks(),
+      getLiveStatus(),
     ])
-      .then(results => {
-        const built = buildItems(results);
+      .then(([yt, fb, mag, dr, bk, liveResult]) => {
+        const built = buildItems([yt, fb, mag, dr, bk]);
         setItems(built);
-        if (built.length === 0 && results.every(r => r.status === 'rejected')) {
+        if (built.length === 0 && [yt, fb, mag, dr, bk].every(r => r.status === 'rejected')) {
           setAllFailed(true);
+        }
+        // Set live session from the same batch
+        if (liveResult.status === 'fulfilled') {
+          const s = liveResult.value?.data?.data;
+          if (s && s.displayInUpdates !== false && s.status !== 'ended' && s.status !== 'cancelled') {
+            setLive(s);
+          } else {
+            setLive(null);
+          }
         }
       })
       .finally(() => setLoading(false));
+  }, [retryKey]);
 
-    fetchLive();
-  }, [retryKey, fetchLive]);
-
-  // Poll live status every 60s
+  // Poll live status every 60s independently
   useEffect(() => {
     const id = setInterval(fetchLive, 60000);
     return () => clearInterval(id);
   }, [fetchLive]);
+
+  // After data loads, reset scroll to position 0 so the live card (first item) is always visible
+  useEffect(() => {
+    if (!loading && trackRef.current) {
+      trackRef.current.scrollLeft = 0;
+    }
+  }, [loading]);
 
   const scroll = dir => trackRef.current?.scrollBy({ left: dir * 320, behavior: 'smooth' });
 

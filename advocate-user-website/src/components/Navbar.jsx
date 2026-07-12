@@ -159,11 +159,30 @@ export default function Navbar() {
             <img src={`${import.meta.env.BASE_URL}logo.jpeg`} alt="Advocate Chauhan Logo" style={{ height: '44px', objectFit: 'contain' }} />
           </a>
 
-          {/* Mobile: Book Appointment + Profile icon */}
+          {/* Mobile: Book Appointment + Live + Profile icon */}
           <div className="d-lg-none mobile-nav-center">
             <button className="btn btn-gold mobile-appt-btn" onClick={handleAppointment}>
               Book an Appointment
             </button>
+
+            {/* Live button — always visible in mobile/tablet navbar */}
+            <span
+              role="button"
+              className={`live-nav-btn live-nav-btn--mobile${isEffectivelyLive(liveSession) ? ' live-nav-btn--live' : liveSession?.status === 'upcoming' ? ' live-nav-btn--upcoming' : ''}`}
+              onClick={() => {
+                close();
+                if (isEffectivelyLive(liveSession) && liveSession?.meetUrl) {
+                  if (user) window.open(liveSession.meetUrl, '_blank', 'noopener,noreferrer');
+                  else navigate('/login', { state: { from: '/live' } });
+                } else {
+                  navigate('/live');
+                }
+              }}
+            >
+              <span className="live-nav-play"><i className="fas fa-play" /></span>
+              LIVE
+            </span>
+
             {user ? (
               <Link to="/profile" className="mobile-profile-btn" onClick={close} title={user.name}>
                 {user.profilePhoto

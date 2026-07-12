@@ -633,17 +633,13 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 }
 
 /* ══════════════════════════════════════════════════════════════
-   NEWS TICKER — sticky right below navbar on all screen sizes.
-   top tracks --nav-bottom so it never overlaps the header.
+   NEWS TICKER — scrolls naturally with the page (not sticky).
 ══════════════════════════════════════════════════════════════ */
 .news-ticker-section {
   background: linear-gradient(to right, var(--gold-dark, #a8893a), var(--gold, #c9a84c), #d4b05a, var(--gold, #c9a84c));
   border-top: 1px solid rgba(255,255,255,0.18);
   border-bottom: 2px solid rgba(0,0,0,0.12);
   box-shadow: 0 3px 14px rgba(201,168,76,0.45);
-  position: sticky;
-  top: var(--nav-bottom);
-  z-index: 1039;
   width: 100%;
   max-width: 100%;
   overflow: hidden;
@@ -2086,6 +2082,29 @@ body.drawer-open { overflow: hidden !important; }
 
 /* Upcoming — full opacity, no glow */
 .live-nav-btn--upcoming { opacity: 1; }
+
+/* Mobile/tablet variant — smaller pill shown in the navbar center slot */
+.live-nav-btn.live-nav-btn--mobile {
+  padding: 3px 9px 3px 3px;
+  font-size: 0.65rem;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.live-nav-btn.live-nav-btn--mobile .live-nav-play {
+  width: 22px;
+  height: 22px;
+  margin-right: 6px;
+}
+.live-nav-btn.live-nav-btn--mobile .live-nav-play i {
+  font-size: 0.5rem;
+}
+
+/* On very small phones (≤575px): hide Book Appt from navbar
+   (it remains accessible in the hamburger drawer) */
+@media (max-width: 575px) {
+  .mobile-appt-btn { display: none !important; }
+}
 
 /* Mobile drawer live icon */
 .mobile-drawer-live-active { color: #ff6b7a !important; }
