@@ -17,13 +17,11 @@ function getEffectiveStatus(s, now) {
   if (s.status === 'cancelled') return 'cancelled';
   if (s.status === 'ended')     return 'ended';
   if (s.status === 'live')      return 'live';
-
   const start = new Date(s.date);
   if (s.startTime) { const [h, m] = s.startTime.split(':').map(Number); start.setHours(h, m, 0, 0); }
   const end = new Date(s.date);
   if (s.endTime)   { const [h, m] = s.endTime.split(':').map(Number);   end.setHours(h, m, 0, 0); }
   else             { end.setTime(start.getTime() + 3600000); }
-
   if (now >= start && now <= end) return 'live';
   if (now > end)                  return 'ended';
   return 'upcoming';
@@ -42,6 +40,37 @@ function getCountdown(s, now) {
   };
 }
 
+/* ── Skeleton that exactly mirrors LiveSessionCard height ── */
+function LiveCardSkeleton() {
+  return (
+    <div className="luc-skeleton-card">
+      {/* Header row */}
+      <div className="luc-skeleton-header">
+        <div className="skeleton-shimmer" style={{ height: 22, width: 90, borderRadius: 20 }} />
+        <div className="skeleton-shimmer" style={{ height: 14, width: 70, borderRadius: 4 }} />
+      </div>
+      {/* Banner */}
+      <div className="skeleton-shimmer" style={{ height: 130, width: '100%' }} />
+      {/* Body */}
+      <div className="luc-skeleton-body">
+        <div className="skeleton-shimmer" style={{ height: 18, width: '88%', borderRadius: 4 }} />
+        <div className="skeleton-shimmer" style={{ height: 14, width: '60%', borderRadius: 4 }} />
+        <div className="skeleton-shimmer" style={{ height: 13, width: '75%', borderRadius: 4 }} />
+        <div className="skeleton-shimmer" style={{ height: 13, width: '55%', borderRadius: 4 }} />
+        {/* Countdown blocks */}
+        <div className="luc-skeleton-countdown">
+          {[0,1,2,3].map(j => (
+            <div key={j} className="skeleton-shimmer luc-skeleton-cd-unit" />
+          ))}
+        </div>
+        {/* Button */}
+        <div className="skeleton-shimmer" style={{ height: 38, width: '100%', borderRadius: 8 }} />
+      </div>
+    </div>
+  );
+}
+
+/* ── Live Session Card ── */
 function LiveSessionCard({ session }) {
   const { user } = useUserAuth();
   const navigate = useNavigate();
@@ -66,37 +95,23 @@ function LiveSessionCard({ session }) {
 
   return (
     <div className="live-update-card">
-      {/* Header */}
       <div className="luc-header">
         {status === 'live' ? (
-          <span className="luc-badge luc-badge--live">
-            <span className="luc-blink-dot" />LIVE NOW
-          </span>
+          <span className="luc-badge luc-badge--live"><span className="luc-blink-dot" />LIVE NOW</span>
         ) : (
-          <span className="luc-badge luc-badge--upcoming">
-            <i className="fas fa-calendar-alt me-1" />UPCOMING
-          </span>
+          <span className="luc-badge luc-badge--upcoming"><i className="fas fa-calendar-alt me-1" />UPCOMING</span>
         )}
-        <span className="luc-platform">
-          <i className={`${icon} me-1`} />{session.platform || 'Online'}
-        </span>
+        <span className="luc-platform"><i className={`${icon} me-1`} />{session.platform || 'Online'}</span>
       </div>
 
-      {/* Banner */}
       {session.banner ? (
-        <div className="luc-banner">
-          <img src={session.banner} alt={session.title} />
-        </div>
+        <div className="luc-banner"><img src={session.banner} alt={session.title} /></div>
       ) : (
-        <div className="luc-banner luc-banner--placeholder">
-          <i className="fas fa-broadcast-tower" />
-        </div>
+        <div className="luc-banner luc-banner--placeholder"><i className="fas fa-broadcast-tower" /></div>
       )}
 
-      {/* Body */}
       <div className="luc-body">
         <div className="luc-title">{session.title}</div>
-
         <div className="luc-meta">
           <span><i className="fas fa-calendar" />{fmtDate(session.date)}</span>
           {session.startTime && (
@@ -109,7 +124,6 @@ function LiveSessionCard({ session }) {
           {session.speaker && <span><i className="fas fa-user-tie" />{session.speaker}</span>}
         </div>
 
-        {/* Countdown */}
         {status === 'upcoming' && cd && (
           <div className="luc-countdown">
             {cd.days > 0 && <div className="luc-cd-unit"><span>{cd.days}</span><small>d</small></div>}
@@ -126,11 +140,9 @@ function LiveSessionCard({ session }) {
           </p>
         )}
 
-        {/* CTA */}
         {status === 'live' ? (
           <button className="btn luc-join-btn" onClick={handleJoin}>
-            <i className="fas fa-video me-1" />
-            {user ? 'Join Live Now' : 'Login to Join'}
+            <i className="fas fa-video me-1" />{user ? 'Join Live Now' : 'Login to Join'}
           </button>
         ) : (
           <button className="btn luc-more-btn" onClick={() => navigate('/live')}>
@@ -159,22 +171,17 @@ export default function LatestUpdates() {
       const seen = new Set();
       const all  = [];
 
-      // Current / actively live session goes first
       if (currResult.status === 'fulfilled') {
         const s = currResult.value?.data?.data;
         if (s && s.displayInUpdates !== false && s.status !== 'ended' && s.status !== 'cancelled') {
-          seen.add(s._id);
-          all.push(s);
+          seen.add(s._id); all.push(s);
         }
       }
-
-      // All upcoming sessions (dedup against current)
       if (upcResult.status === 'fulfilled') {
         const list = upcResult.value?.data?.data || [];
         list.forEach(s => {
           if (!seen.has(s._id) && s.displayInUpdates !== false) {
-            seen.add(s._id);
-            all.push(s);
+            seen.add(s._id); all.push(s);
           }
         });
       }
@@ -184,51 +191,21 @@ export default function LatestUpdates() {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    setLoading(true);
-    loadSessions();
-  }, [retryKey, loadSessions]);
+  useEffect(() => { setLoading(true); loadSessions(); }, [retryKey, loadSessions]);
 
-  // Refresh live status every 60 s
   useEffect(() => {
     const id = setInterval(loadSessions, 60000);
     return () => clearInterval(id);
   }, [loadSessions]);
 
-  // After render, reset scroll so first card is always visible
   useEffect(() => {
     if (!loading && trackRef.current) trackRef.current.scrollLeft = 0;
   }, [loading]);
 
   const scroll = dir => trackRef.current?.scrollBy({ left: dir * 320, behavior: 'smooth' });
 
-  /* ── Empty state ── */
-  if (!loading && sessions.length === 0) {
-    return (
-      <section id="latest-updates" className="section-padding bg-light">
-        <div className="container-fluid px-3 px-md-4">
-          <div className="latest-header mb-4" data-aos="fade-right">
-            <span className="latest-badge">LIVE</span>
-            <h2 className="section-title d-inline ms-3 mb-0">
-              Live <span className="text-gold">Sessions</span>
-            </h2>
-          </div>
-          <div className="text-center py-5">
-            <div style={{ fontSize: '3rem', opacity: 0.18, marginBottom: 16 }}>
-              <i className="fas fa-broadcast-tower" />
-            </div>
-            <h5 style={{ color: '#555', marginBottom: 8 }}>No Live Sessions Available Currently</h5>
-            <p className="text-muted mb-3">Please check back later for upcoming live sessions.</p>
-            <button className="btn btn-gold btn-sm" onClick={() => setRetryKey(k => k + 1)}>
-              <i className="fas fa-sync-alt me-2" />Refresh
-            </button>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  /* ── Carousel ── */
+  /* Always render the section with a stable min-height to prevent CLS.
+     The luc-content-area reserves the same space whether loading, empty, or filled. */
   return (
     <section id="latest-updates" className="section-padding bg-light">
       <div className="container-fluid px-3 px-md-4">
@@ -237,29 +214,48 @@ export default function LatestUpdates() {
           <h2 className="section-title d-inline ms-3 mb-0">
             Live <span className="text-gold">Sessions</span>
           </h2>
-          <p className="section-subtitle mt-2 ms-1 mb-0">
-            Upcoming and active live legal sessions
-          </p>
+          {!loading && sessions.length > 0 && (
+            <p className="section-subtitle mt-2 ms-1 mb-0">
+              Upcoming and active live legal sessions
+            </p>
+          )}
         </div>
 
-        <div className="latest-slider-outer">
-          <button className="slider-scroll-btn" onClick={() => scroll(-1)} aria-label="Scroll left">&#8249;</button>
-          <div className="latest-scroll" ref={trackRef}>
-            {loading
-              ? Array.from({ length: 3 }).map((_, i) => (
-                  <div className="skeleton-latest-card" key={i}>
-                    <div className="skeleton-shimmer skeleton-latest-img" />
-                    <div className="skeleton-shimmer skeleton-latest-line" style={{ width: '85%' }} />
-                    <div className="skeleton-shimmer skeleton-latest-line" style={{ width: '60%' }} />
-                    <div className="skeleton-shimmer skeleton-latest-btn" />
-                  </div>
-                ))
-              : sessions.map(session => (
+        {/* Stable min-height container — prevents layout shift */}
+        <div className="luc-content-area">
+          {loading ? (
+            /* Skeleton mirrors live card structure exactly */
+            <div className="latest-slider-outer">
+              <button className="slider-scroll-btn" style={{ visibility: 'hidden' }} aria-hidden="true">&#8249;</button>
+              <div className="latest-scroll latest-scroll--loading">
+                <LiveCardSkeleton />
+                <LiveCardSkeleton />
+                <LiveCardSkeleton />
+              </div>
+              <button className="slider-scroll-btn" style={{ visibility: 'hidden' }} aria-hidden="true">&#8250;</button>
+            </div>
+          ) : sessions.length === 0 ? (
+            /* Empty state — same height container */
+            <div className="luc-empty-state">
+              <div className="luc-empty-icon"><i className="fas fa-broadcast-tower" /></div>
+              <h5>No Live Sessions Available Currently</h5>
+              <p>Please check back later for upcoming live sessions.</p>
+              <button className="btn btn-gold btn-sm mt-1" onClick={() => setRetryKey(k => k + 1)}>
+                <i className="fas fa-sync-alt me-2" />Refresh
+              </button>
+            </div>
+          ) : (
+            /* Live session cards */
+            <div className="latest-slider-outer">
+              <button className="slider-scroll-btn" onClick={() => scroll(-1)} aria-label="Scroll left">&#8249;</button>
+              <div className="latest-scroll" ref={trackRef}>
+                {sessions.map(session => (
                   <LiveSessionCard key={session._id} session={session} />
-                ))
-            }
-          </div>
-          <button className="slider-scroll-btn" onClick={() => scroll(1)} aria-label="Scroll right">&#8250;</button>
+                ))}
+              </div>
+              <button className="slider-scroll-btn" onClick={() => scroll(1)} aria-label="Scroll right">&#8250;</button>
+            </div>
+          )}
         </div>
       </div>
     </section>
