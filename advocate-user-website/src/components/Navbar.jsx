@@ -13,7 +13,6 @@ const PUBLIC_NAV_LINKS = [
   { id: 'drafts',    label: 'Drafts',    page: '/drafts',     icon: 'fa-file-alt' },
   { id: 'books',     label: 'Books',     page: '/books',      icon: 'fa-book' },
   { id: 'gallery',   label: 'Gallery',   page: '/gallery',    icon: 'fa-images' },
-  { id: 'blog',      label: 'Blog',      page: null,          icon: 'fa-pen-nib' },
   { id: 'faq',       label: 'FAQ',       page: null,          icon: 'fa-question-circle' },
   { id: 'contact',   label: 'Contact',   page: '/contact',    icon: 'fa-envelope' },
 ];
