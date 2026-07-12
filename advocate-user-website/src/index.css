@@ -2029,67 +2029,91 @@ body.drawer-open { overflow: hidden !important; }
 /* ═══════════════════════════════════════════════════════════
    LIVE — Navbar button
 ═══════════════════════════════════════════════════════════ */
-@keyframes live-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(220,53,69,0.6); }
-  50%       { box-shadow: 0 0 0 6px rgba(220,53,69,0); }
+@keyframes live-glow {
+  0%, 100% { box-shadow: 0 0 6px 1px rgba(220,53,69,0.7), 0 2px 8px rgba(220,53,69,0.4); }
+  50%       { box-shadow: 0 0 14px 4px rgba(220,53,69,0.9), 0 4px 16px rgba(220,53,69,0.6); }
 }
 @keyframes live-dot-pulse {
   0%, 100% { transform: scale(1); opacity: 1; }
-  50%       { transform: scale(1.4); opacity: 0.7; }
+  50%       { transform: scale(1.5); opacity: 0.6; }
 }
 
+/* Default (no session) */
 .live-nav-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 13px;
-  border-radius: 20px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.75);
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
   text-decoration: none !important;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(220,53,69,0.12);
+  border: 1.5px solid rgba(220,53,69,0.3);
   transition: all 0.2s;
   cursor: pointer;
   white-space: nowrap;
-  position: relative;
 }
-.live-nav-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
+.live-nav-btn:hover {
+  color: #fff;
+  background: rgba(220,53,69,0.25);
+  border-color: rgba(220,53,69,0.6);
+}
 
+/* LIVE (active broadcast) — solid red, glowing */
 .live-nav-btn--live {
-  background: rgba(220,53,69,0.18);
-  border-color: rgba(220,53,69,0.5);
-  color: #ff6b7a;
-  animation: live-pulse 1.8s ease-in-out infinite;
+  background: #dc3545;
+  border-color: #dc3545;
+  color: #fff !important;
+  animation: live-glow 1.6s ease-in-out infinite;
 }
-.live-nav-btn--live:hover { color: #fff; background: rgba(220,53,69,0.3); }
+.live-nav-btn--live:hover {
+  background: #c82333;
+  border-color: #c82333;
+  color: #fff;
+}
 
+/* Upcoming session */
 .live-nav-btn--upcoming {
-  background: rgba(245,158,11,0.15);
-  border-color: rgba(245,158,11,0.4);
-  color: #fbbf24;
+  background: rgba(220,53,69,0.15);
+  border-color: rgba(220,53,69,0.45);
+  color: #ff8a94 !important;
 }
-.live-nav-btn--upcoming:hover { color: #fff; background: rgba(245,158,11,0.25); }
+.live-nav-btn--upcoming:hover {
+  background: rgba(220,53,69,0.28);
+  color: #fff;
+}
 
+/* Recording dot — always visible as part of ● LIVE badge */
 .live-nav-dot {
   display: inline-block;
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #dc3545;
+  background: rgba(220,53,69,0.6);
   flex-shrink: 0;
+}
+/* White pulsing dot on solid red background */
+.live-nav-btn--live .live-nav-dot {
+  background: #fff;
   animation: live-dot-pulse 1.2s ease-in-out infinite;
+}
+/* Soft red dot when upcoming */
+.live-nav-btn--upcoming .live-nav-dot {
+  background: #ff8a94;
 }
 
 /* Mobile drawer live icon */
 .mobile-drawer-live-active { color: #ff6b7a !important; }
 .mobile-drawer-live-active .mobile-drawer-link-icon { color: #dc3545 !important; }
-@keyframes live-icon-spin {
+@keyframes live-icon-blink {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
+  50%       { opacity: 0.4; }
 }
-.live-icon-pulse { animation: live-icon-spin 1.2s ease-in-out infinite; }
+.live-icon-pulse { animation: live-icon-blink 1.2s ease-in-out infinite; }
 
 /* ═══════════════════════════════════════════════════════════
    LIVE — Page styles
