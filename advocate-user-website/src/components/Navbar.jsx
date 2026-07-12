@@ -199,7 +199,7 @@ export default function Navbar() {
               <i className="fas fa-video me-1" />Live
             </Link>
 
-            <button className="nav-link" onClick={handleAppointment}>
+            <button className="btn btn-gold ms-2" onClick={handleAppointment}>
               Book an Appointment
             </button>
 
@@ -262,10 +262,10 @@ export default function Navbar() {
                 </div>
               </>
             ) : (
-              <>
-                <Link to="/login" className="nav-link" onClick={close}>Login</Link>
-                <Link to="/register" className="nav-link" onClick={close}>Register</Link>
-              </>
+              <div className="d-flex gap-2 ms-2">
+                <Link to="/login" className="btn btn-outline-light btn-sm" onClick={close}><i className="fas fa-sign-in-alt me-1"></i>Login</Link>
+                <Link to="/register" className="btn btn-gold btn-sm" onClick={close}><i className="fas fa-user-plus me-1"></i>Register</Link>
+              </div>
             )}
           </div>
         </div>
