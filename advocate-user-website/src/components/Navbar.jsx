@@ -4,6 +4,19 @@ import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
 import { getLiveStatus } from '../api';
 
+function isEffectivelyLive(s) {
+  if (!s) return false;
+  if (s.status === 'live') return true;
+  if (s.status !== 'upcoming') return false;
+  const start = new Date(s.date);
+  if (s.startTime) { const [h, m] = s.startTime.split(':').map(Number); start.setHours(h, m, 0, 0); }
+  const end = new Date(s.date);
+  if (s.endTime) { const [h, m] = s.endTime.split(':').map(Number); end.setHours(h, m, 0, 0); }
+  else { end.setTime(start.getTime() + 3600000); }
+  const now = new Date();
+  return now >= start && now <= end;
+}
+
 const PUBLIC_NAV_LINKS = [
   { id: 'home',      label: 'Home',      page: null,          icon: 'fa-home' },
   { id: 'services',  label: 'Services',  page: null,          icon: 'fa-balance-scale' },
@@ -189,11 +202,20 @@ export default function Navbar() {
                 : <a key={link.id} className="nav-link" href={`#${link.id}`} onClick={handleSection(link.id)}>{link.label}</a>
             ))}
 
-            {/* Live Button */}
+            {/* Live Button — opens meetUrl directly when live + logged in */}
             <Link
               to="/live"
-              className={`live-nav-btn${liveSession?.status === 'live' ? ' live-nav-btn--live' : liveSession?.status === 'upcoming' ? ' live-nav-btn--upcoming' : ''}`}
-              onClick={close}
+              className={`live-nav-btn${isEffectivelyLive(liveSession) ? ' live-nav-btn--live' : liveSession?.status === 'upcoming' ? ' live-nav-btn--upcoming' : ''}`}
+              onClick={e => {
+                e.preventDefault();
+                close();
+                if (isEffectivelyLive(liveSession) && liveSession?.meetUrl) {
+                  if (user) window.open(liveSession.meetUrl, '_blank', 'noopener,noreferrer');
+                  else navigate('/login', { state: { from: '/live' } });
+                } else {
+                  navigate('/live');
+                }
+              }}
             >
               <span className="live-nav-play"><i className="fas fa-play" /></span>
               LIVE
@@ -317,15 +339,24 @@ export default function Navbar() {
           {/* Live link in mobile drawer */}
           <Link
             to="/live"
-            className={`mobile-drawer-link${liveSession?.status === 'live' ? ' mobile-drawer-live-active' : ''}`}
-            onClick={close}
+            className={`mobile-drawer-link${isEffectivelyLive(liveSession) ? ' mobile-drawer-live-active' : ''}`}
+            onClick={e => {
+              e.preventDefault();
+              close();
+              if (isEffectivelyLive(liveSession) && liveSession?.meetUrl) {
+                if (user) window.open(liveSession.meetUrl, '_blank', 'noopener,noreferrer');
+                else navigate('/login', { state: { from: '/live' } });
+              } else {
+                navigate('/live');
+              }
+            }}
           >
-            <i className={`fas fa-video mobile-drawer-link-icon${liveSession?.status === 'live' ? ' live-icon-pulse' : ''}`} />
+            <i className={`fas fa-video mobile-drawer-link-icon${isEffectivelyLive(liveSession) ? ' live-icon-pulse' : ''}`} />
             Live
-            {liveSession?.status === 'live' && (
+            {isEffectivelyLive(liveSession) && (
               <span className="mobile-drawer-badge" style={{ background: '#dc3545' }}>LIVE</span>
             )}
-            {liveSession?.status === 'upcoming' && (
+            {!isEffectivelyLive(liveSession) && liveSession?.status === 'upcoming' && (
               <span className="mobile-drawer-badge" style={{ background: '#f59e0b', color: '#1a1a2e' }}>SOON</span>
             )}
           </Link>

@@ -78,11 +78,12 @@ export const checkDraftPurchase = (draftId, headers = {}) => api.get(`/draft-pur
 export const getMyDraftPurchases = (headers = {}) => api.get('/draft-purchases/my', { headers });
 
 // ── Live Sessions ────────────────────────────────────────────────────────────
-export const getLiveStatus        = ()                  => api.get('/live/current');
-export const getUpcomingSessions  = ()                  => api.get('/live/upcoming');
-export const getLiveSessions      = (headers)           => api.get('/live', { headers });
-export const createLiveSession    = (data, headers)     => api.post('/live', data, { headers });
-export const updateLiveSession    = (id, data, headers) => api.put(`/live/${id}`, data, { headers });
-export const deleteLiveSession    = (id, headers)       => api.delete(`/live/${id}`, { headers });
-export const addLiveAnnouncement  = (id, text, headers) => api.post(`/live/${id}/announcements`, { text }, { headers });
+export const getLiveStatus          = ()                  => api.get('/live/current');
+export const getUpcomingSessions    = ()                  => api.get('/live/upcoming');
+export const getPastSessions        = ()                  => api.get('/live/past');
+export const getLiveSessions        = (headers)           => api.get('/live', { headers });
+export const createLiveSession      = (data, headers)     => api.post('/live', data, { headers });
+export const updateLiveSession      = (id, data, headers) => api.put(`/live/${id}`, data, { headers });
+export const deleteLiveSession      = (id, headers)       => api.delete(`/live/${id}`, { headers });
+export const addLiveAnnouncement    = (id, text, headers) => api.post(`/live/${id}/announcements`, { text }, { headers });
 export const deleteLiveAnnouncement = (id, annId, headers) => api.delete(`/live/${id}/announcements/${annId}`, { headers });
