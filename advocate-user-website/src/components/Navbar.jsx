@@ -195,8 +195,8 @@ export default function Navbar() {
               className={`live-nav-btn${liveSession?.status === 'live' ? ' live-nav-btn--live' : liveSession?.status === 'upcoming' ? ' live-nav-btn--upcoming' : ''}`}
               onClick={close}
             >
-              <span className="live-nav-dot" />
-              Live
+              <span className="live-nav-play"><i className="fas fa-play" /></span>
+              LIVE
             </Link>
 
             <button className="btn btn-gold ms-2" onClick={handleAppointment}>
