@@ -1,5 +1,5 @@
 // Service Worker — network-first for HTML, cache-first for hashed assets
-// 1783847839899 is replaced with Date.now() by the Vite build plugin
+// 1783848160165 is replaced with Date.now() by the Vite build plugin
 const CACHE = 'chauhanadvocate-__SW_BUILD_TS__';
 
 // Take control immediately on install — don't wait for old SW to die
