@@ -304,8 +304,8 @@ export default function Navbar() {
               </>
             ) : (
               <div className="d-flex gap-2 ms-2">
-                <Link to="/login" className="btn btn-outline-light btn-sm" onClick={close}><i className="fas fa-sign-in-alt me-1"></i>Login</Link>
-                <Link to="/register" className="btn btn-gold btn-sm" onClick={close}><i className="fas fa-user-plus me-1"></i>Register</Link>
+                <Link to="/login" className="btn btn-outline-light btn-sm" onClick={close}>Login</Link>
+                <Link to="/register" className="btn btn-gold btn-sm" onClick={close}>Register</Link>
               </div>
             )}
           </div>
