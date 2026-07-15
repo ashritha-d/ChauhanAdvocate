@@ -171,9 +171,9 @@ export default function Navbar() {
               className={`live-nav-btn live-nav-btn--mobile${isEffectivelyLive(liveSession) ? ' live-nav-btn--live' : liveSession?.status === 'upcoming' ? ' live-nav-btn--upcoming' : ''}`}
               onClick={() => {
                 close();
-                if (isEffectivelyLive(liveSession) && liveSession?.meetUrl) {
-                  if (user) window.open(liveSession.meetUrl, '_blank', 'noopener,noreferrer');
-                  else navigate('/login', { state: { from: '/live' } });
+                // SEC-02: Always navigate to /live — the Live page fetches meetUrl via authenticated endpoint
+                if (isEffectivelyLive(liveSession) && !user) {
+                  navigate('/login', { state: { from: '/live' } });
                 } else {
                   navigate('/live');
                 }
@@ -221,16 +221,15 @@ export default function Navbar() {
                 : <a key={link.id} className="nav-link" href={`#${link.id}`} onClick={handleSection(link.id)}>{link.label}</a>
             ))}
 
-            {/* Live Button — opens meetUrl directly when live + logged in */}
+            {/* Live Button — SEC-02: navigates to /live; Live page fetches meetUrl via authenticated endpoint */}
             <Link
               to="/live"
               className={`live-nav-btn${isEffectivelyLive(liveSession) ? ' live-nav-btn--live' : liveSession?.status === 'upcoming' ? ' live-nav-btn--upcoming' : ''}`}
               onClick={e => {
                 e.preventDefault();
                 close();
-                if (isEffectivelyLive(liveSession) && liveSession?.meetUrl) {
-                  if (user) window.open(liveSession.meetUrl, '_blank', 'noopener,noreferrer');
-                  else navigate('/login', { state: { from: '/live' } });
+                if (isEffectivelyLive(liveSession) && !user) {
+                  navigate('/login', { state: { from: '/live' } });
                 } else {
                   navigate('/live');
                 }
@@ -355,16 +354,15 @@ export default function Navbar() {
                 </a>
           ))}
 
-          {/* Live link in mobile drawer */}
+          {/* Live link in mobile drawer — SEC-02: always navigate to /live */}
           <Link
             to="/live"
             className={`mobile-drawer-link${isEffectivelyLive(liveSession) ? ' mobile-drawer-live-active' : ''}`}
             onClick={e => {
               e.preventDefault();
               close();
-              if (isEffectivelyLive(liveSession) && liveSession?.meetUrl) {
-                if (user) window.open(liveSession.meetUrl, '_blank', 'noopener,noreferrer');
-                else navigate('/login', { state: { from: '/live' } });
+              if (isEffectivelyLive(liveSession) && !user) {
+                navigate('/login', { state: { from: '/live' } });
               } else {
                 navigate('/live');
               }

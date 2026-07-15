@@ -1,7 +1,13 @@
-const router       = require('express').Router();
-const LiveSession  = require('../models/LiveSession');
-const LiveAuditLog = require('../models/LiveAuditLog');
-const { protect }  = require('../middleware/auth');
+const router         = require('express').Router();
+const LiveSession    = require('../models/LiveSession');
+const LiveAuditLog   = require('../models/LiveAuditLog');
+const { protect }    = require('../middleware/auth');
+const { protectUser } = require('../middleware/userAuth');
+
+// SEC-05: Escape regex special characters to prevent ReDoS
+function escapeRegex(str) {
+  return String(str).slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 /* ── Audit helper ── */
 async function logAudit(admin, action, session, changes = {}) {
@@ -21,12 +27,13 @@ async function logAudit(admin, action, session, changes = {}) {
 /* ── Public ── */
 
 // Current active/upcoming session (navbar + live page)
+// SEC-02: meetUrl is omitted — returned only via the authenticated join endpoint
 router.get('/current', async (req, res) => {
   try {
     const session = await LiveSession.findOne({
       isEnabled: true,
       status: { $in: ['live', 'upcoming'] },
-    }).sort({ date: 1, createdAt: -1 });
+    }).sort({ date: 1, createdAt: -1 }).select('-meetUrl');
     res.json({ success: true, data: session || null });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
@@ -67,7 +74,8 @@ router.get('/past', async (req, res) => {
 router.get('/', protect, async (req, res) => {
   try {
     const filter = {};
-    if (req.query.search) filter.title = { $regex: req.query.search, $options: 'i' };
+    // SEC-05: Escape regex to prevent ReDoS
+    if (req.query.search) filter.title = { $regex: escapeRegex(req.query.search), $options: 'i' };
     if (req.query.status && req.query.status !== 'all') filter.status = req.query.status;
     const sessions = await LiveSession.find(filter).sort({ createdAt: -1 });
     res.json({ success: true, data: sessions });
@@ -157,6 +165,21 @@ router.get('/audit-log', protect, async (req, res) => {
   try {
     const logs = await LiveAuditLog.find().sort({ createdAt: -1 }).limit(100);
     res.json({ success: true, data: logs });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// SEC-02: Authenticated join-url — only logged-in users receive the meeting link
+router.get('/:id/join-url', protectUser, async (req, res) => {
+  try {
+    const session = await LiveSession.findOne({
+      _id: req.params.id,
+      isEnabled: true,
+      status: { $in: ['live', 'upcoming'] },
+    }).select('meetUrl status title');
+    if (!session) return res.status(404).json({ success: false, message: 'Session not found' });
+    res.json({ success: true, meetUrl: session.meetUrl || '', status: session.status });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
   }

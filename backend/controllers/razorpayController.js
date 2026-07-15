@@ -4,6 +4,7 @@ const BookOrder = require('../models/BookOrder');
 const SiteSettings = require('../models/SiteSettings');
 const UserNotification = require('../models/UserNotification');
 const whatsapp = require('../services/whatsapp');
+const { isSlotTaken, withOptionalTransaction } = require('../utils/slotUtils');
 
 async function getSettingValue(key) {
   const s = await SiteSettings.findOne({ key });
@@ -43,26 +44,43 @@ exports.createManualPayment = async (req, res) => {
   try {
     const {
       name, email, phone, service, date, time, message, appointmentMode,
-      amount, paymentMethod, utrNumber, userId,
+      amount, paymentMethod, utrNumber,
     } = req.body;
+    // SEC-04: userId is always derived from the authenticated session — never trusted from the request body
+    const userId = req.user?._id || undefined;
 
     if (!name || !phone || !service || !date || !time) {
       return res.status(400).json({ success: false, message: 'Missing required appointment fields' });
     }
 
-    const appt = await Appointment.create({
-      name, email: email || '', phone, service,
-      date: new Date(date), time,
-      message: message || '',
-      appointmentMode: appointmentMode || 'offline',
-      paymentMethod: paymentMethod || 'bank_transfer',
-      paymentStatus: 'pending_verification',
-      consultationFee: String(amount || 0),
-      status: 'pending',
-      ...(userId ? { userId } : {}),
-    });
+    let appt;
+    try {
+      appt = await withOptionalTransaction(async (session) => {
+        if (await isSlotTaken(date, time, session)) {
+          const e = new Error('SLOT_TAKEN'); e.slotTaken = true; throw e;
+        }
+        const [created] = await Appointment.create([{
+          name, email: email || '', phone, service,
+          date: new Date(date), time,
+          message: message || '',
+          appointmentMode: appointmentMode || 'offline',
+          paymentMethod: paymentMethod || 'bank_transfer',
+          paymentStatus: 'pending_verification',
+          consultationFee: String(amount || 0),
+          status: 'pending',
+          ...(userId ? { userId } : {}),
+        }], session ? { session } : {});
+        return created;
+      });
+    } catch (err) {
+      if (err.slotTaken) {
+        return res.status(409).json({ success: false, message: 'This appointment slot is no longer available. Please choose another time.' });
+      }
+      throw err;
+    }
 
-    const screenshotPath = req.file?.path || (req.file ? `/uploads/payments/${req.file.filename}` : '');
+    // BUG-02: Use Cloudinary URL from multer-storage-cloudinary (req.file.path = secure_url)
+    const screenshotPath = req.file?.path || '';
 
     const payment = await Payment.create({
       type: 'appointment',
@@ -116,8 +134,10 @@ exports.createBookManualPayment = async (req, res) => {
   try {
     const {
       name, email, phone, whatsappNumber, bookTitle, bookPrice,
-      address, quantity, notes, paymentMethod, utrNumber, userId, orderId,
+      address, quantity, notes, paymentMethod, utrNumber, orderId,
     } = req.body;
+    // SEC-04: userId always from verified JWT session, never from request body
+    const userId = req.user?._id || undefined;
 
     if (!name || !phone || !bookTitle || !address) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -139,6 +159,7 @@ exports.createBookManualPayment = async (req, res) => {
       status: 'pending',
     });
 
+    // BUG-02: Use Cloudinary URL (req.file.path = secure_url from multer-storage-cloudinary)
     const screenshotPath = req.file?.path || '';
 
     let payment = null;

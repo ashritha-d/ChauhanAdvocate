@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 import { getPaymentSettings, submitManualPayment } from '../api';
+import TurnstileWidget from '../components/TurnstileWidget';
 
 const METHODS = [
   { id: 'upi_id',  icon: 'fa-mobile-alt', label: 'UPI ID',  sub: 'PhonePe / GPay / Paytm' },
@@ -56,12 +57,13 @@ export default function Payment() {
   const { user } = useUserAuth();
   const [appt, setAppt]             = useState(null);
   const [settings, setSettings]     = useState({});
-  const [method, setMethod]         = useState('upi_id');
-  const [utr, setUtr]               = useState('');
-  const [screenshot, setScreenshot] = useState(null);
-  const [loading, setLoading]       = useState(false);
-  const [err, setErr]               = useState('');
-  const [screen, setScreen]         = useState('payment');
+  const [method, setMethod]             = useState('upi_id');
+  const [utr, setUtr]                   = useState('');
+  const [screenshot, setScreenshot]     = useState(null);
+  const [turnstileToken, setTurnstile]  = useState('');
+  const [loading, setLoading]           = useState(false);
+  const [err, setErr]                   = useState('');
+  const [screen, setScreen]             = useState('payment');
 
   useEffect(() => {
     const raw = sessionStorage.getItem('pendingAppointment');
@@ -80,6 +82,10 @@ export default function Payment() {
 
   const handleSubmit = async () => {
     if (!utr.trim()) { setErr('Please enter your UTR / Transaction Reference Number.'); return; }
+    if (import.meta.env.VITE_TURNSTILE_SITE_KEY && !turnstileToken) {
+      setErr('Please complete the security check before submitting.');
+      return;
+    }
     setLoading(true); setErr('');
     try {
       const fd = new FormData();
@@ -87,6 +93,7 @@ export default function Payment() {
       fd.append('paymentMethod', method);
       fd.append('utrNumber', utr.trim());
       if (screenshot) fd.append('screenshot', screenshot);
+      if (turnstileToken) fd.append('turnstileToken', turnstileToken);
       const { data } = await submitManualPayment(fd);
       if (data.success) {
         sessionStorage.removeItem('pendingAppointment');
@@ -287,6 +294,11 @@ export default function Payment() {
                   style={{ borderRadius: 10 }}
                 />
               </div>
+
+              <TurnstileWidget
+                onVerify={setTurnstile}
+                onExpire={() => setTurnstile('')}
+              />
 
               {err && (
                 <div className="alert alert-danger py-2 small" style={{ borderRadius: 10 }}>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 import { getPaymentSettings, submitBookManualPayment } from '../api';
+import TurnstileWidget from '../components/TurnstileWidget';
 
 const METHODS = [
   { id: 'upi_id',  icon: 'fa-mobile-alt', label: 'UPI ID',  sub: 'PhonePe / GPay / Paytm' },
@@ -57,11 +58,12 @@ export default function BookPayment() {
   const [order, setOrder]           = useState(null);
   const [settings, setSettings]     = useState({});
   const [method, setMethod]         = useState('upi_id');
-  const [utr, setUtr]               = useState('');
-  const [screenshot, setScreenshot] = useState(null);
-  const [loading, setLoading]       = useState(false);
-  const [err, setErr]               = useState('');
-  const [screen, setScreen]         = useState('payment');
+  const [utr, setUtr]                   = useState('');
+  const [screenshot, setScreenshot]     = useState(null);
+  const [turnstileToken, setTurnstile]  = useState('');
+  const [loading, setLoading]           = useState(false);
+  const [err, setErr]                   = useState('');
+  const [screen, setScreen]             = useState('payment');
   const [result, setResult]         = useState(null);
 
   useEffect(() => {
@@ -89,6 +91,10 @@ export default function BookPayment() {
       setErr('Please enter your UTR / Transaction Reference Number.');
       return;
     }
+    if (import.meta.env.VITE_TURNSTILE_SITE_KEY && !turnstileToken) {
+      setErr('Please complete the security check before submitting.');
+      return;
+    }
     setLoading(true); setErr('');
     try {
       const fd = new FormData();
@@ -96,6 +102,7 @@ export default function BookPayment() {
       fd.append('paymentMethod', method);
       if (utr.trim()) fd.append('utrNumber', utr.trim());
       if (screenshot) fd.append('screenshot', screenshot);
+      if (turnstileToken) fd.append('turnstileToken', turnstileToken);
       const { data } = await submitBookManualPayment(fd);
       if (data.success) {
         sessionStorage.removeItem('pendingBookOrder');
@@ -298,6 +305,11 @@ export default function BookPayment() {
                 />
               </div>
             </div>
+
+            <TurnstileWidget
+              onVerify={setTurnstile}
+              onExpire={() => setTurnstile('')}
+            />
 
             {err && (
               <div className="alert alert-danger py-2 small" style={{ borderRadius: 10 }}>

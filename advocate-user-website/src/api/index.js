@@ -29,6 +29,8 @@ export const userLogin = (data) => api.post('/users/login', data);
 export const userForgotPassword = (data) => api.post('/users/forgot-password', data);
 export const userVerifyOTP = (data) => api.post('/users/verify-otp', data);
 export const userResetPassword = (data) => api.post('/users/reset-password', data);
+export const userLogout = () => api.post('/users/logout', {}, { withCredentials: true });
+export const userRefresh = () => api.post('/users/refresh', {}, { withCredentials: true });
 
 export const getUserProfile = (headers) => api.get('/users/profile', { headers });
 export const updateUserProfile = (data, headers) => api.put('/users/profile', data, { headers });
@@ -81,6 +83,8 @@ export const getMyDraftPurchases = (headers = {}) => api.get('/draft-purchases/m
 export const getLiveStatus          = ()                  => api.get('/live/current');
 export const getUpcomingSessions    = ()                  => api.get('/live/upcoming');
 export const getPastSessions        = ()                  => api.get('/live/past');
+// SEC-02: meetUrl is fetched only for authenticated users via a dedicated endpoint
+export const getLiveJoinUrl         = (id, headers)       => api.get(`/live/${id}/join-url`, { headers });
 export const getLiveSessions        = (headers)           => api.get('/live', { headers });
 export const createLiveSession      = (data, headers)     => api.post('/live', data, { headers });
 export const updateLiveSession      = (id, data, headers) => api.put(`/live/${id}`, data, { headers });

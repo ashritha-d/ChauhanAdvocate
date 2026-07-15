@@ -3,16 +3,28 @@ const User = require('../models/User');
 const Appointment = require('../models/Appointment');
 const BookOrder = require('../models/BookOrder');
 const UserNotification = require('../models/UserNotification');
-const { generateUserToken } = require('../middleware/userAuth');
+const {
+  generateUserToken, issueRefreshToken, consumeRefreshToken, revokeRefreshToken,
+  setRefreshCookie, clearRefreshCookie, parseCookieHeader, REFRESH_COOKIE_NAME,
+} = require('../middleware/userAuth');
 const { sendOTPEmail } = require('../services/email');
+const securityLogger = require('../services/securityLogger');
+
+function getIp(req) {
+  return (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
+}
 
 // ── Register ──────────────────────────────────────────────────────────────────
 exports.register = async (req, res) => {
   try {
     const { name, email, phone, password, confirmPassword } = req.body;
 
-    if (!name || !phone || !password || !confirmPassword) {
-      return res.status(400).json({ success: false, message: 'Name, mobile, password are required' });
+    // UX-01: Email is now required — it is needed for password reset
+    if (!name || !email || !phone || !password || !confirmPassword) {
+      return res.status(400).json({ success: false, message: 'Name, email, mobile, and password are required' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ success: false, message: 'Enter a valid email address' });
     }
     if (password !== confirmPassword) {
       return res.status(400).json({ success: false, message: 'Passwords do not match' });
@@ -24,16 +36,13 @@ exports.register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Enter a valid 10-digit mobile number' });
     }
 
-    // Email is optional — only check duplicate if provided
-    const cleanEmail = email && email.trim() ? email.toLowerCase().trim() : null;
-    if (cleanEmail) {
-      const emailExists = await User.findOne({ email: cleanEmail });
-      if (emailExists) return res.status(400).json({ success: false, message: 'Email is already registered' });
-    }
-    const phoneExists = await User.findOne({ phone: phone.trim() });
-    if (phoneExists) {
-      return res.status(400).json({ success: false, message: 'Mobile number is already registered' });
-    }
+    const cleanEmail = email.toLowerCase().trim();
+    const [emailExists, phoneExists] = await Promise.all([
+      User.findOne({ email: cleanEmail }),
+      User.findOne({ phone: phone.trim() }),
+    ]);
+    if (emailExists) return res.status(400).json({ success: false, message: 'Email is already registered' });
+    if (phoneExists) return res.status(400).json({ success: false, message: 'Mobile number is already registered' });
 
     const user = await User.create({ name: name.trim(), email: cleanEmail, phone: phone.trim(), password });
 
@@ -44,7 +53,9 @@ exports.register = async (req, res) => {
       type: 'general',
     });
 
-    const token = generateUserToken(user._id);
+    const token = generateUserToken(user);
+    const { raw, expiresAt } = await issueRefreshToken(user._id, getIp(req), req.headers['user-agent'] || '');
+    setRefreshCookie(res, raw, expiresAt);
     res.status(201).json({ success: true, message: 'Account created successfully', token, user: sanitizeUser(user) });
   } catch (error) {
     if (error.code === 11000) {
@@ -68,18 +79,22 @@ exports.login = async (req, res) => {
 
     const user = await User.findOne(query).select('+password');
     if (!user || !user.isActive) {
+      await securityLogger.warn('USER_LOGIN_FAILED', { identifier, reason: !user ? 'not found' : 'inactive' }, req);
       return res.status(401).json({ success: false, message: 'Invalid credentials or account deactivated' });
     }
 
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
+      await securityLogger.warn('USER_LOGIN_FAILED', { identifier, reason: 'wrong password' }, req);
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
     user.lastLogin = new Date();
     await user.save({ validateBeforeSave: false });
 
-    const token = generateUserToken(user._id);
+    const token = generateUserToken(user);
+    const { raw, expiresAt } = await issueRefreshToken(user._id, getIp(req), req.headers['user-agent'] || '');
+    setRefreshCookie(res, raw, expiresAt);
     res.json({ success: true, message: 'Login successful', token, user: sanitizeUser(user) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -222,9 +237,13 @@ exports.changePassword = async (req, res) => {
     const isMatch = await user.matchPassword(currentPassword);
     if (!isMatch) return res.status(400).json({ success: false, message: 'Current password is incorrect' });
 
+    // SEC-06: Bump tokenVersion to invalidate all existing sessions
     user.password = newPassword;
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
     await user.save();
-    res.json({ success: true, message: 'Password changed successfully' });
+
+    const token = generateUserToken(user);
+    res.json({ success: true, message: 'Password changed successfully', token });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -301,11 +320,17 @@ exports.markAllNotificationsRead = async (req, res) => {
 };
 
 // ── Admin: List Users ─────────────────────────────────────────────────────────
+// SEC-05: Escape regex to prevent ReDoS
+function escapeRegex(str) {
+  return String(str).slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 exports.adminGetUsers = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
-    const search = req.query.search || '';
+    const raw = req.query.search || '';
+    const search = escapeRegex(raw);
     const query = search
       ? { $or: [{ name: { $regex: search, $options: 'i' } }, { email: { $regex: search, $options: 'i' } }, { phone: { $regex: search, $options: 'i' } }] }
       : {};
@@ -337,8 +362,14 @@ exports.adminGetUser = async (req, res) => {
 exports.adminUpdateUserStatus = async (req, res) => {
   try {
     const { isActive } = req.body;
-    const user = await User.findByIdAndUpdate(req.params.id, { isActive }, { new: true });
+    const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    user.isActive = isActive;
+    // SEC-06: Revoke all tokens instantly when deactivating an account
+    if (!isActive) user.tokenVersion = (user.tokenVersion || 0) + 1;
+    await user.save({ validateBeforeSave: false });
+
     res.json({ success: true, message: `User ${isActive ? 'activated' : 'deactivated'} successfully`, data: user });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -368,6 +399,34 @@ exports.adminSendNotification = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
+};
+
+// ── Refresh Token ─────────────────────────────────────────────────────────────
+exports.refreshToken = async (req, res) => {
+  try {
+    const raw = parseCookieHeader(req.headers.cookie, REFRESH_COOKIE_NAME);
+    const { user, family } = await consumeRefreshToken(raw);
+
+    const accessToken = generateUserToken(user);
+    const { raw: newRaw, expiresAt } = await issueRefreshToken(
+      user._id, getIp(req), req.headers['user-agent'] || '', family,
+    );
+    setRefreshCookie(res, newRaw, expiresAt);
+    res.json({ success: true, token: accessToken, user: sanitizeUser(user) });
+  } catch (err) {
+    clearRefreshCookie(res);
+    return res.status(401).json({ success: false, message: 'Session expired. Please log in again.' });
+  }
+};
+
+// ── Logout ────────────────────────────────────────────────────────────────────
+exports.logoutUser = async (req, res) => {
+  try {
+    const raw = parseCookieHeader(req.headers.cookie, REFRESH_COOKIE_NAME);
+    if (raw) await revokeRefreshToken(raw);
+  } catch { /* best-effort revocation */ }
+  clearRefreshCookie(res);
+  res.json({ success: true, message: 'Logged out successfully' });
 };
 
 // ── Helper ────────────────────────────────────────────────────────────────────

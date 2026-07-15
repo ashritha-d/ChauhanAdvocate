@@ -16,7 +16,9 @@ function getEffectiveStatus(s, now) {
   if (!s) return null;
   if (s.status === 'cancelled') return 'cancelled';
   if (s.status === 'ended')     return 'ended';
+  // UX-02: Admin-set 'live' status always wins — do not override with client clock
   if (s.status === 'live')      return 'live';
+  // For 'upcoming' sessions, use time window as a secondary signal only
   const start = new Date(s.date);
   if (s.startTime) { const [h, m] = s.startTime.split(':').map(Number); start.setHours(h, m, 0, 0); }
   const end = new Date(s.date);
@@ -87,8 +89,8 @@ function LiveSessionCard({ session }) {
 
   const handleJoin = () => {
     if (!user) { navigate('/login', { state: { from: '/live' } }); return; }
-    if (session.meetUrl) window.open(session.meetUrl, '_blank', 'noopener,noreferrer');
-    else navigate('/live');
+    // SEC-02: Navigate to /live — the Live page fetches meetUrl via the authenticated endpoint
+    navigate('/live');
   };
 
   const fmtDate = d => new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });

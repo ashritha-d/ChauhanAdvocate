@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import api from '../api/axios';
 import { getPendingAction, getPendingActionData } from '../utils/pendingAction';
+import { userLogout as callLogoutApi } from '../api';
 
 const UserAuthContext = createContext({});
 
@@ -78,6 +79,8 @@ export function UserAuthProvider({ children }) {
     setUser(null);
     setUnreadCount(0);
     closeModal();
+    // Best-effort: revoke the refresh cookie on the backend
+    callLogoutApi().catch(() => {});
   };
 
   const updateUser = (userData) => setUser(userData);

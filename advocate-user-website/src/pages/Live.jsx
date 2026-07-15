@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getLiveStatus, getUpcomingSessions, getPastSessions } from '../api';
+import { getLiveStatus, getUpcomingSessions, getPastSessions, getLiveJoinUrl } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
 
 /* ── Helpers ── */
@@ -78,9 +78,16 @@ export default function Live() {
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { const id = setInterval(fetchData, 30000); return () => clearInterval(id); }, [fetchData]);
 
-  const handleJoin = () => {
+  // SEC-02: meetUrl is now fetched from an authenticated endpoint — never exposed publicly
+  const handleJoin = async () => {
     if (!user) { navigate('/login', { state: { from: '/live' } }); return; }
-    if (session?.meetUrl) window.open(session.meetUrl, '_blank', 'noopener,noreferrer');
+    if (!session?._id) return;
+    try {
+      const token = localStorage.getItem('userToken');
+      const res = await getLiveJoinUrl(session._id, token ? { Authorization: `Bearer ${token}` } : {});
+      const url = res.data?.meetUrl;
+      if (url) window.open(url, '_blank', 'noopener,noreferrer');
+    } catch { /* session ended or no URL — no-op */ }
   };
 
   const effectiveStatus = getEffectiveStatus(session, now);

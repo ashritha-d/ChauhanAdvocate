@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const Appointment = require('../models/Appointment');
 const UserNotification = require('../models/UserNotification');
 const wa = require('../services/whatsapp');
@@ -8,11 +9,16 @@ const ALL_SLOTS = [
   '02:00 PM','03:00 PM','04:00 PM','05:00 PM','06:00 PM',
 ];
 
+// BUG-04: Use cryptographically secure random bytes — ~16M combinations vs ~1.6M with Math.random
 function generateAppointmentId() {
-  const now = new Date();
-  const ymd = now.toISOString().slice(0, 10).replace(/-/g, '');
-  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+  const ymd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const rand = crypto.randomBytes(3).toString('hex').toUpperCase();
   return `APT-${ymd}-${rand}`;
+}
+
+// SEC-05: Escape regex special characters to prevent ReDoS
+function escapeRegex(str) {
+  return String(str).slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // GET /api/appointments/available-slots?date=YYYY-MM-DD  (public)
@@ -129,11 +135,12 @@ exports.getAllAppointments = async (req, res) => {
     const query = {};
     if (status) query.status = status;
     if (search) {
+      const safe = escapeRegex(search);
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { phone: { $regex: search, $options: 'i' } },
-        { appointmentId: { $regex: search, $options: 'i' } },
+        { name: { $regex: safe, $options: 'i' } },
+        { email: { $regex: safe, $options: 'i' } },
+        { phone: { $regex: safe, $options: 'i' } },
+        { appointmentId: { $regex: safe, $options: 'i' } },
       ];
     }
     const total = await Appointment.countDocuments(query);

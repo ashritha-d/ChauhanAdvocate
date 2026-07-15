@@ -16,13 +16,40 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Security middleware
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc:  ["'self'", 'https://challenges.cloudflare.com'],
+      styleSrc:   ["'self'", "'unsafe-inline'"],
+      imgSrc:     ["'self'", 'data:', 'https://res.cloudinary.com'],
+      connectSrc: ["'self'", 'https://challenges.cloudflare.com'],
+      frameSrc:   ["'self'", 'https://challenges.cloudflare.com'],
+      fontSrc:    ["'self'", 'data:'],
+      objectSrc:  ["'none'"],
+      baseUri:    ["'self'"],
+      formAction: ["'self'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+}));
+
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : ['https://ashritha-d.github.io'];
 
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? allowedOrigins : true,
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true); // same-origin or server-side requests
+    if (process.env.NODE_ENV !== 'production' || allowedOrigins.includes(origin)) {
+      return cb(null, true);
+    }
+    cb(new Error(`CORS: origin "${origin}" not allowed`));
+  },
+  credentials: true, // Required for HttpOnly refresh-token cookie
 }));
 
 // Rate limiting
@@ -34,14 +61,18 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// SEC-07: Tightened from 200 → 10 failed attempts per 15 min
+// CODE-01: Applied to both admin (/api/auth/) and user (/api/users/) auth routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200,
+  max: 10,
   skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
+  message: { success: false, message: 'Too many login attempts. Please try again after 15 minutes.' },
 });
 app.use('/api/auth/', authLimiter);
+app.use('/api/users/', authLimiter);
 
 // Prevent browser/CDN from caching any API response
 app.use('/api/', (req, res, next) => {

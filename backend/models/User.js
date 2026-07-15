@@ -4,12 +4,15 @@ const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
-  email: { type: String, required: false, unique: true, sparse: true, lowercase: true, trim: true, default: null },
+  // UX-01: Email is required — needed for account recovery via OTP
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   phone: { type: String, required: true, trim: true, unique: true },
   password: { type: String, required: true, minlength: 6, select: false },
   profilePhoto: { type: String, default: '' },
   isActive: { type: Boolean, default: true },
   lastLogin: { type: Date },
+  // SEC-06: Incremented on password change / deactivation to invalidate existing JWTs
+  tokenVersion: { type: Number, default: 0 },
   otp: { type: String, select: false },
   otpExpiry: { type: Date, select: false },
   resetPasswordToken: { type: String, select: false },

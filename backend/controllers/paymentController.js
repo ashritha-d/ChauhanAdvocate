@@ -3,12 +3,7 @@ const Appointment = require('../models/Appointment');
 const BookOrder = require('../models/BookOrder');
 const MagazinePurchase = require('../models/MagazinePurchase');
 const SiteSettings = require('../models/SiteSettings');
-const path = require('path');
-const fs = require('fs');
-
-// Ensure payments upload directory exists
-const paymentsDir = path.join(__dirname, '../uploads/payments');
-if (!fs.existsSync(paymentsDir)) fs.mkdirSync(paymentsDir, { recursive: true });
+const { isSlotTaken, withOptionalTransaction } = require('../utils/slotUtils');
 
 function generateReceiptId() {
   const year = new Date().getFullYear();
@@ -36,12 +31,26 @@ exports.createPayment = async (req, res) => {
 
     if (type === 'appointment') {
       itemData = { name, email, phone, service, date, time, message: message || '' };
-      const appt = await Appointment.create({
-        ...itemData,
-        paymentMethod: paymentMethod || 'qr_code',
-        paymentStatus: 'pending_verification',
-        consultationFee: amount || ''
-      });
+      let appt;
+      try {
+        appt = await withOptionalTransaction(async (session) => {
+          if (await isSlotTaken(date, time, session)) {
+            const e = new Error('SLOT_TAKEN'); e.slotTaken = true; throw e;
+          }
+          const [created] = await Appointment.create([{
+            ...itemData,
+            paymentMethod: paymentMethod || 'qr_code',
+            paymentStatus: 'pending_verification',
+            consultationFee: amount || '',
+          }], session ? { session } : {});
+          return created;
+        });
+      } catch (err) {
+        if (err.slotTaken) {
+          return res.status(409).json({ success: false, message: 'This appointment slot is no longer available. Please choose another time.' });
+        }
+        throw err;
+      }
       referenceId = appt._id;
     } else {
       itemData = { name, email, phone, bookTitle, bookPrice, quantity: parseInt(quantity) || 1, address, notes: notes || '' };
@@ -53,7 +62,8 @@ exports.createPayment = async (req, res) => {
       referenceId = order._id;
     }
 
-    const screenshotPath = req.file ? `/uploads/payments/${req.file.filename}` : '';
+    // BUG-02: Use Cloudinary URL — req.file.path is the secure_url from multer-storage-cloudinary
+    const screenshotPath = req.file?.path || '';
 
     const payment = await Payment.create({
       type,
@@ -217,10 +227,11 @@ exports.getQRCode = async (req, res) => {
 };
 
 // ADMIN: Upload QR image and save URL in site settings
+// QR15: QR image now uploaded to Cloudinary via the upload middleware — req.file.path is the permanent URL
 exports.uploadQRCode = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
-    const qrUrl = '/uploads/payments/' + req.file.filename;
+    const qrUrl = req.file.path; // Cloudinary secure_url
     await SiteSettings.findOneAndUpdate(
       { key: 'payment_qr_image' },
       { key: 'payment_qr_image', value: qrUrl, group: 'payment' },

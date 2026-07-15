@@ -1,6 +1,7 @@
 const Admin    = require('../models/Admin');
 const AuditLog = require('../models/AuditLog');
 const { generateToken } = require('../middleware/auth');
+const securityLogger = require('../services/securityLogger');
 
 function getIp(req) {
   return (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
@@ -21,11 +22,13 @@ exports.login = async (req, res) => {
     const admin = await Admin.findOne({ email, deletedAt: null }).select('+password');
 
     if (!admin || !admin.isActive) {
+      const reason = !admin ? 'Account not found' : 'Account inactive';
       await auditLog('FAILED_LOGIN', {
         adminName: 'Unknown', adminEmail: email,
         action: 'FAILED_LOGIN', ipAddress: ip,
-        details: { reason: !admin ? 'Account not found' : 'Account inactive' },
+        details: { reason },
       });
+      await securityLogger.warn('ADMIN_LOGIN_FAILED', { email, reason }, req);
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
@@ -36,6 +39,7 @@ exports.login = async (req, res) => {
         action: 'FAILED_LOGIN', ipAddress: ip,
         details: { reason: 'Wrong password' },
       });
+      await securityLogger.warn('ADMIN_LOGIN_FAILED', { email, reason: 'wrong password' }, req);
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
