@@ -5,6 +5,9 @@ import SEOHead from '../components/SEOHead';
 import { getDrafts, purchaseDraft, getPaymentSettings } from '../api';
 import { mediaUrl } from '../utils/helpers';
 import { useUserAuth } from '../context/UserAuthContext';
+import TurnstileWidget from '../components/TurnstileWidget';
+
+const API_BASE = 'https://chauhanadvocate.onrender.com';
 
 const PER_PAGE = 9;
 const DOWNLOADS_KEY = 'downloadedDraftIds';
@@ -52,6 +55,7 @@ export default function DraftsPage() {
   const [payLoading, setPayLoading]   = useState(false);
   const [payErr, setPayErr]           = useState('');
   const [paySuccess, setPaySuccess]   = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const fetchDrafts = useCallback(() => {
     setLoading(true);
@@ -92,7 +96,7 @@ export default function DraftsPage() {
   const handlePurchase = (d) => {
     if (!user) { navigate('/login', { state: { from: '/drafts' } }); return; }
     setPayModal(d);
-    setPayUtr(''); setPayScreen(null); setPayErr(''); setPaySuccess(false); setPayMethod('upi_id');
+    setPayUtr(''); setPayScreen(null); setPayErr(''); setPaySuccess(false); setPayMethod('upi_id'); setTurnstileToken('');
     if (!Object.keys(paySettings).length) {
       getPaymentSettings().then(r => { if (r.data.success) setPaySettings(r.data.data); }).catch(() => {});
     }
@@ -100,12 +104,17 @@ export default function DraftsPage() {
 
   const handlePaySubmit = async () => {
     if (!payUtr.trim()) { setPayErr('Please enter your UTR / Transaction Reference Number.'); return; }
+    if (import.meta.env.VITE_TURNSTILE_SITE_KEY && !turnstileToken) {
+      setPayErr('Please complete the security check before submitting.');
+      return;
+    }
     setPayLoading(true); setPayErr('');
     try {
       const fd = new FormData();
       fd.append('paymentMethod', payMethod);
       fd.append('utrNumber', payUtr.trim());
       if (payScreen) fd.append('screenshot', payScreen);
+      if (turnstileToken) fd.append('turnstileToken', turnstileToken);
       const { data } = await purchaseDraft(payModal._id, fd, authHeader());
       if (data.success) {
         setPaySuccess(true);
@@ -353,15 +362,27 @@ export default function DraftsPage() {
                       </div>
                     </div>
 
-                    {/* UPI details */}
-                    {paySettings.payment_upi_id && (
-                      <div style={{ background: '#fff', border: '1.5px dashed #C9A84C', borderRadius: 8, padding: '8px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <i className="fas fa-mobile-alt" style={{ color: '#C9A84C' }}></i>
-                        <span style={{ fontFamily: 'monospace', fontWeight: 700, flex: 1 }}>{paySettings.payment_upi_id}</span>
-                        <button className="btn btn-sm btn-outline-secondary py-0 px-2" style={{ fontSize: '0.72rem' }}
-                          onClick={() => navigator.clipboard?.writeText(paySettings.payment_upi_id)}>Copy</button>
-                      </div>
-                    )}
+                    {/* Payment details — QR or UPI */}
+                    <div style={{ background: 'linear-gradient(135deg,#f9f5e8,#fff9ed)', border: '1.5px solid rgba(201,168,76,0.35)', borderRadius: 12, padding: '12px 16px', marginBottom: 16 }}>
+                      {payMethod === 'qr_code' && paySettings.payment_qr_image ? (
+                        <div className="text-center mb-2">
+                          <img
+                            src={paySettings.payment_qr_image.startsWith('http') ? paySettings.payment_qr_image : API_BASE + paySettings.payment_qr_image}
+                            alt="Payment QR"
+                            style={{ maxWidth: 150, borderRadius: 10, border: '2px solid rgba(201,168,76,0.3)' }}
+                          />
+                          <div className="small text-muted mt-1">Scan with any UPI app</div>
+                        </div>
+                      ) : null}
+                      {paySettings.payment_upi_id && (
+                        <div style={{ background: '#fff', border: '1.5px dashed #C9A84C', borderRadius: 8, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <i className="fas fa-mobile-alt" style={{ color: '#C9A84C' }}></i>
+                          <span style={{ fontFamily: 'monospace', fontWeight: 700, flex: 1 }}>{paySettings.payment_upi_id}</span>
+                          <button className="btn btn-sm btn-outline-secondary py-0 px-2" style={{ fontSize: '0.72rem' }}
+                            onClick={() => navigator.clipboard?.writeText(paySettings.payment_upi_id)}>Copy</button>
+                        </div>
+                      )}
+                    </div>
 
                     {/* UTR input */}
                     <div className="mb-3">
@@ -372,6 +393,11 @@ export default function DraftsPage() {
                       <label className="form-label small fw-semibold">Screenshot <span className="text-muted fw-normal">(optional)</span></label>
                       <input type="file" className="form-control" accept="image/*" onChange={e => setPayScreen(e.target.files[0])} style={{ borderRadius: 10 }} />
                     </div>
+
+                    <TurnstileWidget
+                      onVerify={setTurnstileToken}
+                      onExpire={() => setTurnstileToken('')}
+                    />
 
                     {payErr && <div className="alert alert-danger py-2 small">{payErr}</div>}
 

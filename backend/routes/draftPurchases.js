@@ -3,9 +3,10 @@ const ctrl = require('../controllers/draftPurchaseController');
 const { protect } = require('../middleware/auth');
 const { protectUser } = require('../middleware/userAuth');
 const upload = require('../middleware/upload');
+const verifyTurnstile = require('../middleware/turnstile');
 
 // User routes
-router.post('/:draftId', protectUser, upload.single('screenshot'), ctrl.create);
+router.post('/:draftId', protectUser, upload.single('screenshot'), verifyTurnstile, ctrl.create);
 router.get('/my', protectUser, ctrl.getMyPurchases);
 router.get('/check/:draftId', protectUser, ctrl.checkStatus);
 
