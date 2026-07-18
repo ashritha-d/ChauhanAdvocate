@@ -1,120 +1,306 @@
-# ChauhanAdvocate
+# Advocate Chauhan — Legal Services Platform
 
-Full-stack Advocate / Lawyer Management System — public website, admin dashboard, and REST API backend.
+Full-stack legal services web application with three portals: public user website, admin dashboard, and REST API backend.
+
+**Live URLs**
+- User Website: https://ashritha-d.github.io/ChauhanAdvocate/
+- Backend API: https://chauhanadvocate.onrender.com/api
+
+---
 
 ## Project Structure
 
 ```
 ChauhanAdvocate/
-├── backend/                 ← Node.js + Express + MongoDB REST API (port 5000)
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── scripts/seed.js
-│   ├── uploads/
-│   ├── server.js
-│   └── .env.example
-├── advocate-user-website/   ← React public website (port 3000)
+├── backend/                        ← Node.js + Express REST API
+│   ├── controllers/                ← Business logic (30 controllers)
+│   ├── middleware/                 ← Auth, Turnstile CAPTCHA, upload, rate limiting
+│   ├── models/                     ← Mongoose models (30+ models)
+│   ├── routes/                     ← API route definitions (29 route files)
+│   ├── services/                   ← securityLogger, WhatsApp notifications
+│   ├── utils/                      ← slotUtils (transaction wrappers)
+│   ├── scripts/seed.js             ← Database seeder
+│   └── server.js                   ← Entry point, Helmet CSP, CORS
+│
+├── advocate-user-website/          ← React 18 + Vite (public website)
 │   └── src/
-│       ├── components/
-│       ├── context/
-│       ├── pages/
-│       └── api/
-└── advocate-admin-panel/    ← React admin dashboard (port 3001)
+│       ├── api/                    ← axios instance + all API functions
+│       ├── components/             ← Reusable UI components + TurnstileWidget
+│       ├── context/                ← UserAuthContext (JWT + refresh tokens)
+│       ├── hooks/                  ← usePolling, useCounter
+│       ├── pages/                  ← Full page components
+│       └── utils/                  ← helpers, pendingAction
+│
+└── advocate-admin-panel/           ← React 18 + Vite (admin dashboard)
     └── src/
-        ├── components/
-        ├── context/
-        ├── pages/
-        └── api/
+        ├── api/                    ← Admin API functions
+        ├── components/             ← Admin UI components
+        ├── context/                ← AdminAuthContext
+        └── pages/                  ← 28 admin page components
 ```
 
 ---
 
-## Prerequisites
+## Tech Stack
 
-- [Node.js](https://nodejs.org/) v18+
-- [MongoDB](https://www.mongodb.com/) (local or Atlas)
-- A modern web browser
-- Live Server extension (VS Code) or any HTTP server
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React 18, Vite, React Router v6, Axios |
+| **Admin Panel** | React 18, Vite |
+| **Backend** | Node.js, Express.js |
+| **Database** | MongoDB Atlas + Mongoose |
+| **Auth (Admin)** | JWT (jsonwebtoken + bcryptjs) |
+| **Auth (User)** | JWT access token (15m) + HttpOnly refresh token (30d) |
+| **File Storage** | Cloudinary (permanent, replaces ephemeral uploads) |
+| **Payments** | Razorpay + Manual UPI/QR code flow |
+| **Notifications** | WhatsApp via Meta Cloud API |
+| **CAPTCHA** | Cloudflare Turnstile |
+| **Security** | Helmet CSP + HSTS, rate limiting, security event logging |
+| **Deployment** | GitHub Pages (frontend) + Render (backend) |
+| **Animations** | AOS.js |
+| **Icons** | Font Awesome 6 |
+| **Fonts** | Google Fonts (Playfair Display + Inter) |
 
 ---
 
-## Installation & Setup
+## Features
 
-### 1. Install Backend Dependencies
+### User Website
+- Appointment booking with slot management and WhatsApp confirmation
+- Book purchases with UPI/QR payment and order tracking
+- Legal draft templates (free + paid)
+- Course enrollment and payment
+- Magazine browsing and purchase
+- Live sessions page with real-time status
+- User registration, login, profile, notifications
+- Cloudflare Turnstile CAPTCHA on all payment forms
+- Silent JWT refresh (access token auto-renewed via HttpOnly refresh cookie)
+- News ticker, hero banners, blogs, FAQs, testimonials, gallery
 
-```bash
-cd backend
-npm install
-```
+### Admin Dashboard (28 pages)
+- Dashboard with analytics and revenue overview
+- Appointments — view, update status, WhatsApp notify
+- Payments — manual UPI payment verification, Razorpay orders
+- Book Orders — manage orders, update delivery status
+- Books, Courses, Drafts, Magazines — full CRUD with Cloudinary uploads
+- Live Sessions — start/stop/schedule, live status broadcast
+- Users — view all registered users, deactivate accounts
+- Jr Advocates — applications management
+- Blogs, News, FAQs, Testimonials, Services — full CRUD
+- Site Settings — editable from admin (contact info, UPI ID, QR code, etc.)
+- Hero Banners — manage homepage carousel
+- Audit Logs — admin action history
+- Security Logs — login failures, CAPTCHA failures
+- Facebook/YouTube content management
+- Admin Management + Super Admin controls
 
-### 2. Configure Environment Variables
+### Backend Security
+- Helmet with full CSP (allows Cloudflare Turnstile, Google Fonts)
+- HSTS (1 year, includeSubDomains, preload)
+- Refresh token rotation with family-based reuse detection
+- TTL-indexed SecurityLog and RefreshToken collections
+- `withOptionalTransaction` — MongoDB transaction wrapper with Atlas M0 fallback
+- Rate limiting on all payment and auth routes
+- Cloudflare Turnstile verification middleware on all public payment endpoints
 
-The `.env` file is already created with defaults. Edit as needed:
+---
+
+## API Routes
+
+### Auth (Admin)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/login` | Admin login |
+| GET | `/api/auth/me` | Get admin profile |
+| PUT | `/api/auth/profile` | Update admin profile |
+| PUT | `/api/auth/change-password` | Change admin password |
+
+### Users (Public + Protected)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/users/register` | User registration |
+| POST | `/api/users/login` | User login (issues refresh cookie) |
+| POST | `/api/users/refresh` | Silent token refresh |
+| POST | `/api/users/logout` | Revoke refresh token |
+| GET | `/api/users/profile` | Get user profile |
+| PUT | `/api/users/profile` | Update user profile |
+| GET | `/api/users/notifications` | Get user notifications |
+
+### Appointments
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/appointments` | Book appointment |
+| GET | `/api/appointments` | List all (admin) |
+| PUT | `/api/appointments/:id` | Update status (admin) |
+
+### Payments
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/payments` | Submit manual payment (Turnstile protected) |
+| POST | `/api/payments/manual` | Manual UPI payment (Turnstile protected) |
+| POST | `/api/payments/book-manual` | Book order payment (Turnstile protected) |
+| GET | `/api/payments` | List all payments (admin) |
+| PUT | `/api/payments/:id` | Update payment status (admin) |
+
+### Books & Orders
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/books` | List published books |
+| POST | `/api/books` | Create book (admin) |
+| GET | `/api/book-orders` | List all orders (admin) |
+| PUT | `/api/book-orders/:id` | Update order status (admin) |
+
+### Drafts
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/drafts` | List published drafts |
+| POST | `/api/drafts` | Create draft (admin) |
+| POST | `/api/draft-purchases/:draftId` | Purchase draft (Turnstile protected) |
+| GET | `/api/draft-purchases` | List all purchases (admin) |
+
+### Courses & Magazines
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/courses` | List published courses |
+| POST | `/api/courses` | Create course (admin) |
+| GET | `/api/magazines` | List published magazines |
+| POST | `/api/magazines` | Create magazine (admin) |
+
+### Live Sessions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/live/status` | Get current live status |
+| POST | `/api/live/start` | Start live session (admin) |
+| POST | `/api/live/stop` | Stop live session (admin) |
+
+### Content
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/blogs` | List published blogs |
+| GET | `/api/services` | List active services |
+| GET | `/api/faqs` | List active FAQs |
+| GET | `/api/testimonials` | List approved testimonials |
+| GET | `/api/news` | List news items |
+| GET | `/api/site-settings` | Get site settings |
+| POST | `/api/contacts` | Submit contact form |
+
+---
+
+## Environment Variables
+
+### Backend (`backend/.env`)
 
 ```env
+# Server
 PORT=5000
-MONGO_URI=mongodb://localhost:27017/advocate_chauhan
-JWT_SECRET=your_super_secret_key_here
-JWT_EXPIRE=7d
 NODE_ENV=development
+
+# Database
+MONGO_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/advocate_chauhan
+
+# Admin Auth
+JWT_SECRET=your_long_random_secret_min_32_chars
+JWT_EXPIRE=7d
 ADMIN_EMAIL=admin@advocatechauhan.com
 ADMIN_PASSWORD=Admin@123456
 ADMIN_NAME=Admin
+
+# User Auth
+USER_JWT_EXPIRE=15m
+USER_REFRESH_TOKEN_EXPIRE_DAYS=30
+
+# Cloudinary (file storage)
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Cloudflare Turnstile
+TURNSTILE_SECRET_KEY=your_turnstile_secret_key
+TURNSTILE_STRICT=false
+
+# WhatsApp (Meta Cloud API)
+WHATSAPP_ACCESS_TOKEN=your_permanent_system_user_token
+WHATSAPP_PHONE_NUMBER_ID=your_phone_number_id
+ADMIN_WHATSAPP=91XXXXXXXXXX
+
+# Razorpay
+RAZORPAY_KEY_ID=your_key_id
+RAZORPAY_KEY_SECRET=your_key_secret
+
+# Email (optional — receipt delivery)
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_gmail_app_password
+
+# CORS
+ALLOWED_ORIGINS=https://ashritha-d.github.io
 ```
 
-### 3. Start MongoDB
+### User Website (`advocate-user-website/.env.production`)
 
-Make sure MongoDB is running locally:
+```env
+VITE_API_BASE=https://chauhanadvocate.onrender.com/api
+VITE_TURNSTILE_SITE_KEY=your_cloudflare_turnstile_site_key
+```
+
+---
+
+## Local Development
+
+### Prerequisites
+- Node.js v18+
+- MongoDB (local or Atlas connection string)
+- Cloudinary account
+- Cloudflare Turnstile keys (optional for dev — skipped automatically)
+
+### 1. Clone & Install
+
 ```bash
-# Windows
-net start MongoDB
+git clone https://github.com/ashritha-d/ChauhanAdvocate.git
+cd ChauhanAdvocate
 
-# Or start mongod directly
-mongod
+# Backend
+cd backend && npm install
+
+# User website
+cd ../advocate-user-website && npm install
+
+# Admin panel
+cd ../advocate-admin-panel && npm install
 ```
 
-### 4. Seed the Database
+### 2. Configure Environment
+
+```bash
+cd backend
+cp .env.example .env
+# Edit .env with your values
+```
+
+### 3. Seed Database
 
 ```bash
 cd backend
 npm run seed
 ```
 
-This creates:
-- Admin user
-- 6 default services
-- 6 default FAQs
-- 5 testimonials
-
-### 5. Start the Backend Server
+### 4. Start All Services
 
 ```bash
-cd backend
-npm run dev    # Development (with nodemon auto-restart)
-# or
-npm start      # Production
+# Terminal 1 — Backend
+cd backend && npm run dev
+
+# Terminal 2 — User website
+cd advocate-user-website && npm run dev
+
+# Terminal 3 — Admin panel
+cd advocate-admin-panel && npm run dev
 ```
 
-Server runs at: `http://localhost:5000`
-
-### 6. Seed Site Settings
-
-After server starts, visit:
-```
-http://localhost:5000/api/site-settings/seed
-```
-
-### 7. Open Frontend
-
-Open `frontend/index.html` with Live Server (VS Code) or any HTTP server.
-
-**VS Code Live Server:** Right-click `index.html` → "Open with Live Server"
-
-### 8. Open Admin Panel
-
-Open `admin/index.html` with Live Server.
+| Service | URL |
+|---------|-----|
+| Backend API | http://localhost:5000/api |
+| User Website | http://localhost:5173 |
+| Admin Panel | http://localhost:5174 |
 
 **Default Admin Credentials:**
 - Email: `admin@advocatechauhan.com`
@@ -122,125 +308,61 @@ Open `admin/index.html` with Live Server.
 
 ---
 
-## API Endpoints
+## Deployment
 
-### Public (No Auth Required)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/login` | Admin login |
-| GET | `/api/services` | Get active services |
-| GET | `/api/blogs` | Get published blogs |
-| GET | `/api/blogs/:id` | Get single blog |
-| GET | `/api/testimonials` | Get approved testimonials |
-| GET | `/api/faqs` | Get active FAQs |
-| GET | `/api/site-settings` | Get all site settings |
-| POST | `/api/appointments` | Book appointment |
-| POST | `/api/contacts` | Submit contact form |
+### Frontend (GitHub Pages)
 
-### Protected (JWT Token Required)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/auth/me` | Get admin profile |
-| PUT | `/api/auth/profile` | Update profile |
-| PUT | `/api/auth/change-password` | Change password |
-| GET/POST/PUT/DELETE | `/api/services/*` | Manage services |
-| GET/POST/PUT/DELETE | `/api/blogs/*` | Manage blogs |
-| GET/POST/PUT/DELETE | `/api/testimonials/*` | Manage testimonials |
-| GET/POST/PUT/DELETE | `/api/faqs/*` | Manage FAQs |
-| GET/PUT/DELETE | `/api/appointments/*` | Manage appointments |
-| GET/PUT/DELETE | `/api/contacts/*` | Manage contacts |
-| GET/PUT | `/api/site-settings` | Manage site settings |
-| POST | `/api/upload` | Upload image |
+```bash
+cd advocate-user-website
+npm run build
+npx gh-pages -d dist
+```
+
+### Backend (Render)
+
+1. Connect GitHub repo to Render
+2. Set root directory to `backend`
+3. Build command: `npm install`
+4. Start command: `node server.js`
+5. Add all environment variables from the list above
+
+### Admin Panel
+
+Deploy separately to GitHub Pages, Vercel, or Netlify. Update `VITE_API_BASE` to point to the deployed backend.
 
 ---
 
-## Features
+## Models Overview
 
-### Frontend
-- Responsive single-page design with smooth scroll
-- Dynamic content loaded from backend APIs
-- Hero section with animated particles
-- Services, About, Profile, Testimonials carousel
-- Appointment booking form with validation
-- Contact form with real-time feedback
-- FAQ accordion
-- Blog section with modal reader and load-more
-- WhatsApp floating button
-- Back to top button
-- AOS scroll animations
-- Bootstrap 5 responsive grid
-
-### Admin Dashboard
-- Secure JWT-based login
-- Dashboard with analytics cards
-- Full CRUD for: Services, Blogs, Testimonials, FAQs
-- Appointment management with status updates
-- Contact/Message inbox with status tracking
-- Site settings management (all text/images editable)
-- Rich text editor (Quill.js) for blog content
-- Image upload support
-- Responsive sidebar navigation
-
-### Backend
-- Express.js REST API
-- MongoDB with Mongoose ODM
-- JWT authentication
-- bcrypt password hashing
-- Rate limiting (prevent abuse)
-- Helmet security headers
-- Input validation with express-validator
-- Multer file upload
-- MVC architecture
-
----
-
-## Customization
-
-### Change Advocate Details
-1. Log in to admin: `admin/index.html`
-2. Go to **Site Settings**
-3. Update "Advocate" group fields (name, designation, bio, photo)
-4. Save settings
-
-### Add Services
-Admin → Services → Add Service
-
-### Update Contact Info
-Admin → Site Settings → Contact group
-
-### Publish a Blog Post
-Admin → Blog → New Post → Check "Published" → Save
-
----
-
-## Production Deployment
-
-1. Set `NODE_ENV=production` in `.env`
-2. Use a strong `JWT_SECRET`
-3. Use MongoDB Atlas for cloud database
-4. Deploy backend on Heroku/Railway/Render/VPS
-5. Update `API_BASE` in `frontend/js/main.js` and `admin/js/admin.js` to your deployed backend URL
-6. Serve frontend on Netlify/Vercel or same server
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Frontend | HTML5, CSS3, Bootstrap 5, JavaScript (ES6+) |
-| Animations | AOS.js, CSS animations |
-| Icons | Font Awesome 6 |
-| Fonts | Google Fonts (Playfair Display + Inter) |
-| Backend | Node.js, Express.js |
-| Database | MongoDB with Mongoose |
-| Auth | JWT + bcrypt |
-| Rich Text | Quill.js |
-| File Upload | Multer |
-| Security | Helmet, express-rate-limit |
-
----
-
-## Support
-
-For issues or customization requests, review the code structure and API documentation above.
+| Model | Description |
+|-------|-------------|
+| Admin | Admin user with JWT auth |
+| User | Public user with JWT + refresh token auth |
+| RefreshToken | HttpOnly refresh tokens with family reuse detection |
+| SecurityLog | Login failures, CAPTCHA failures (90-day TTL) |
+| Appointment | Appointment bookings with slot management |
+| Payment | Manual UPI + Razorpay payments |
+| Book | Legal books for sale |
+| BookOrder | Book purchase orders |
+| Draft | Legal document templates |
+| DraftPurchase | Draft purchase records |
+| Course | Online courses |
+| Enrollment | Course enrollments |
+| Magazine | Legal magazines |
+| MagazinePurchase | Magazine purchases |
+| LiveSession | Live broadcast sessions |
+| Blog | Published blog posts |
+| News | News/updates |
+| Service | Legal services offered |
+| FAQ | Frequently asked questions |
+| Testimonial | Client testimonials |
+| SiteSettings | Admin-editable site content |
+| HeroBanner | Homepage carousel banners |
+| Contact | Contact form submissions |
+| UserNotification | In-app user notifications |
+| AuditLog | Admin action audit trail |
+| JrAdvocate | Junior advocate applications |
+| Internship | Internship listings |
+| JoinWithUs | Join requests |
+| FacebookPost | Facebook content links |
+| YoutubeVideo | YouTube video links |
