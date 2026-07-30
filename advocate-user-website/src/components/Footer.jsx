@@ -80,9 +80,82 @@ export default function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <div className="container d-flex flex-wrap justify-content-between align-items-center">
-          <p className="mb-0 text-white-50">&copy; {new Date().getFullYear()} {s.site_name || 'Advocate Chauhan'}. All Rights Reserved.</p>
-          <p className="mb-0 text-white-50">Designed with <i className="fas fa-heart text-gold mx-1"></i> for Justice</p>
+        <div className="container">
+          {/* JK Cloud Technologies CTA */}
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(201,168,76,0.08) 0%, rgba(201,168,76,0.03) 100%)',
+            border: '1px solid rgba(201,168,76,0.18)',
+            borderRadius: 12,
+            padding: '14px 20px',
+            marginBottom: 16,
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}>
+            <div>
+              <p style={{ margin: 0, fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 3 }}>
+                Need a Professional Website for Your Business?
+              </p>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(255,255,255,0.65)' }}>
+                <i className="fas fa-code me-1" style={{ color: '#C9A84C' }}></i>
+                Website Development &nbsp;·&nbsp; Web Apps &nbsp;·&nbsp; AI Solutions &nbsp;·&nbsp; E-Commerce
+              </p>
+            </div>
+            <a
+              href="https://j-kcloud-technologies.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 7,
+                background: 'linear-gradient(135deg, #C9A84C, #f0cc70)',
+                color: '#1a1a2e',
+                fontWeight: 700,
+                fontSize: '0.78rem',
+                padding: '7px 16px',
+                borderRadius: 20,
+                textDecoration: 'none',
+                letterSpacing: '0.02em',
+                whiteSpace: 'nowrap',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                boxShadow: '0 2px 12px rgba(201,168,76,0.25)',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(201,168,76,0.4)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(201,168,76,0.25)'; }}
+            >
+              <i className="fas fa-rocket"></i> Get Your Website
+            </a>
+          </div>
+
+          {/* Copyright + Dev credit */}
+          <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <p className="mb-0 text-white-50" style={{ fontSize: '0.8rem' }}>
+              &copy; {new Date().getFullYear()} {s.site_name || 'Advocate Chauhan'}. All Rights Reserved.
+            </p>
+            <p className="mb-0" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)' }}>
+              Designed &amp; Developed by&nbsp;
+              <a
+                href="https://j-kcloud-technologies.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: '#C9A84C',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  transition: 'color 0.3s, text-shadow 0.3s',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#f0cc70'; e.currentTarget.style.textShadow = '0 0 12px rgba(201,168,76,0.6)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#C9A84C'; e.currentTarget.style.textShadow = 'none'; }}
+              >
+                JK Cloud Technologies
+              </a>
+              &nbsp;<i className="fas fa-rocket" style={{ color: '#C9A84C', fontSize: '0.72rem' }}></i>
+            </p>
+          </div>
         </div>
       </div>
     </footer>
