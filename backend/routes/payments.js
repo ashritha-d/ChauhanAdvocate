@@ -1,14 +1,18 @@
 const rateLimit = require('express-rate-limit');
 const router = require('express').Router();
-const { protect } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 const { optionalUserAuth } = require('../middleware/userAuth');
 const upload = require('../middleware/upload');
+const qrUpload = require('../middleware/qrUpload');
 const verifyTurnstile = require('../middleware/turnstile');
 const {
   createPayment, getAllPayments, getPayment,
-  updatePayment, deletePayment, getStats, getQRCode, uploadQRCode,
+  updatePayment, deletePayment, getStats, getQRCode, uploadQRCode, deleteQRCode,
   getRevenue, exportPayments,
 } = require('../controllers/paymentController');
+
+// Only a Super Admin may manage the payment QR image
+const superAdminOnly = [protect, authorize('superadmin')];
 const {
   getPaymentSettings,
   createManualPayment,
@@ -40,8 +44,10 @@ router.post('/', paymentSubmitLimiter, optionalUserAuth, upload.single('screensh
 // Public: get QR image URL
 router.get('/qr', getQRCode);
 
-// Admin: upload QR image
-router.post('/qr', protect, upload.single('qrImage'), uploadQRCode);
+// Super Admin: upload / replace / delete QR image
+router.post('/qr', ...superAdminOnly, qrUpload.single('qrImage'), uploadQRCode);
+router.put('/qr', ...superAdminOnly, qrUpload.single('qrImage'), uploadQRCode);
+router.delete('/qr', ...superAdminOnly, deleteQRCode);
 
 // Admin: revenue stats
 router.get('/revenue', protect, getRevenue);

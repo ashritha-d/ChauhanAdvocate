@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import api from '../api/axios';
+import PaymentQRManager from '../components/PaymentQRManager';
 
 const GROUPS = ['general', 'hero', 'advocate', 'about', 'contact', 'social', 'seo', 'payment'];
 
@@ -98,7 +99,9 @@ export default function SiteSettings() {
               <span><i className={GROUP_ICONS[activeGroup] + ' me-2'}></i>{GROUP_LABELS[activeGroup]} Settings</span>
             </div>
             <div className="sa-card-body">
-              {groupSettings.length === 0 ? (
+              {activeGroup === 'payment' ? (
+                <PaymentQRManager />
+              ) : groupSettings.length === 0 ? (
                 <div className="text-center py-4" style={{ color: '#6b7280' }}>No settings in this group</div>
               ) : (
                 <div className="row g-3">

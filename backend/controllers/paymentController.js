@@ -3,6 +3,7 @@ const Appointment = require('../models/Appointment');
 const BookOrder = require('../models/BookOrder');
 const MagazinePurchase = require('../models/MagazinePurchase');
 const SiteSettings = require('../models/SiteSettings');
+const qrUpload = require('../middleware/qrUpload');
 const { isSlotTaken, withOptionalTransaction } = require('../utils/slotUtils');
 
 function generateReceiptId() {
@@ -218,26 +219,74 @@ exports.getStats = async (req, res) => {
 // PUBLIC: Get QR image URL from site settings
 exports.getQRCode = async (req, res) => {
   try {
-    const setting = await SiteSettings.findOne({ key: 'payment_qr_image' });
-    const qrUrl = setting?.value || '';
-    res.json({ success: true, qrUrl });
+    const [setting, publicIdSetting, updatedBySetting] = await Promise.all([
+      SiteSettings.findOne({ key: 'payment_qr_image' }),
+      SiteSettings.findOne({ key: 'payment_qr_public_id' }),
+      SiteSettings.findOne({ key: 'payment_qr_updated_by' }),
+    ]);
+    res.json({
+      success: true,
+      qrUrl: setting?.value || '',
+      publicId: publicIdSetting?.value || '',
+      updatedAt: setting?.updatedAt || null,
+      updatedBy: updatedBySetting?.value || '',
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ADMIN: Upload QR image and save URL in site settings
-// QR15: QR image now uploaded to Cloudinary via the upload middleware — req.file.path is the permanent URL
+// SUPER ADMIN: Upload (or replace) the QR image and save its URL in site settings.
+// Upsert semantics cover both first-time creation and replacement.
 exports.uploadQRCode = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
-    const qrUrl = req.file.path; // Cloudinary secure_url
-    await SiteSettings.findOneAndUpdate(
-      { key: 'payment_qr_image' },
-      { key: 'payment_qr_image', value: qrUrl, group: 'payment' },
-      { upsert: true, new: true }
-    );
-    res.json({ success: true, qrUrl });
+    const qrUrl = req.file.path;      // Cloudinary secure_url
+    const publicId = req.file.filename; // Cloudinary public_id
+
+    // Clean up the previous asset so replacing/re-uploading doesn't orphan it on Cloudinary
+    const old = await SiteSettings.findOne({ key: 'payment_qr_public_id' });
+    if (old?.value) {
+      try { await qrUpload.cloudinary.uploader.destroy(old.value); } catch (_) { /* asset may already be gone */ }
+    }
+
+    await Promise.all([
+      SiteSettings.findOneAndUpdate(
+        { key: 'payment_qr_image' },
+        { key: 'payment_qr_image', value: qrUrl, group: 'payment' },
+        { upsert: true, new: true }
+      ),
+      SiteSettings.findOneAndUpdate(
+        { key: 'payment_qr_public_id' },
+        { key: 'payment_qr_public_id', value: publicId, group: 'payment' },
+        { upsert: true, new: true }
+      ),
+      SiteSettings.findOneAndUpdate(
+        { key: 'payment_qr_updated_by' },
+        { key: 'payment_qr_updated_by', value: req.admin?.name || req.admin?.email || '', group: 'payment' },
+        { upsert: true, new: true }
+      ),
+    ]);
+
+    res.json({ success: true, qrUrl, publicId });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// SUPER ADMIN: Delete the QR image from Cloudinary and clear it from site settings
+exports.deleteQRCode = async (req, res) => {
+  try {
+    const publicIdSetting = await SiteSettings.findOne({ key: 'payment_qr_public_id' });
+    if (publicIdSetting?.value) {
+      try { await qrUpload.cloudinary.uploader.destroy(publicIdSetting.value); } catch (_) { /* asset may already be gone */ }
+    }
+    await Promise.all([
+      SiteSettings.deleteOne({ key: 'payment_qr_image' }),
+      SiteSettings.deleteOne({ key: 'payment_qr_public_id' }),
+      SiteSettings.deleteOne({ key: 'payment_qr_updated_by' }),
+    ]);
+    res.json({ success: true, message: 'Payment QR deleted' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
