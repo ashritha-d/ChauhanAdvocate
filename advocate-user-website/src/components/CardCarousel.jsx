@@ -37,9 +37,13 @@ export default function CardCarousel({ children, ariaLabel = 'cards', loading = 
     el.scrollBy({ left: dir * el.clientWidth, behavior: 'smooth' });
   };
 
-  /* Mouse drag-to-scroll — touch devices already get native swipe scrolling */
+  /* Mouse drag-to-scroll — touch devices already get native swipe scrolling.
+     Skip drag entirely when starting on an interactive element: setPointerCapture
+     re-targets the eventual pointerup/click to the track, which silently swallows
+     clicks on buttons/links inside the cards (e.g. "Login to Enroll", "Join"). */
   const onPointerDown = e => {
     if (e.pointerType === 'touch') return;
+    if (e.target.closest('button, a, input, textarea, select, [role="button"]')) return;
     const el = trackRef.current;
     drag.current = { active: true, startX: e.clientX, startScroll: el.scrollLeft, moved: false };
     el.setPointerCapture(e.pointerId);

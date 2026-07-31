@@ -44,7 +44,13 @@ function CourseCard({ course }) {
 
   const handleEnroll = () => {
     if (comingSoon) return;
-    if (!user) { savePendingAction('courses'); navigate('/login'); return; }
+    if (!user) {
+      savePendingAction('courses');
+      // Mirrors LiveSessionCard's join-gating: send the user back to the
+      // Courses page (where the actual enroll flow lives) after they log in.
+      navigate('/login', { state: { from: '/courses' } });
+      return;
+    }
     navigate('/courses');
   };
 
