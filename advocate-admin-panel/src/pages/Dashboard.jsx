@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import usePolling from '../hooks/usePolling';
-import { getAppointments, getContacts, getServices, getBlogs } from '../api';
+import { getAppointments, getContacts, getServices } from '../api';
 import NotificationAnalytics from '../components/NotificationAnalytics';
 
 const StatCard = ({ icon, label, value, color, bg }) => (
@@ -27,13 +27,11 @@ export default function Dashboard({ onNavigate }) {
       getAppointments(1, 100),
       getContacts(1, 100),
       getServices(),
-      getBlogs(1, 100),
-    ]).then(([appts, contacts, services, blogs]) => {
+    ]).then(([appts, contacts, services]) => {
       setStats({
         appointments: appts.data.total || appts.data.data?.length || 0,
         contacts: contacts.data.total || contacts.data.data?.length || 0,
         services: services.data.data?.length || 0,
-        blogs: blogs.data.total || blogs.data.data?.length || 0,
         pending: appts.data.data?.filter(a => a.status === 'pending').length || 0,
         unread: contacts.data.data?.filter(c => c.status === 'unread').length || 0,
       });

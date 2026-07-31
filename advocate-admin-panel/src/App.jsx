@@ -4,7 +4,6 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import Blogs from './pages/Blogs';
 import Testimonials from './pages/Testimonials';
 import FAQs from './pages/FAQs';
 import Appointments from './pages/Appointments';
@@ -27,7 +26,7 @@ import AuditLogs from './pages/AuditLogs';
 import Internships from './pages/Internships';
 import LiveSessions from './pages/LiveSessions';
 
-const PAGES = { dashboard: Dashboard, banners: HeroBanners, blogs: Blogs, news: News, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, profile: Profile, youtube: YouTubeVideos, facebook: FacebookContent, orders: Orders, jradvocates: JrAdvocates, bookorders: BookOrders, payments: Payments, notifications: Notifications, courses: Courses, magazines: Magazines, drafts: Drafts, books: Books, adminmanagement: AdminManagement, auditlogs: AuditLogs, internships: Internships, livesessions: LiveSessions };
+const PAGES = { dashboard: Dashboard, banners: HeroBanners, news: News, testimonials: Testimonials, faqs: FAQs, appointments: Appointments, profile: Profile, youtube: YouTubeVideos, facebook: FacebookContent, orders: Orders, jradvocates: JrAdvocates, bookorders: BookOrders, payments: Payments, notifications: Notifications, courses: Courses, magazines: Magazines, drafts: Drafts, books: Books, adminmanagement: AdminManagement, auditlogs: AuditLogs, internships: Internships, livesessions: LiveSessions };
 
 function AdminApp() {
   const { admin, loading } = useAuth();

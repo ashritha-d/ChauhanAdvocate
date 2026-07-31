@@ -4,7 +4,7 @@ import { getNotificationCounts } from '../api';
 
 const PAGE_TITLES = {
   dashboard: 'Dashboard', settings: 'Site Settings', banners: 'Hero Banners',
-  services: 'Services', blogs: 'Blogs', news: 'Latest News', testimonials: 'Testimonials',
+  services: 'Services', news: 'Latest News', testimonials: 'Testimonials',
   faqs: 'FAQs', appointments: 'Appointments', contacts: 'Contacts',
   profile: 'My Profile', youtube: 'YouTube Videos', courses: 'Courses / LMS',
   orders: 'Orders', jradvocates: 'Jr. Advocate Applications', bookorders: 'Book Orders',

@@ -12,12 +12,6 @@ export const createService = (data) => api.post('/services', data);
 export const updateService = (id, data) => api.put(`/services/${id}`, data);
 export const deleteService = (id) => api.delete(`/services/${id}`);
 
-// Blogs
-export const getBlogs = (p = 1, l = 10) => api.get(`/blogs/admin/all?page=${p}&limit=${l}`);
-export const createBlog = (data) => api.post('/blogs', data);
-export const updateBlog = (id, data) => api.put(`/blogs/${id}`, data);
-export const deleteBlog = (id) => api.delete(`/blogs/${id}`);
-
 // Testimonials
 export const getTestimonials = () => api.get('/testimonials/admin/all');
 export const createTestimonial = (data) => api.post('/testimonials', data);
