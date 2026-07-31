@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getLiveStatus, getUpcomingSessions } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
@@ -161,7 +161,6 @@ export default function LatestUpdates() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [retryKey, setRetryKey] = useState(0);
-  const trackRef = useRef(null);
 
   const loadSessions = useCallback(async () => {
     try {
@@ -200,66 +199,50 @@ export default function LatestUpdates() {
     return () => clearInterval(id);
   }, [loadSessions]);
 
-  useEffect(() => {
-    if (!loading && trackRef.current) trackRef.current.scrollLeft = 0;
-  }, [loading]);
-
-  const scroll = dir => trackRef.current?.scrollBy({ left: dir * 320, behavior: 'smooth' });
-
-  /* Always render the section with a stable min-height to prevent CLS.
-     The luc-content-area reserves the same space whether loading, empty, or filled. */
+  /* Embedded in the home page's two-column split (HomeSessionsAndCourses) —
+     renders only its heading + content, no outer <section>/container of its own. */
   return (
-    <section id="latest-updates" className="section-padding bg-light">
-      <div className="container-fluid px-3 px-md-4">
-        <div className="latest-header mb-4" data-aos="fade-right">
-          <span className="latest-badge">LIVE</span>
-          <h2 className="section-title d-inline ms-3 mb-0">
-            Live <span className="text-gold">Sessions</span>
-          </h2>
-          {!loading && sessions.length > 0 && (
-            <p className="section-subtitle mt-2 ms-1 mb-0">
-              Upcoming and active live legal sessions
-            </p>
-          )}
-        </div>
-
-        {/* Stable min-height container — prevents layout shift */}
-        <div className="luc-content-area">
-          {loading ? (
-            /* Skeleton mirrors live card structure exactly */
-            <div className="latest-slider-outer">
-              <button className="slider-scroll-btn" style={{ visibility: 'hidden' }} aria-hidden="true">&#8249;</button>
-              <div className="latest-scroll latest-scroll--loading">
-                <LiveCardSkeleton />
-                <LiveCardSkeleton />
-                <LiveCardSkeleton />
-              </div>
-              <button className="slider-scroll-btn" style={{ visibility: 'hidden' }} aria-hidden="true">&#8250;</button>
-            </div>
-          ) : sessions.length === 0 ? (
-            /* Empty state — same height container */
-            <div className="luc-empty-state">
-              <div className="luc-empty-icon"><i className="fas fa-broadcast-tower" /></div>
-              <h5>No Live Sessions Available Currently</h5>
-              <p>Please check back later for upcoming live sessions.</p>
-              <button className="btn btn-gold btn-sm mt-1" onClick={() => setRetryKey(k => k + 1)}>
-                <i className="fas fa-sync-alt me-2" />Refresh
-              </button>
-            </div>
-          ) : (
-            /* Live session cards */
-            <div className="latest-slider-outer">
-              <button className="slider-scroll-btn" onClick={() => scroll(-1)} aria-label="Scroll left">&#8249;</button>
-              <div className="latest-scroll" ref={trackRef}>
-                {sessions.map(session => (
-                  <LiveSessionCard key={session._id} session={session} />
-                ))}
-              </div>
-              <button className="slider-scroll-btn" onClick={() => scroll(1)} aria-label="Scroll right">&#8250;</button>
-            </div>
-          )}
-        </div>
+    <>
+      <div className="latest-header mb-4" data-aos="fade-right">
+        <span className="latest-badge">LIVE</span>
+        <h2 className="section-title d-inline ms-3 mb-0">
+          Live <span className="text-gold">Sessions</span>
+        </h2>
+        {!loading && sessions.length > 0 && (
+          <p className="section-subtitle mt-2 ms-1 mb-0">
+            Upcoming and active live legal sessions
+          </p>
+        )}
       </div>
-    </section>
+
+      {/* Stable min-height container — prevents layout shift */}
+      <div className="luc-content-area">
+        {loading ? (
+          /* Skeleton mirrors live card structure exactly */
+          <div className="hsc-vlist">
+            <LiveCardSkeleton />
+            <LiveCardSkeleton />
+            <LiveCardSkeleton />
+          </div>
+        ) : sessions.length === 0 ? (
+          /* Empty state — same height container */
+          <div className="luc-empty-state">
+            <div className="luc-empty-icon"><i className="fas fa-broadcast-tower" /></div>
+            <h5>No Live Sessions Available Currently</h5>
+            <p>Please check back later for upcoming live sessions.</p>
+            <button className="btn btn-gold btn-sm mt-1" onClick={() => setRetryKey(k => k + 1)}>
+              <i className="fas fa-sync-alt me-2" />Refresh
+            </button>
+          </div>
+        ) : (
+          /* Live session cards — vertical list, scrolls internally within its column */
+          <div className="hsc-vlist">
+            {sessions.map(session => (
+              <LiveSessionCard key={session._id} session={session} />
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
 }

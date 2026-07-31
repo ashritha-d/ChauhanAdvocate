@@ -11,7 +11,7 @@ exports.getPublicCourses = async (req, res) => {
   try {
     const courses = await Course.find({ isActive: true })
       .select('-modules.videos.videoUrl -modules.videos.uploadedVideoPath')
-      .sort({ isFeatured: -1, createdAt: -1 });
+      .sort({ sortOrder: 1, isFeatured: -1, createdAt: -1 });
     res.json({ success: true, data: courses });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 };

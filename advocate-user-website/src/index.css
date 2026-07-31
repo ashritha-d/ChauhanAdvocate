@@ -905,6 +905,19 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .book-desc { font-size: 0.8rem; color: #666; line-height: 1.55; margin-bottom: 12px; flex: 1; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .book-price { font-size: 1.1rem; font-weight: 700; color: var(--gold); margin-bottom: 10px; }
 
+/* ── Home page split: Live Sessions / Courses (HomeSessionsAndCourses) ── */
+.hsc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+.hsc-col { min-width: 0; }
+.hsc-vlist { display: flex; flex-direction: column; gap: 16px; max-height: 640px; overflow-y: auto; padding-right: 6px; }
+.hsc-vlist .live-update-card,
+.hsc-vlist .course-card,
+.hsc-vlist .luc-skeleton-card { width: 100%; flex: none; min-width: 0; }
+
+@media (max-width: 767px) {
+  .hsc-grid { grid-template-columns: 1fr; gap: 40px; }
+  .hsc-vlist { max-height: none; overflow: visible; padding-right: 0; }
+}
+
 /* ── Latest Updates Section ── */
 .latest-header { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px; }
 .latest-badge {

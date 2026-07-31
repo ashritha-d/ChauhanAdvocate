@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
 import Hero from '../components/Hero';
 import Services from '../components/Services';
-import LatestUpdates from '../components/LatestUpdates';
+import HomeSessionsAndCourses from '../components/HomeSessionsAndCourses';
 import YouTubeSection from '../components/YouTubeSection';
 import FacebookSection from '../components/FacebookSection';
 import Books from '../components/Books';
@@ -36,7 +36,7 @@ export default function Home() {
       />
       <Hero />
       <Services />
-      <LatestUpdates />
+      <HomeSessionsAndCourses />
       <YouTubeSection />
       <FacebookSection />
       <Books />

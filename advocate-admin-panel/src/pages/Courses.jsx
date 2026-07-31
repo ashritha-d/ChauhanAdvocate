@@ -10,7 +10,8 @@ const ALLOWED_EXTS = ['mp4', 'mov', 'avi', 'webm', 'mkv'];
 
 const EMPTY_COURSE = {
   title: '', shortDescription: '', description: '', price: 0, discountPrice: 0,
-  instructor: '', duration: '', level: 'beginner', language: 'Telugu / English',
+  instructor: '', duration: '', category: '', level: 'beginner', language: 'Telugu / English',
+  status: 'available', sortOrder: 0,
   isActive: true, isFeatured: false, certificate: false, modules: [],
 };
 const EMPTY_MODULE = { title: '', order: 0, videos: [] };
@@ -368,16 +369,17 @@ export default function Courses() {
         {view === 'courses' && (
           <div className="table-responsive">
             <table className="table admin-table">
-              <thead><tr><th>Title</th><th>Price</th><th>Students</th><th>Level</th><th>Status</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Title</th><th>Category</th><th>Price</th><th>Students</th><th>Level</th><th>Status</th><th>Actions</th></tr></thead>
               <tbody>
-                {loading && <tr><td colSpan="6" className="text-center py-4"><div className="spinner-border spinner-border-sm"></div></td></tr>}
-                {!loading && filtered.length === 0 && <tr><td colSpan="6" className="text-center text-muted py-4">No existing data found.</td></tr>}
+                {loading && <tr><td colSpan="7" className="text-center py-4"><div className="spinner-border spinner-border-sm"></div></td></tr>}
+                {!loading && filtered.length === 0 && <tr><td colSpan="7" className="text-center text-muted py-4">No existing data found.</td></tr>}
                 {!loading && filtered.map(c => (
                   <tr key={c._id}>
                     <td>
                       <div className="fw-semibold">{c.title}</div>
                       <small className="text-muted">{c.instructor}</small>
                     </td>
+                    <td>{c.category || <span className="text-muted">—</span>}</td>
                     <td>
                       {c.price === 0 ? <span className="badge bg-success">Free</span> : (
                         <span>₹{c.discountPrice > 0 ? c.discountPrice : c.price}
@@ -392,6 +394,7 @@ export default function Courses() {
                         {c.isActive ? 'Active' : 'Inactive'}
                       </span>
                       {c.isFeatured && <span className="badge bg-warning text-dark ms-1">Featured</span>}
+                      {c.status === 'coming-soon' && <span className="badge bg-info text-dark ms-1">Coming Soon</span>}
                     </td>
                     <td>
                       <button className="btn btn-sm btn-outline-info me-1" onClick={() => openEdit({ ...c })}><i className="fas fa-edit"></i></button>
@@ -495,6 +498,10 @@ export default function Courses() {
                     <input className="form-control" value={editCourse.duration} onChange={e => setField('duration', e.target.value)} placeholder="e.g. 20 hours" />
                   </div>
                   <div className="col-md-3">
+                    <label className="form-label">Category</label>
+                    <input className="form-control" value={editCourse.category || ''} onChange={e => setField('category', e.target.value)} placeholder="e.g. Criminal Law" />
+                  </div>
+                  <div className="col-md-3">
                     <label className="form-label">Level</label>
                     <select className="form-select" value={editCourse.level} onChange={e => setField('level', e.target.value)}>
                       <option value="beginner">Beginner</option>
@@ -509,6 +516,17 @@ export default function Courses() {
                   <div className="col-md-4">
                     <label className="form-label">Thumbnail URL</label>
                     <input className="form-control" value={editCourse.thumbnail || ''} onChange={e => setField('thumbnail', e.target.value)} placeholder="https://..." />
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label">Sort Order</label>
+                    <input type="number" className="form-control" value={editCourse.sortOrder} onChange={e => setField('sortOrder', Number(e.target.value))} placeholder="0" />
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label">Course Status</label>
+                    <select className="form-select" value={editCourse.status} onChange={e => setField('status', e.target.value)}>
+                      <option value="available">Available</option>
+                      <option value="coming-soon">Coming Soon</option>
+                    </select>
                   </div>
                   <div className="col-md-4 d-flex gap-3 align-items-end pb-2">
                     <div className="form-check">
