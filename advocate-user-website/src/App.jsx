@@ -16,6 +16,7 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Gallery from './pages/Gallery';
 import Courses from './pages/Courses';
+import CourseDetails from './pages/CourseDetails';
 import MagazinesPage from './pages/Magazines';
 import DraftsPage from './pages/Drafts';
 import BooksPage from './pages/Books';
@@ -214,6 +215,11 @@ export default function App() {
             <Route path="/courses" element={
               <AppLayout>
                 <Courses />
+              </AppLayout>
+            } />
+            <Route path="/courses/:id" element={
+              <AppLayout>
+                <CourseDetails />
               </AppLayout>
             } />
             <Route path="/news" element={
