@@ -5,6 +5,7 @@ import { getPublicCourses } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
 import { mediaUrl } from '../utils/helpers';
+import CardCarousel from './CardCarousel';
 
 const LEVEL_BADGE = {
   beginner: 'bg-success',
@@ -123,11 +124,11 @@ export default function CoursesPreview() {
 
       <div className="luc-content-area">
         {loading ? (
-          <div className="hsc-vlist">
+          <CardCarousel ariaLabel="courses" loading>
             <CourseCardSkeleton />
             <CourseCardSkeleton />
             <CourseCardSkeleton />
-          </div>
+          </CardCarousel>
         ) : courses.length === 0 ? (
           <div className="luc-empty-state">
             <div className="luc-empty-icon"><i className="fas fa-graduation-cap" /></div>
@@ -138,11 +139,11 @@ export default function CoursesPreview() {
             </button>
           </div>
         ) : (
-          <div className="hsc-vlist">
+          <CardCarousel ariaLabel="courses">
             {courses.map(course => (
               <CourseCard key={course._id} course={course} />
             ))}
-          </div>
+          </CardCarousel>
         )}
       </div>
     </>

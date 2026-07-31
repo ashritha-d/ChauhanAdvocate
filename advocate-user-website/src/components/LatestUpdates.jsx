@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getLiveStatus, getUpcomingSessions } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
+import CardCarousel from './CardCarousel';
 
 const PLATFORM_ICONS = {
   'Google Meet':      'fab fa-google',
@@ -219,11 +220,11 @@ export default function LatestUpdates() {
       <div className="luc-content-area">
         {loading ? (
           /* Skeleton mirrors live card structure exactly */
-          <div className="hsc-vlist">
+          <CardCarousel ariaLabel="live sessions" loading>
             <LiveCardSkeleton />
             <LiveCardSkeleton />
             <LiveCardSkeleton />
-          </div>
+          </CardCarousel>
         ) : sessions.length === 0 ? (
           /* Empty state — same height container */
           <div className="luc-empty-state">
@@ -235,12 +236,12 @@ export default function LatestUpdates() {
             </button>
           </div>
         ) : (
-          /* Live session cards — vertical list, scrolls internally within its column */
-          <div className="hsc-vlist">
+          /* Live session cards — horizontal carousel */
+          <CardCarousel ariaLabel="live sessions">
             {sessions.map(session => (
               <LiveSessionCard key={session._id} session={session} />
             ))}
-          </div>
+          </CardCarousel>
         )}
       </div>
     </>

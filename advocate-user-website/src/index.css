@@ -908,14 +908,61 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 /* ── Home page split: Live Sessions / Courses (HomeSessionsAndCourses) ── */
 .hsc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
 .hsc-col { min-width: 0; }
-.hsc-vlist { display: flex; flex-direction: column; gap: 16px; max-height: 640px; overflow-y: auto; padding-right: 6px; }
-.hsc-vlist .live-update-card,
-.hsc-vlist .course-card,
-.hsc-vlist .luc-skeleton-card { width: 100%; flex: none; min-width: 0; }
+
+/* Below desktop, each carousel needs full container width to comfortably show
+   2+ cards per view — a 50/50 split leaves too little room per card. */
+@media (max-width: 1023px) {
+  .hsc-grid { grid-template-columns: 1fr; gap: 40px; }
+}
+
+/* ── Card Carousel (Live Sessions & Courses) ── */
+.card-carousel { display: flex; align-items: center; gap: 10px; }
+
+.card-carousel-track {
+  display: flex;
+  gap: 22px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  padding: 8px 4px 20px;
+  cursor: grab;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.card-carousel-track:active { cursor: grabbing; }
+.card-carousel-track::-webkit-scrollbar { display: none; }
+.card-carousel-track > * { scroll-snap-align: start; }
+.card-carousel-track .course-card { flex: 0 0 270px; min-width: 270px; }
+
+.cc-nav-btn {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: #fff;
+  color: var(--gold);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+.cc-nav-btn:hover:not(:disabled) { background: var(--gold); color: #fff; transform: scale(1.08); }
+.cc-nav-btn:disabled { opacity: 0.3; cursor: default; }
 
 @media (max-width: 767px) {
-  .hsc-grid { grid-template-columns: 1fr; gap: 40px; }
-  .hsc-vlist { max-height: none; overflow: visible; padding-right: 0; }
+  .card-carousel-track .live-update-card,
+  .card-carousel-track .course-card,
+  .card-carousel-track .luc-skeleton-card { flex: 0 0 100%; min-width: 0; }
+  .cc-nav-btn { width: 36px; height: 36px; font-size: 0.85rem; }
 }
 
 /* ── Latest Updates Section ── */
