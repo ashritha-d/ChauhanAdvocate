@@ -10,6 +10,7 @@ const auditLogSchema = new mongoose.Schema({
       'ADMIN_CREATED', 'ADMIN_UPDATED', 'ADMIN_DELETED',
       'ADMIN_ACTIVATED', 'ADMIN_DEACTIVATED', 'PASSWORD_RESET',
       'LOGIN', 'LOGOUT', 'FAILED_LOGIN',
+      'PAYMENT_APPROVED', 'PAYMENT_REJECTED',
     ],
     required: true,
   },

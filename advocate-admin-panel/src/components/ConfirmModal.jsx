@@ -1,4 +1,7 @@
-export default function ConfirmModal({ show, title, message, onConfirm, onCancel, loading }) {
+export default function ConfirmModal({
+  show, title, message, children, onConfirm, onCancel, loading,
+  confirmLabel, loadingLabel, confirmVariant, confirmDisabled,
+}) {
   if (!show) return null;
   return (
     <div className="modal fade show d-block" style={{ background: 'rgba(0,0,0,0.5)' }}>
@@ -9,13 +12,13 @@ export default function ConfirmModal({ show, title, message, onConfirm, onCancel
             <button className="btn-close" onClick={onCancel}></button>
           </div>
           <div className="modal-body">
-            <p className="mb-0">{message || 'Are you sure you want to proceed?'}</p>
+            {children || <p className="mb-0">{message || 'Are you sure you want to proceed?'}</p>}
           </div>
           <div className="modal-footer">
             <button className="btn btn-light" onClick={onCancel} disabled={loading}>Cancel</button>
-            <button className="btn btn-danger" onClick={onConfirm} disabled={loading}>
+            <button className={`btn btn-${confirmVariant || 'danger'}`} onClick={onConfirm} disabled={loading || confirmDisabled}>
               {loading ? <i className="fas fa-spinner fa-spin me-1"></i> : null}
-              {loading ? 'Deleting...' : 'Delete'}
+              {loading ? (loadingLabel || 'Deleting...') : (confirmLabel || 'Delete')}
             </button>
           </div>
         </div>

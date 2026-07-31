@@ -8,11 +8,14 @@ const verifyTurnstile = require('../middleware/turnstile');
 const {
   createPayment, getAllPayments, getPayment,
   updatePayment, deletePayment, getStats, getQRCode, uploadQRCode, deleteQRCode,
+  confirmPayment, rejectPayment,
   getRevenue, exportPayments,
 } = require('../controllers/paymentController');
 
 // Only a Super Admin may manage the payment QR image
 const superAdminOnly = [protect, authorize('superadmin')];
+// Confirming/rejecting a payment requires Admin or Super Admin (not editor/content_manager/support)
+const staffOnly = [protect, authorize('admin', 'superadmin')];
 const {
   getPaymentSettings,
   createManualPayment,
@@ -59,6 +62,8 @@ router.get('/export', protect, exportPayments);
 router.get('/stats', protect, getStats);
 router.get('/', protect, getAllPayments);
 router.get('/:id', protect, getPayment);
+router.put('/:id/approve', ...staffOnly, confirmPayment);
+router.put('/:id/reject', ...staffOnly, rejectPayment);
 router.put('/:id', protect, updatePayment);
 router.delete('/:id', protect, deletePayment);
 

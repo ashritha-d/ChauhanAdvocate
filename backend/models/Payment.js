@@ -27,6 +27,11 @@ const paymentSchema = new mongoose.Schema({
   isRead: { type: Boolean, default: false },
   details: { type: mongoose.Schema.Types.Mixed, default: {} },
   approvedAt: { type: Date },
+  verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+  verifiedAt: { type: Date },
+  rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+  rejectedAt: { type: Date },
+  rejectionReason: { type: String, default: '' },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Payment', paymentSchema);

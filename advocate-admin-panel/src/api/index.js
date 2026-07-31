@@ -83,6 +83,8 @@ export const deleteBookOrder = (id) => api.delete(`/book-orders/${id}`);
 export const getPayments = (p = 1, l = 200, status = '') => api.get(`/payments?page=${p}&limit=${l}${status ? `&status=${status}` : ''}`);
 export const getPayment = (id) => api.get(`/payments/${id}`);
 export const updatePayment = (id, data) => api.put(`/payments/${id}`, data);
+export const confirmPayment = (id) => api.put(`/payments/${id}/approve`);
+export const rejectPayment = (id, rejectionReason) => api.put(`/payments/${id}/reject`, { rejectionReason });
 export const deletePayment = (id) => api.delete(`/payments/${id}`);
 export const getPaymentStats = () => api.get('/payments/stats');
 export const getPaymentRevenue = (from, to) => api.get(`/payments/revenue${from || to ? `?${from?`from=${from}`:''}${from&&to?'&':''}${to?`to=${to}`:''}` : ''}`);

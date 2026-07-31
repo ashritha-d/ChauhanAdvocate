@@ -3,6 +3,7 @@ const Appointment = require('../models/Appointment');
 const BookOrder = require('../models/BookOrder');
 const MagazinePurchase = require('../models/MagazinePurchase');
 const SiteSettings = require('../models/SiteSettings');
+const AuditLog = require('../models/AuditLog');
 const qrUpload = require('../middleware/qrUpload');
 const { isSlotTaken, withOptionalTransaction } = require('../utils/slotUtils');
 
@@ -10,6 +11,50 @@ function generateReceiptId() {
   const year = new Date().getFullYear();
   const seq = String(Date.now()).slice(-6);
   return `RCP-${year}-${seq}`;
+}
+
+function getIp(req) {
+  return (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
+}
+
+async function logPaymentAction(action, req, payment, extra = {}) {
+  try {
+    await AuditLog.create({
+      adminId: req.admin?._id,
+      adminName: req.admin?.name || 'System',
+      adminEmail: req.admin?.email || '',
+      action,
+      ipAddress: getIp(req),
+      details: {
+        paymentId: payment._id,
+        clientName: payment.clientName,
+        amount: payment.amount,
+        paymentMethod: payment.paymentMethod,
+        utrNumber: payment.utrNumber,
+        ...extra,
+      },
+    });
+  } catch (_) { /* audit failures must never break the main flow */ }
+}
+
+async function cascadeToLinkedRecord(payment, kind) {
+  if (kind === 'approve') {
+    if (payment.type === 'appointment') {
+      await Appointment.findByIdAndUpdate(payment.referenceId, { status: 'confirmed', paymentStatus: 'paid', paymentId: payment._id });
+    } else if (payment.type === 'book_order') {
+      await BookOrder.findByIdAndUpdate(payment.referenceId, { status: 'confirmed', paymentStatus: 'paid', paymentId: payment._id });
+    } else if (payment.type === 'magazine') {
+      await MagazinePurchase.findOneAndUpdate({ paymentId: payment._id }, { status: 'completed', purchaseDate: new Date() });
+    }
+  } else {
+    if (payment.type === 'appointment') {
+      await Appointment.findByIdAndUpdate(payment.referenceId, { paymentStatus: 'failed' });
+    } else if (payment.type === 'book_order') {
+      await BookOrder.findByIdAndUpdate(payment.referenceId, { paymentStatus: 'failed' });
+    } else if (payment.type === 'magazine') {
+      await MagazinePurchase.findOneAndUpdate({ paymentId: payment._id }, { status: 'failed' });
+    }
+  }
 }
 
 // PUBLIC: Create payment record + linked appointment/book_order in one step
@@ -187,6 +232,62 @@ exports.updatePayment = async (req, res) => {
     }
 
     await payment.save();
+    res.json({ success: true, data: payment });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ADMIN/SUPER ADMIN: Confirm (approve) a pending payment
+exports.confirmPayment = async (req, res) => {
+  try {
+    const payment = await Payment.findById(req.params.id);
+    if (!payment) return res.status(404).json({ success: false, message: 'Payment not found' });
+    if (payment.status !== 'pending_verification') {
+      return res.status(400).json({ success: false, message: `Payment is already ${payment.status} — cannot confirm again.` });
+    }
+
+    payment.status = 'approved';
+    payment.isRead = true;
+    payment.approvedAt = new Date();
+    payment.verifiedBy = req.admin._id;
+    payment.verifiedAt = payment.approvedAt;
+    if (!payment.receiptId) payment.receiptId = generateReceiptId();
+
+    await cascadeToLinkedRecord(payment, 'approve');
+    await payment.save();
+    await logPaymentAction('PAYMENT_APPROVED', req, payment);
+
+    res.json({ success: true, data: payment });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ADMIN/SUPER ADMIN: Reject a pending payment (requires a reason)
+exports.rejectPayment = async (req, res) => {
+  try {
+    const { rejectionReason } = req.body;
+    if (!rejectionReason || !rejectionReason.trim()) {
+      return res.status(400).json({ success: false, message: 'A rejection reason is required.' });
+    }
+
+    const payment = await Payment.findById(req.params.id);
+    if (!payment) return res.status(404).json({ success: false, message: 'Payment not found' });
+    if (payment.status !== 'pending_verification') {
+      return res.status(400).json({ success: false, message: `Payment is already ${payment.status} — cannot reject again.` });
+    }
+
+    payment.status = 'rejected';
+    payment.isRead = true;
+    payment.rejectedBy = req.admin._id;
+    payment.rejectedAt = new Date();
+    payment.rejectionReason = rejectionReason.trim();
+
+    await cascadeToLinkedRecord(payment, 'reject');
+    await payment.save();
+    await logPaymentAction('PAYMENT_REJECTED', req, payment, { rejectionReason: payment.rejectionReason });
+
     res.json({ success: true, data: payment });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
