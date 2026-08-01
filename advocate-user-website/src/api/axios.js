@@ -19,9 +19,13 @@ const api = axios.create({
   },
 });
 
+// Endpoints the backend explicitly allows short-lived caching on (see server.js) —
+// skip the cache-buster for these so the browser can actually reuse a response.
+const SHORT_CACHE_GET_PATHS = new Set(['/services', '/testimonials', '/faqs']);
+
 // Attach cache-buster to GETs and auto-attach user token if not already present
 api.interceptors.request.use(config => {
-  if (config.method === 'get') {
+  if (config.method === 'get' && !SHORT_CACHE_GET_PATHS.has(config.url)) {
     config.params = { ...config.params, _t: Date.now() };
   }
   const token = safeGet('userToken');

@@ -74,13 +74,20 @@ const authLimiter = rateLimit({
 app.use('/api/auth/', authLimiter);
 app.use('/api/users/', authLimiter);
 
-// Prevent browser/CDN from caching any API response
+// Prevent browser/CDN from caching any API response — except a small, conservative
+// whitelist of public GET endpoints that only change via rare admin edits (not
+// real-time data), which may be cached briefly to speed up repeat visits.
+const SHORT_CACHE_GET_PATHS = new Set(['/services', '/testimonials', '/faqs']);
 app.use('/api/', (req, res, next) => {
-  res.set({
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
-    'Pragma': 'no-cache',
-    'Expires': '0',
-  });
+  if (req.method === 'GET' && SHORT_CACHE_GET_PATHS.has(req.path)) {
+    res.set('Cache-Control', 'public, max-age=60');
+  } else {
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    });
+  }
   next();
 });
 

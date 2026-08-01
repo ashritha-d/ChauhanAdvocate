@@ -30,15 +30,24 @@
   <meta name="twitter:image" content="https://ashritha-d.github.io/ChauhanAdvocate/advocate.jpeg" />
 
   <link rel="icon" type="image/jpeg" href="%BASE_URL%logo.jpeg?cachebust" />
+
+  <!-- Connect early to the origin the page depends on most for data (the API origin serves every homepage section) -->
+  <link rel="preconnect" href="https://chauhanadvocate.onrender.com" />
+  <link rel="dns-prefetch" href="https://chauhanadvocate.onrender.com" />
+
+  <!-- Fonts are self-hosted (see src/index.css @font-face) — no Google Fonts round-trip.
+       Preload the two variable-font files so text doesn't wait on CSS discovery. -->
+  <link rel="preload" href="%BASE_URL%fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="%BASE_URL%fonts/playfair-display-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+
   <link href="%BASE_URL%bootstrap.min.css?cachebust" rel="stylesheet" />
   <link href="%BASE_URL%fa-all.min.css?cachebust" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link href="%BASE_URL%aos.css?cachebust" rel="stylesheet" />
 </head>
 <body>
   <div id="root"></div>
-  <script src="%BASE_URL%bootstrap.bundle.min.js?cachebust"></script>
-  <script src="%BASE_URL%aos.js?cachebust"></script>
+  <script src="%BASE_URL%bootstrap.bundle.min.js?cachebust" defer></script>
+  <script src="%BASE_URL%aos.js?cachebust" defer></script>
   <script type="text/javascript">
     (function(l){if(l.search[1]==='/'){ var d=l.search.slice(1).split('&').map(function(s){return s.replace(/~and~/g,'&')}).join('?'); window.history.replaceState(null,null,l.pathname.slice(0,-1)+d+l.hash)}}(window.location))
   </script>

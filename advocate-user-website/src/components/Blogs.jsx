@@ -64,7 +64,7 @@ export default function Blogs() {
               <div className="blog-card">
                 <div className="blog-image">
                   {b.coverImage
-                    ? <img src={mediaUrl(b.coverImage)} alt={b.title} onError={e => { e.target.style.display='none'; }} />
+                    ? <img src={mediaUrl(b.coverImage, { width: 400 })} alt={b.title} loading="lazy" onError={e => { e.target.style.display='none'; }} />
                     : <div className="blog-image-placeholder"><i className={b.icon || 'fas fa-newspaper'}></i></div>
                   }
                 </div>

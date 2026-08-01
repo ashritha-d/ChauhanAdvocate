@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
@@ -36,7 +36,7 @@ export function CourseCardSkeleton() {
 /* Shared course card — used on the homepage Courses carousel and the /courses grid.
    `enrolled` and the onEnroll/onPreview callbacks are supplied by the parent, which
    owns the CourseEnrollModal/CoursePreviewModal state. */
-export default function CourseCard({ course, enrolled = false, onEnroll, onPreview }) {
+function CourseCard({ course, enrolled = false, onEnroll, onPreview }) {
   const { user } = useUserAuth();
   const navigate = useNavigate();
   const [wishlisted, setWishlisted] = useState(() => isWishlisted(course._id));
@@ -83,7 +83,7 @@ export default function CourseCard({ course, enrolled = false, onEnroll, onPrevi
     <div className="course-card" onClick={goToDetails} role="button" tabIndex={0}>
       <div className="course-card-thumb">
         {course.thumbnail
-          ? <img src={mediaUrl(course.thumbnail)} alt={course.title} />
+          ? <img src={mediaUrl(course.thumbnail, { width: 500 })} alt={course.title} loading="lazy" />
           : <div className="course-card-thumb-placeholder"><i className="fas fa-graduation-cap" /></div>
         }
         {comingSoon
@@ -168,3 +168,5 @@ export default function CourseCard({ course, enrolled = false, onEnroll, onPrevi
     </div>
   );
 }
+
+export default memo(CourseCard);

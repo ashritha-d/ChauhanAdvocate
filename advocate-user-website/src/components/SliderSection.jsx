@@ -34,6 +34,7 @@ export default function SliderSection({ id, label, title, description, items, lo
                   <img
                     src={item.img}
                     alt={item.title}
+                    loading="lazy"
                     onError={e => { e.target.src = `https://placehold.co/280x180/1a1a2e/c9a84c?text=${encodeURIComponent(item.title)}`; }}
                   />
                 </div>

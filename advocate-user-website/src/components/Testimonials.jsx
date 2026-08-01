@@ -68,7 +68,7 @@ export default function Testimonials() {
                   <div className="testimonial-author">
                     <div className="author-avatar">
                       {t.avatar
-                        ? <img src={mediaUrl(t.avatar)} alt={t.name} onError={e => { e.target.style.display='none'; }} />
+                        ? <img src={mediaUrl(t.avatar, { width: 100 })} alt={t.name} loading="lazy" onError={e => { e.target.style.display='none'; }} />
                         : t.name.charAt(0)
                       }
                     </div>

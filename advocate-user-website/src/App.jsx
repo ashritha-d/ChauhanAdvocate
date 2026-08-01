@@ -47,8 +47,14 @@ function ScrollToHash() {
   const location = useLocation();
   useEffect(() => {
     if (location.hash) {
-      const el = document.querySelector(location.hash);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      // Retry briefly — the target section may be a React.lazy chunk still loading in
+      let attempts = 0;
+      const tryScroll = () => {
+        const el = document.querySelector(location.hash);
+        if (el) { el.scrollIntoView({ behavior: 'smooth' }); return; }
+        if (attempts++ < 20) setTimeout(tryScroll, 100);
+      };
+      tryScroll();
     } else {
       window.scrollTo(0, 0);
     }

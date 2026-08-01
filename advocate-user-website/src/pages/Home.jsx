@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
 import Hero from '../components/Hero';
@@ -6,16 +6,22 @@ import Services from '../components/Services';
 import HomeSessionsAndCourses from '../components/HomeSessionsAndCourses';
 import YouTubeSection from '../components/YouTubeSection';
 import FacebookSection from '../components/FacebookSection';
-import Books from '../components/Books';
-import Drafts from '../components/Drafts';
-import Magazines from '../components/Magazines';
-import JoinUs from '../components/JoinUs';
-import Testimonials from '../components/Testimonials';
-import Appointment from '../components/Appointment';
-import Blogs from '../components/Blogs';
-import FAQs from '../components/FAQs';
+// Contact is also statically imported by App.jsx (rendered on every page), so it's
+// already in the main bundle regardless — lazy-loading it here would add an extra
+// Suspense indirection with no actual byte savings.
 import Contact from '../components/Contact';
 import { useUserAuth } from '../context/UserAuthContext';
+
+// Below-the-fold sections — split into separate chunks so the initial homepage
+// load only parses/executes the JS for what's visible above the fold.
+const Books = lazy(() => import('../components/Books'));
+const Drafts = lazy(() => import('../components/Drafts'));
+const Magazines = lazy(() => import('../components/Magazines'));
+const JoinUs = lazy(() => import('../components/JoinUs'));
+const Testimonials = lazy(() => import('../components/Testimonials'));
+const Appointment = lazy(() => import('../components/Appointment'));
+const Blogs = lazy(() => import('../components/Blogs'));
+const FAQs = lazy(() => import('../components/FAQs'));
 
 export default function Home() {
   const { user, loading: authLoading } = useUserAuth();
@@ -39,14 +45,16 @@ export default function Home() {
       <HomeSessionsAndCourses />
       <YouTubeSection />
       <FacebookSection />
-      <Books />
-      <Drafts />
-      <Magazines />
-      <JoinUs />
-      <Testimonials />
-      <Appointment />
-      <Blogs />
-      <FAQs />
+      <Suspense fallback={null}>
+        <Books />
+        <Drafts />
+        <Magazines />
+        <JoinUs />
+        <Testimonials />
+        <Appointment />
+        <Blogs />
+        <FAQs />
+      </Suspense>
       <Contact />
     </>
   );

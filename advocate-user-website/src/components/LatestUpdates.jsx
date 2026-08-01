@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getLiveStatus, getUpcomingSessions } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
@@ -74,7 +74,7 @@ function LiveCardSkeleton() {
 }
 
 /* ── Live Session Card ── */
-function LiveSessionCard({ session }) {
+const LiveSessionCard = memo(function LiveSessionCard({ session }) {
   const { user } = useUserAuth();
   const navigate = useNavigate();
   const [now, setNow] = useState(() => new Date());
@@ -108,7 +108,7 @@ function LiveSessionCard({ session }) {
       </div>
 
       {session.banner ? (
-        <div className="luc-banner"><img src={session.banner} alt={session.title} /></div>
+        <div className="luc-banner"><img src={session.banner} alt={session.title} loading="lazy" /></div>
       ) : (
         <div className="luc-banner luc-banner--placeholder"><i className="fas fa-broadcast-tower" /></div>
       )}
@@ -155,7 +155,7 @@ function LiveSessionCard({ session }) {
       </div>
     </div>
   );
-}
+});
 
 /* ── Main Component ── */
 export default function LatestUpdates() {

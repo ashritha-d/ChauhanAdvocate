@@ -1,4 +1,46 @@
+import { useEffect, useRef, useState } from 'react';
 import { useSite } from '../context/SiteContext';
+
+// Loads the (heavy — Google Maps pulls in ~9 separate JS files) map embed only once the
+// user actually scrolls near it, rather than relying solely on the iframe's native
+// loading="lazy" hint (which can still fire early during full-page capture/prefetch).
+function LazyMapEmbed({ src }) {
+  const wrapRef = useRef(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    if (shouldLoad || !wrapRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) { setShouldLoad(true); observer.disconnect(); }
+      },
+      { rootMargin: '300px' }
+    );
+    observer.observe(wrapRef.current);
+    return () => observer.disconnect();
+  }, [shouldLoad]);
+
+  return (
+    <div className="contact-map-fill" ref={wrapRef}>
+      {shouldLoad ? (
+        <iframe
+          title="Office Location"
+          src={src}
+          width="100%"
+          height="100%"
+          style={{ border: 0, display: 'block', minHeight: 380 }}
+          allowFullScreen
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        ></iframe>
+      ) : (
+        <div className="contact-map-placeholder">
+          <i className="fas fa-map-marked-alt"></i>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const SOCIALS = [
   { key: 'social_facebook', icon: 'fab fa-facebook-f', label: 'Facebook' },
@@ -123,18 +165,7 @@ export default function Contact() {
                 <div className="contact-panel-icon"><i className="fas fa-map-marked-alt"></i></div>
                 <h5>Our Location</h5>
               </div>
-              <div className="contact-map-fill">
-                <iframe
-                  title="Office Location"
-                  src={mapEmbed}
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0, display: 'block', minHeight: 380 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                ></iframe>
-              </div>
+              <LazyMapEmbed src={mapEmbed} />
               <div className="contact-map-address">
                 <i className="fas fa-map-marker-alt text-gold me-2"></i>
                 <span>{address}</span>

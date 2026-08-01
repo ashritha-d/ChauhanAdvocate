@@ -22,9 +22,10 @@ function MagazineCard({ magazine, onPurchase, onPreview, onDownload, purchased }
     <div className="mag-card">
       <div className="mag-cover-wrap">
         <img
-          src={magazine.coverImage ? mediaUrl(magazine.coverImage) : PLACEHOLDER}
+          src={magazine.coverImage ? mediaUrl(magazine.coverImage, { width: 400 }) : PLACEHOLDER}
           alt={magazine.title}
           className="mag-cover"
+          loading="lazy"
           onError={e => { e.target.src = PLACEHOLDER; }}
         />
         <span className={`mag-type-badge ${isPaid ? 'paid' : 'free'}`}>

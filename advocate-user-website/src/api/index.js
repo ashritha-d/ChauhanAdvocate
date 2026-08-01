@@ -1,7 +1,17 @@
 import api from './axios';
 
 export const getSiteSettings = () => api.get('/site-settings');
-export const getServices = () => api.get('/services');
+
+// Services rarely change and are fetched independently by Services.jsx, Appointment.jsx,
+// AppointmentModal.jsx, and Footer.jsx — share one in-flight/resolved request per page
+// load instead of firing a separate network call from each.
+let servicesRequest = null;
+export const getServices = () => {
+  if (!servicesRequest) {
+    servicesRequest = api.get('/services').catch(err => { servicesRequest = null; throw err; });
+  }
+  return servicesRequest;
+};
 export const getTestimonials = () => api.get('/testimonials');
 export const getBlogs = (page = 1, limit = 6) => api.get(`/blogs?page=${page}&limit=${limit}`);
 export const getBlogById = (id) => api.get(`/blogs/${id}`);
