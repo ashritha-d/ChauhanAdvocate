@@ -10,8 +10,10 @@ const videoSchema = new mongoose.Schema({
   thumbnailUrl: { type: String, default: '' },
   duration: { type: String, default: '' },
   isPreview: { type: Boolean, default: false },
+  // Defaults to true so every video that predates this field keeps rendering for students.
+  isPublished: { type: Boolean, default: true },
   order: { type: Number, default: 0 },
-});
+}, { timestamps: true });
 
 const moduleSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },

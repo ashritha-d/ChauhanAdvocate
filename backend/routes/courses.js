@@ -26,7 +26,6 @@ router.put('/enrollments/:id/certificate-issued', protectUser, c.markCertificate
 
 // Admin — video upload/delete (must come before /:id routes)
 router.post('/upload-video', protect, videoUpload.single('video'), c.uploadVideo);
-router.post('/upload-videos-bulk', protect, videoUpload.array('videos', 10), c.uploadVideosBulk);
 router.delete('/delete-video/:filename', protect, c.deleteVideo);
 
 // Admin — enrollment management

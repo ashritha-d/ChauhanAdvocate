@@ -7,6 +7,19 @@ const { cloudinary } = require('../middleware/videoUpload');
 
 // ── Public ────────────────────────────────────────────────────────────────────
 
+// Drops admin-disabled videos entirely, then — for viewers without full access —
+// strips the playable source from every video except the ones the admin explicitly
+// flagged as a free preview (previously only the first video in the course was ever
+// unlocked, ignoring the isPreview flag admins can set on any video).
+function visibleVideos(modules, hasFullAccess) {
+  return (modules || []).map(m => ({
+    ...m,
+    videos: (m.videos || [])
+      .filter(v => v.isPublished !== false)
+      .map(v => (hasFullAccess || v.isPreview) ? { ...v } : { ...v, videoUrl: null, uploadedVideoPath: null }),
+  }));
+}
+
 exports.getPublicCourses = async (req, res) => {
   try {
     const query = { isActive: true };
@@ -38,20 +51,7 @@ exports.getPublicCourse = async (req, res) => {
     }
 
     const courseObj = course.toObject();
-    if (!enrollment) {
-      // Expose only the very first video (the free preview); hide everything else
-      let firstVideoSeen = false;
-      courseObj.modules = courseObj.modules.map(m => ({
-        ...m,
-        videos: m.videos.map(v => {
-          if (!firstVideoSeen && (v.videoUrl || v.uploadedVideoPath)) {
-            firstVideoSeen = true;
-            return { ...v };
-          }
-          return { ...v, videoUrl: null, uploadedVideoPath: null };
-        }),
-      }));
-    }
+    courseObj.modules = visibleVideos(courseObj.modules, !!enrollment);
 
     res.json({ success: true, data: courseObj, enrolled: !!enrollment, expired });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
@@ -134,7 +134,15 @@ exports.getMyEnrollments = async (req, res) => {
     const enrollments = await Enrollment.find({ userId: req.user._id })
       .populate('courseId', 'title thumbnail price discountPrice instructor modules duration language programType certificate')
       .sort({ createdAt: -1 });
-    res.json({ success: true, data: enrollments });
+    // Hide admin-disabled videos here too — this populated `modules` is what the
+    // frontend uses for totalVideos/progress-percentage math, so it must agree
+    // with what the player and locked-list actually show.
+    const data = enrollments.map(en => {
+      const obj = en.toObject();
+      if (obj.courseId?.modules) obj.courseId.modules = visibleVideos(obj.courseId.modules, true);
+      return obj;
+    });
+    res.json({ success: true, data });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 };
 
@@ -200,6 +208,17 @@ exports.updateProgress = async (req, res) => {
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
 
+// Light sanity check on pasted video URLs — catches obvious typos/garbage without
+// being strict about which providers are allowed (YouTube/Vimeo/Drive/direct MP4 all vary).
+function findInvalidVideoUrl(modules) {
+  for (const m of modules || []) {
+    for (const v of m.videos || []) {
+      if (v.videoUrl && !/^https?:\/\//i.test(v.videoUrl)) return v.videoUrl;
+    }
+  }
+  return null;
+}
+
 exports.getAllCourses = async (req, res) => {
   try {
     const courses = await Course.find().sort({ createdAt: -1 });
@@ -209,6 +228,8 @@ exports.getAllCourses = async (req, res) => {
 
 exports.createCourse = async (req, res) => {
   try {
+    const badUrl = findInvalidVideoUrl(req.body.modules);
+    if (badUrl) return res.status(400).json({ success: false, message: `Invalid video URL: "${badUrl}" must start with http:// or https://` });
     const course = await Course.create(req.body);
     res.status(201).json({ success: true, data: course });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
@@ -216,6 +237,8 @@ exports.createCourse = async (req, res) => {
 
 exports.updateCourse = async (req, res) => {
   try {
+    const badUrl = findInvalidVideoUrl(req.body.modules);
+    if (badUrl) return res.status(400).json({ success: false, message: `Invalid video URL: "${badUrl}" must start with http:// or https://` });
     const course = await Course.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
     res.json({ success: true, data: course });
@@ -370,21 +393,6 @@ exports.uploadVideo = async (req, res) => {
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
 };
 
-// ADMIN: bulk video upload — one Course video entry per uploaded file
-exports.uploadVideosBulk = async (req, res) => {
-  try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ success: false, message: 'No video files provided' });
-    }
-    const results = req.files.map(f => ({
-      path: f.path,
-      filename: f.filename,
-      originalName: f.originalname,
-      size: f.size ? (f.size / (1024 * 1024)).toFixed(1) + ' MB' : '',
-    }));
-    res.json({ success: true, data: results });
-  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
-};
 
 exports.deleteVideo = async (req, res) => {
   try {

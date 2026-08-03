@@ -56,6 +56,8 @@ function getVideoEmbed(url) {
   if (!url) return null;
   const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
   if (yt) return `https://www.youtube.com/embed/${yt[1]}?rel=0&autoplay=1`;
+  const vimeo = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}?autoplay=1`;
   const drive = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
   if (drive) return `https://drive.google.com/file/d/${drive[1]}/preview`;
   return null; // MP4 direct (including Cloudinary-uploaded videos)
@@ -112,6 +114,20 @@ function CoursePlayer({ enrollment, authHeader, onClose }) {
     } catch {}
   };
 
+  // Auto-advance — only wired to the native <video> element's onEnded event.
+  // YouTube/Vimeo/Drive iframes can't reliably signal "ended" without a heavier
+  // per-provider API integration, so those stay manual-click-to-advance.
+  const handleVideoEnded = () => {
+    handleMarkDone();
+    const flat = [];
+    for (const m of detail?.modules || []) {
+      for (const v of m.videos || []) flat.push({ video: v, moduleId: m._id });
+    }
+    const idx = flat.findIndex(f => f.video._id === currentVideo?._id);
+    const next = idx >= 0 ? flat[idx + 1] : null;
+    if (next && getPlayableUrl(next.video)) handleSelectVideo(next.video, next.moduleId);
+  };
+
   const totalVideos = getTotalVideos(detail);
 
   return (
@@ -162,7 +178,7 @@ function CoursePlayer({ enrollment, authHeader, onClose }) {
                   const embed = getVideoEmbed(playUrl);
                   return embed
                     ? <iframe src={embed} title={currentVideo.title} allowFullScreen allow="autoplay; encrypted-media"></iframe>
-                    : <video controls src={playUrl} style={{ width: '100%', height: '100%', background: '#000' }}></video>;
+                    : <video controls src={playUrl} onEnded={handleVideoEnded} style={{ width: '100%', height: '100%', background: '#000' }}></video>;
                 })()
               ) : (
                 <div className="d-flex align-items-center justify-content-center h-100" style={{ background: '#111', color: '#aaa' }}>
