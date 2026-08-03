@@ -6,7 +6,7 @@ import { COURSE_CATEGORY_LIST } from '../utils/courseCategories';
 import { getEffectivePrice } from '../utils/helpers';
 
 export default function Courses() {
-  const [stats, setStats] = useState(null); // { [programType]: { count, startingPrice } }
+  const [stats, setStats] = useState(null); // { [programType]: { count, startingPrice, duration } }
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,12 +16,16 @@ export default function Courses() {
         const byCategory = {};
         r.data.data.forEach(c => {
           const key = c.programType || 'training';
-          if (!byCategory[key]) byCategory[key] = { count: 0, startingPrice: null };
+          if (!byCategory[key]) byCategory[key] = { count: 0, startingPrice: null, duration: '' };
           byCategory[key].count += 1;
           const price = getEffectivePrice(c);
           if (byCategory[key].startingPrice === null || price < byCategory[key].startingPrice) {
             byCategory[key].startingPrice = price;
           }
+          // Real admin-entered duration from the first course that has one set —
+          // courses within a category are rarely wildly different in length, and
+          // this avoids inventing a made-up "typical duration" figure.
+          if (!byCategory[key].duration && c.duration) byCategory[key].duration = c.duration;
         });
         setStats(byCategory);
       })
@@ -39,8 +43,10 @@ export default function Courses() {
       <div className="container">
         <div className="text-center mb-5" data-aos="fade-up">
           <div className="section-label">Learning Portal</div>
-          <h2 className="section-title" style={{ color: '#fff' }}>Our <span className="text-gold">Courses</span></h2>
-          <p className="section-subtitle" style={{ color: 'rgba(255,255,255,0.65)' }}>Choose the learning path that matches your career goals.</p>
+          <h2 className="section-title" style={{ color: '#fff' }}>Our Learning <span className="text-gold">Programs</span></h2>
+          <p className="section-subtitle" style={{ color: 'rgba(255,255,255,0.65)' }}>
+            A complete legal learning portal — from LL.B internships to judiciary exam preparation. Choose the path that matches your career goals.
+          </p>
         </div>
 
         <div className="row g-4 justify-content-center">
@@ -58,6 +64,7 @@ export default function Courses() {
                     ) : st ? (
                       <>
                         <span><i className="fas fa-graduation-cap me-1"></i>{st.count} course{st.count !== 1 ? 's' : ''}</span>
+                        {st.duration && <span><i className="fas fa-clock me-1"></i>{st.duration}</span>}
                         <span><i className="fas fa-rupee-sign me-1"></i>From {st.startingPrice === 0 ? 'Free' : `₹${st.startingPrice}`}</span>
                       </>
                     ) : (

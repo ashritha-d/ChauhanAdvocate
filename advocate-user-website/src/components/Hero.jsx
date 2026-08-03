@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSite } from '../context/SiteContext';
 import { useUserAuth } from '../context/UserAuthContext';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { mediaUrl } from '../utils/helpers';
 import { savePendingAction } from '../utils/pendingAction';
 import useCounter from '../hooks/useCounter';
@@ -116,13 +116,16 @@ export default function Hero() {
               </button>
             </div>
 
-            <div className="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+            <div className="hero-cta-row d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
               <button className="btn btn-gold btn-lg px-5" onClick={handleBook}>
                 <i className="fas fa-calendar-check me-2"></i>Book a Consultation
               </button>
               <a href="#services" className="btn btn-outline-light btn-lg px-5">
                 <i className="fas fa-briefcase me-2"></i>Our Services
               </a>
+              <Link to="/courses" className="btn btn-gold btn-lg px-5">
+                <i className="fas fa-graduation-cap me-2"></i>Our Courses
+              </Link>
             </div>
 
             <div className="hero-stats row g-3 mt-5">

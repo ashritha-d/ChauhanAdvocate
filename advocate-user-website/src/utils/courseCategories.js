@@ -7,7 +7,7 @@ export const COURSE_CATEGORIES = {
     shortTitle: 'Internship Program',
     icon: 'fas fa-user-graduate',
     description: 'Practical legal internship program designed for LL.B students to gain real-world legal experience.',
-    buttonLabel: 'Enroll Now',
+    buttonLabel: 'Explore Program',
   },
   training: {
     key: 'training',
@@ -15,7 +15,7 @@ export const COURSE_CATEGORIES = {
     shortTitle: 'Training Program',
     icon: 'fas fa-briefcase',
     description: 'Professional legal training for newly enrolled advocates to improve drafting, court practice, litigation, and client handling.',
-    buttonLabel: 'Join Training',
+    buttonLabel: 'Explore Program',
   },
   judiciary: {
     key: 'judiciary',
@@ -23,7 +23,7 @@ export const COURSE_CATEGORIES = {
     shortTitle: 'Judiciary Prep',
     icon: 'fas fa-gavel',
     description: 'Comprehensive preparation for Junior Civil Judge and Judiciary competitive examinations.',
-    buttonLabel: 'Start Learning',
+    buttonLabel: 'Explore Program',
   },
 };
 

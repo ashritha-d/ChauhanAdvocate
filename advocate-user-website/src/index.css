@@ -172,6 +172,14 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 }
 .hero-bio-toggle:hover { opacity: 1; }
 
+/* Hero CTA row — a fixed width (not min-width) forces all three to genuinely
+   match Book a Consultation's width, the longest label, rather than each just
+   hugging its own text; stacks full-width on mobile instead of wrapping unevenly. */
+.hero-cta-row .btn { width: 320px; text-align: center; }
+@media (max-width: 575.98px) {
+  .hero-cta-row .btn { width: 100%; }
+}
+
 .hero-stats { margin-top: 40px; }
 .stat-item { text-align: center; padding: 16px 24px; background: rgba(255,255,255,0.05); border: 1px solid rgba(201,168,76,0.2); border-radius: 12px; }
 .stat-number { display: block; font-size: 1.8rem; font-weight: 800; color: var(--gold); font-family: 'Playfair Display', serif; }
