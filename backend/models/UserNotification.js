@@ -7,7 +7,7 @@ const userNotificationSchema = new mongoose.Schema({
   type: { type: String, enum: ['appointment', 'order', 'payment', 'general'], default: 'general' },
   isRead: { type: Boolean, default: false },
   referenceId: { type: mongoose.Schema.Types.ObjectId, default: null },
-  referenceType: { type: String, enum: ['Appointment', 'BookOrder', 'Payment', ''], default: '' },
+  referenceType: { type: String, enum: ['Appointment', 'BookOrder', 'Payment', 'Enrollment', ''], default: '' },
 }, { timestamps: true });
 
 module.exports = mongoose.model('UserNotification', userNotificationSchema);
