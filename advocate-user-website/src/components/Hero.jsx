@@ -116,14 +116,14 @@ export default function Hero() {
               </button>
             </div>
 
-            <div className="hero-cta-row d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
-              <button className="btn btn-gold btn-lg px-5" onClick={handleBook}>
+            <div className="hero-cta-row">
+              <button className="btn btn-gold btn-lg" onClick={handleBook}>
                 <i className="fas fa-calendar-check me-2"></i>Book a Consultation
               </button>
-              <a href="#services" className="btn btn-outline-light btn-lg px-5">
+              <a href="#services" className="btn btn-outline-light btn-lg">
                 <i className="fas fa-briefcase me-2"></i>Our Services
               </a>
-              <Link to="/courses" className="btn btn-gold btn-lg px-5">
+              <Link to="/courses" className="btn btn-gold btn-lg">
                 <i className="fas fa-graduation-cap me-2"></i>Our Courses
               </Link>
             </div>

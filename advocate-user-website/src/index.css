@@ -172,12 +172,47 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 }
 .hero-bio-toggle:hover { opacity: 1; }
 
-/* Hero CTA row — a fixed width (not min-width) forces all three to genuinely
-   match Book a Consultation's width, the longest label, rather than each just
-   hugging its own text; stacks full-width on mobile instead of wrapping unevenly. */
-.hero-cta-row .btn { width: 320px; text-align: center; }
+/* Hero CTA row — all three buttons stay on one line down through tablet by
+   shrinking together (equal flex-basis + fluid font-size/padding), rather than
+   wrapping once a fixed width no longer fits. Icons inherit the button's
+   font-size, so they scale down in step with the text automatically. Only
+   below the `sm` breakpoint do they give up and stack full-width. */
+.hero-cta-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: clamp(10px, 2vw, 24px);
+}
+.hero-cta-row .btn {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 1.05rem;
+  padding: 16px 32px;
+}
+/* .btn-outline-light has a visible 1px border while .btn-gold has none — an
+   invisible border of the same width on the gold buttons keeps both box
+   models identical so all three compute to the exact same width/height. */
+.hero-cta-row .btn-gold { border: 1px solid transparent; }
+
+/* Fixed (not vw-based) sizes per Bootstrap breakpoint — the hero column's
+   pixel width is constant *within* each breakpoint (Bootstrap containers only
+   jump in steps), so a viewport-relative unit drifts out of sync with the
+   actually-available space and can overflow mid-range. `.col-lg-7` also means
+   the column suddenly narrows to 7/12 width right at 992px, making the lg
+   range the tightest of all, tighter even than the md range below it. */
+@media (max-width: 1399.98px) { .hero-cta-row .btn { font-size: 0.95rem; padding: 14px 22px; } }
+@media (max-width: 991.98px)  { .hero-cta-row .btn { font-size: 0.85rem; padding: 12px 18px; } }
+@media (max-width: 1199.98px) and (min-width: 992px) { .hero-cta-row .btn { font-size: 0.62rem; padding: 8px 8px; } }
+@media (max-width: 767.98px)  { .hero-cta-row .btn { font-size: 0.8rem; padding: 11px 14px; } }
 @media (max-width: 575.98px) {
-  .hero-cta-row .btn { width: 100%; }
+  .hero-cta-row { flex-direction: column; flex-wrap: wrap; gap: 16px; }
+  .hero-cta-row .btn { flex: none; width: 100%; white-space: normal; font-size: 1rem; padding: 14px 20px; }
 }
 
 .hero-stats { margin-top: 40px; }
