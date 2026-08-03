@@ -4,16 +4,19 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 import { useSite } from '../context/SiteContext';
 import {
-  getUserProfile, updateUserProfile, changeUserPassword, uploadUserPhoto,
+  updateUserProfile, changeUserPassword, uploadUserPhoto,
   getMyAppointments, getMyOrders, getNotifications,
   markNotificationRead, markAllNotificationsRead, getMyApplications,
   getMyEnrollments, getPublicCourse, updateCourseProgress,
+  markLastWatched, saveEnrollmentNotes, markCertificateIssued,
   getMyMagazinePurchases, downloadMagazineFull, getDrafts,
   getMyInternships, getMyDraftPurchases,
 } from '../api';
-import { mediaUrl } from '../utils/helpers';
+import { mediaUrl, getTotalVideos } from '../utils/helpers';
 import AppointmentModal from '../components/AppointmentModal';
 import JrAdvocateModal from '../components/JrAdvocateModal';
+import CourseEnrollModal from '../components/CourseEnrollModal';
+import { downloadCertificate } from '../utils/certificate';
 
 const TABS = [
   { id: 'dashboard',     icon: 'fa-tachometer-alt', label: 'Dashboard' },
@@ -55,7 +58,14 @@ function getVideoEmbed(url) {
   if (yt) return `https://www.youtube.com/embed/${yt[1]}?rel=0&autoplay=1`;
   const drive = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
   if (drive) return `https://drive.google.com/file/d/${drive[1]}/preview`;
-  return null; // MP4 direct
+  return null; // MP4 direct (including Cloudinary-uploaded videos)
+}
+
+// A video may come from a pasted URL (`videoUrl`) or an admin-uploaded Cloudinary
+// file (`uploadedVideoPath`) — previously only `videoUrl` was ever checked, silently
+// locking every uploaded video for students.
+function getPlayableUrl(video) {
+  return video?.videoUrl || video?.uploadedVideoPath || '';
 }
 
 function CoursePlayer({ enrollment, authHeader, onClose }) {
@@ -72,17 +82,26 @@ function CoursePlayer({ enrollment, authHeader, onClose }) {
       .then(r => {
         if (r.data.success) {
           setDetail(r.data.data);
-          const first = r.data.data.modules?.[0]?.videos?.[0];
-          if (first?.videoUrl) setCurrentVideo(first);
+          // Resume where the student left off, if we know where that was
+          let resume = null;
+          if (enrollment.lastVideoId) {
+            for (const m of r.data.data.modules || []) {
+              const found = (m.videos || []).find(v => v._id === enrollment.lastVideoId);
+              if (found) { resume = found; break; }
+            }
+          }
+          const first = resume || r.data.data.modules?.[0]?.videos?.[0];
+          if (first && getPlayableUrl(first)) setCurrentVideo(first);
         }
       })
       .catch(() => {})
       .finally(() => setLoadingDetail(false));
   }, [course._id]);
 
-  const handleSelectVideo = (video) => {
-    if (!video.videoUrl) return;
+  const handleSelectVideo = (video, moduleId) => {
+    if (!getPlayableUrl(video)) return;
     setCurrentVideo(video);
+    markLastWatched({ courseId: course._id, videoId: video._id, moduleId }, authHeader()).catch(() => {});
   };
 
   const handleMarkDone = async () => {
@@ -93,7 +112,7 @@ function CoursePlayer({ enrollment, authHeader, onClose }) {
     } catch {}
   };
 
-  const totalVideos = detail?.modules?.reduce((s, m) => s + (m.videos?.length || 0), 0) || 0;
+  const totalVideos = getTotalVideos(detail);
 
   return (
     <div className="course-player-wrap">
@@ -115,18 +134,21 @@ function CoursePlayer({ enrollment, authHeader, onClose }) {
                 <div className="course-module-header">
                   <i className="fas fa-folder me-1"></i>{mod.title || `Module ${mi + 1}`}
                 </div>
-                {(mod.videos || []).map((vid, vi) => (
-                  <div
-                    key={vi}
-                    className={`course-video-item ${currentVideo?._id === vid._id ? 'active' : ''} ${!vid.videoUrl ? 'opacity-50' : ''}`}
-                    onClick={() => handleSelectVideo(vid)}
-                    title={!vid.videoUrl ? 'Video not available' : vid.title}
-                  >
-                    <i className={`fas ${completedSet.has(vid._id) ? 'fa-check-circle text-success' : vid.videoUrl ? 'fa-play-circle' : 'fa-lock'}`}></i>
-                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{vid.title}</span>
-                    {vid.duration && <span className="course-video-duration">{vid.duration}</span>}
-                  </div>
-                ))}
+                {(mod.videos || []).map((vid, vi) => {
+                  const playable = !!getPlayableUrl(vid);
+                  return (
+                    <div
+                      key={vi}
+                      className={`course-video-item ${currentVideo?._id === vid._id ? 'active' : ''} ${!playable ? 'opacity-50' : ''}`}
+                      onClick={() => handleSelectVideo(vid, mod._id)}
+                      title={!playable ? 'Video not available' : vid.title}
+                    >
+                      <i className={`fas ${completedSet.has(vid._id) ? 'fa-check-circle text-success' : playable ? 'fa-play-circle' : 'fa-lock'}`}></i>
+                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{vid.title}</span>
+                      {vid.duration && <span className="course-video-duration">{vid.duration}</span>}
+                    </div>
+                  );
+                })}
               </div>
             ))}
           </div>
@@ -136,10 +158,11 @@ function CoursePlayer({ enrollment, authHeader, onClose }) {
             <div className="course-player-video">
               {currentVideo ? (
                 (() => {
-                  const embed = getVideoEmbed(currentVideo.videoUrl);
+                  const playUrl = getPlayableUrl(currentVideo);
+                  const embed = getVideoEmbed(playUrl);
                   return embed
                     ? <iframe src={embed} title={currentVideo.title} allowFullScreen allow="autoplay; encrypted-media"></iframe>
-                    : <video controls src={currentVideo.videoUrl} style={{ width: '100%', height: '100%', background: '#000' }}></video>;
+                    : <video controls src={playUrl} style={{ width: '100%', height: '100%', background: '#000' }}></video>;
                 })()
               ) : (
                 <div className="d-flex align-items-center justify-content-center h-100" style={{ background: '#111', color: '#aaa' }}>
@@ -174,6 +197,18 @@ function CoursePlayer({ enrollment, authHeader, onClose }) {
                   <span className="text-muted">{totalVideos > 0 ? Math.round((completedSet.size / totalVideos) * 100) : 0}%</span>
                 </div>
               </>
+            )}
+
+            {course.programType === 'judiciary' && (enrollment.testScores || []).length > 0 && (
+              <div className="course-test-scores">
+                <div className="course-test-scores-title"><i className="fas fa-clipboard-check me-2"></i>Test Scores</div>
+                {enrollment.testScores.map((t, i) => (
+                  <div key={i} className="course-test-score-row">
+                    <span>{t.title}</span>
+                    <span className="fw-bold" style={{ color: 'var(--gold)' }}>{t.score} / {t.maxScore}</span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
@@ -211,6 +246,15 @@ export default function Profile() {
   const [showApptModal, setShowApptModal] = useState(false);
   const [watchingEnrollmentId, setWatchingEnrollmentId] = useState(null);
   const [showNewAppForm, setShowNewAppForm] = useState(false);
+  const [renewCourse, setRenewCourse] = useState(null);
+  const [notesDraft, setNotesDraft] = useState({});
+  const notesTimers = useRef({});
+
+  // Clear any pending debounced notes-save timers on unmount so a stray API call
+  // doesn't fire after the user has navigated away.
+  useEffect(() => {
+    return () => { Object.values(notesTimers.current).forEach(clearTimeout); };
+  }, []);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/login');
@@ -268,9 +312,34 @@ export default function Profile() {
     setDataLoading(true);
     try {
       const r = await getMyEnrollments(authHeader());
-      if (r.data.success) setEnrollments(r.data.data);
+      if (r.data.success) {
+        setEnrollments(r.data.data);
+        const drafts = {};
+        r.data.data.forEach(en => { drafts[en._id] = en.notes || ''; });
+        setNotesDraft(drafts);
+      }
     } catch { /* silent */ }
     setDataLoading(false);
+  };
+
+  const handleNotesChange = (enrollmentId, value) => {
+    setNotesDraft(d => ({ ...d, [enrollmentId]: value }));
+    clearTimeout(notesTimers.current[enrollmentId]);
+    notesTimers.current[enrollmentId] = setTimeout(() => {
+      saveEnrollmentNotes(enrollmentId, value, authHeader()).catch(() => {});
+    }, 800);
+  };
+
+  const handleDownloadCertificate = async (enrollment) => {
+    downloadCertificate({
+      studentName: user.name,
+      courseTitle: enrollment.courseId.title,
+      instructor: enrollment.courseId.instructor,
+      date: formatDate(new Date()),
+    });
+    if (!enrollment.certificateIssued) {
+      markCertificateIssued(enrollment._id, authHeader()).catch(() => {});
+    }
   };
 
   const loadMyMagazines = async () => {
@@ -693,27 +762,55 @@ export default function Profile() {
                         <a href="/ChauhanAdvocate/courses" className="btn btn-gold btn-sm">Browse Courses</a>
                       </div>
                     ) : (
-                      <div className="row g-3">
+                      <>
+                        {/* Recently Watched */}
+                        {(() => {
+                          const recent = enrollments
+                            .filter(e => e.courseId && e.paymentStatus === 'paid' && e.lastVideoId && e.lastAccessedAt && !(e.expiresAt && new Date(e.expiresAt) < new Date()))
+                            .sort((a, b) => new Date(b.lastAccessedAt) - new Date(a.lastAccessedAt))
+                            .slice(0, 3);
+                          if (recent.length === 0) return null;
+                          return (
+                            <div className="recently-watched-strip mb-4">
+                              <div className="recently-watched-title"><i className="fas fa-history me-2"></i>Recently Watched</div>
+                              <div className="d-flex gap-2 flex-wrap">
+                                {recent.map(en => (
+                                  <button
+                                    key={en._id}
+                                    className="recently-watched-chip"
+                                    onClick={() => setWatchingEnrollmentId(en._id)}
+                                  >
+                                    <i className="fas fa-play-circle me-2"></i>{en.courseId.title}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        <div className="row g-3">
                         {enrollments.map(en => {
                           const course = en.courseId;
                           if (!course) return null;
-                          const totalVideos = course.modules?.reduce((s, m) => s + (m.videos?.length || 0), 0) || 0;
+                          const totalVideos = getTotalVideos(course);
                           const pct = totalVideos > 0 ? Math.round(((en.completedVideos || 0) / totalVideos) * 100) : 0;
                           const isWatching = watchingEnrollmentId === en._id;
+                          const isExpired = en.paymentStatus === 'paid' && en.expiresAt && new Date(en.expiresAt) < new Date();
                           const statusColor = { paid: 'success', pending_verification: 'warning', pending: 'secondary', failed: 'danger' };
                           return (
                             <div key={en._id} className={isWatching ? 'col-12' : 'col-md-6'}>
                               <div className="profile-course-card">
                                 <div className="profile-course-header">
                                   <div className="profile-course-title">{course.title}</div>
-                                  <span className={`badge bg-${statusColor[en.paymentStatus] || 'secondary'}`}>
-                                    {en.paymentStatus === 'paid' ? 'Active' :
+                                  <span className={`badge bg-${isExpired ? 'secondary' : statusColor[en.paymentStatus] || 'secondary'}`}>
+                                    {isExpired ? 'Expired' :
+                                     en.paymentStatus === 'paid' ? 'Active' :
                                      en.paymentStatus === 'pending_verification' ? 'Payment Review' :
                                      en.paymentStatus === 'pending' ? 'Pending' : 'Rejected'}
                                   </span>
                                 </div>
                                 <div className="text-muted small mb-2">by {course.instructor}</div>
-                                {en.paymentStatus === 'paid' && (
+                                {en.paymentStatus === 'paid' && !isExpired && (
                                   <>
                                     <div className="d-flex justify-content-between small mb-1">
                                       <span>Progress</span>
@@ -730,6 +827,30 @@ export default function Profile() {
                                       <i className={`fas ${watchingEnrollmentId === en._id ? 'fa-chevron-up' : 'fa-play'} me-1`}></i>
                                       {watchingEnrollmentId === en._id ? 'Hide Player' : pct > 0 ? 'Continue Learning' : 'Start Learning'}
                                     </button>
+                                    {pct === 100 && course.certificate && (
+                                      <button className="btn btn-outline-secondary btn-sm w-100 mt-2" onClick={() => handleDownloadCertificate(en)}>
+                                        <i className="fas fa-certificate me-1" style={{ color: 'var(--gold)' }}></i>Download Certificate
+                                      </button>
+                                    )}
+                                    <textarea
+                                      className="form-control form-control-sm mt-3"
+                                      aria-label={`Your notes for ${course.title}`}
+                                      placeholder="Your notes for this course..."
+                                      rows={2}
+                                      value={notesDraft[en._id] ?? ''}
+                                      onChange={e => handleNotesChange(en._id, e.target.value)}
+                                    />
+                                  </>
+                                )}
+                                {isExpired && (
+                                  <>
+                                    <p className="small text-muted mb-2">
+                                      <i className="fas fa-exclamation-circle me-1 text-danger"></i>
+                                      Access expired on {formatDate(en.expiresAt)}.
+                                    </p>
+                                    <button className="btn btn-gold btn-sm w-100" onClick={() => setRenewCourse(course)}>
+                                      <i className="fas fa-redo me-1"></i>Renew Enrollment
+                                    </button>
                                   </>
                                 )}
                                 {en.paymentStatus === 'pending_verification' && (
@@ -740,10 +861,11 @@ export default function Profile() {
                                 {en.enrolledAt && (
                                   <small className="text-muted d-block mt-2">
                                     <i className="fas fa-calendar me-1"></i>Enrolled: {formatDate(en.enrolledAt)}
+                                    {en.expiresAt && !isExpired && <> · Valid till: {formatDate(en.expiresAt)}</>}
                                   </small>
                                 )}
                               </div>
-                              {isWatching && en.paymentStatus === 'paid' && (
+                              {isWatching && en.paymentStatus === 'paid' && !isExpired && (
                                 <CoursePlayer
                                   enrollment={en}
                                   authHeader={authHeader}
@@ -753,7 +875,8 @@ export default function Profile() {
                             </div>
                           );
                         })}
-                      </div>
+                        </div>
+                      </>
                     )
                   }
                 </div>
@@ -1316,6 +1439,12 @@ export default function Profile() {
       </div>
 
       {showApptModal && <AppointmentModal onClose={() => setShowApptModal(false)} />}
+      {renewCourse && (
+        <CourseEnrollModal
+          course={renewCourse}
+          onClose={() => { setRenewCourse(null); loadEnrollments(); }}
+        />
+      )}
     </div>
   );
 }

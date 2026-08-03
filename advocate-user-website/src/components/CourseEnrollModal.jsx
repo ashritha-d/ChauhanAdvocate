@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useUserAuth } from '../context/UserAuthContext';
 import { enrollCourse } from '../api';
-import { mediaUrl } from '../utils/helpers';
+import { mediaUrl, getTotalVideos, getEffectivePrice } from '../utils/helpers';
 import { useSite } from '../context/SiteContext';
 
 export default function CourseEnrollModal({ course, onClose }) {
@@ -12,7 +12,7 @@ export default function CourseEnrollModal({ course, onClose }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const price = course.discountPrice > 0 ? course.discountPrice : course.price;
+  const price = getEffectivePrice(course);
   const isFree = price === 0;
 
   const handleEnroll = async () => {
@@ -50,7 +50,7 @@ export default function CourseEnrollModal({ course, onClose }) {
     setSubmitting(false);
   };
 
-  const totalVideos = course.modules?.reduce((s, m) => s + (m.videos?.length || 0), 0) || 0;
+  const totalVideos = getTotalVideos(course);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>

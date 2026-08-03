@@ -2,7 +2,7 @@ import { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
-import { mediaUrl } from '../utils/helpers';
+import { mediaUrl, getTotalVideos, getEffectivePrice } from '../utils/helpers';
 import { isWishlisted, toggleWishlist } from '../utils/wishlist';
 import { shareCourse } from '../utils/shareCourse';
 
@@ -42,12 +42,12 @@ function CourseCard({ course, enrolled = false, onEnroll, onPreview }) {
   const [wishlisted, setWishlisted] = useState(() => isWishlisted(course._id));
   const [shareState, setShareState] = useState('');
 
-  const price = course.discountPrice > 0 ? course.discountPrice : course.price;
+  const price = getEffectivePrice(course);
   const originalPrice = course.discountPrice > 0 ? course.price : null;
   const discountPct = originalPrice ? Math.round((1 - price / originalPrice) * 100) : null;
   const comingSoon = course.status === 'coming-soon';
 
-  const videosCount = course.modules?.reduce((s, m) => s + (m.videos?.length || 0), 0) || 0;
+  const videosCount = getTotalVideos(course);
   const modulesCount = course.modules?.length || 0;
   const updated = course.updatedAt
     ? new Date(course.updatedAt).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
@@ -79,8 +79,12 @@ function CourseCard({ course, enrolled = false, onEnroll, onPreview }) {
     }
   };
 
+  const handleCardKeyDown = e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goToDetails(); }
+  };
+
   return (
-    <div className="course-card" onClick={goToDetails} role="button" tabIndex={0}>
+    <div className="course-card" onClick={goToDetails} onKeyDown={handleCardKeyDown} role="button" tabIndex={0}>
       <div className="course-card-thumb">
         {course.thumbnail
           ? <img src={mediaUrl(course.thumbnail, { width: 500 })} alt={course.title} loading="lazy" />

@@ -25,5 +25,9 @@ const fileFilter = (req, file, cb) => {
   cb(new Error('Unsupported format. Allowed: MP4, MOV, AVI, WEBM, MKV'));
 };
 
-module.exports = multer({ storage, fileFilter });
+// Server-side backstop matching the admin UI's client-side MAX_VIDEO_MB check (previously
+// enforced only in the browser — a client could bypass it entirely).
+const MAX_VIDEO_MB = parseInt(process.env.MAX_VIDEO_MB) || 500;
+
+module.exports = multer({ storage, fileFilter, limits: { fileSize: MAX_VIDEO_MB * 1024 * 1024 } });
 module.exports.cloudinary = cloudinary;

@@ -4,11 +4,12 @@ import SEOHead from '../components/SEOHead';
 import { getPublicCourse, getPublicCourses } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
 import { savePendingAction } from '../utils/pendingAction';
-import { mediaUrl } from '../utils/helpers';
+import { mediaUrl, getTotalVideos, getEffectivePrice } from '../utils/helpers';
 import { shareCourse } from '../utils/shareCourse';
 import CourseCard from '../components/CourseCard';
 import CourseEnrollModal from '../components/CourseEnrollModal';
 import CoursePreviewModal from '../components/CoursePreviewModal';
+import { RESOURCE_LABELS_BY_CATEGORY, RESOURCE_TYPE_LABELS } from '../utils/courseCategories';
 
 const LEVEL_BADGE = {
   beginner: 'bg-success',
@@ -22,6 +23,7 @@ export default function CourseDetails() {
   const { user, authHeader } = useUserAuth();
   const [course, setCourse] = useState(null);
   const [enrolled, setEnrolled] = useState(false);
+  const [expired, setExpired] = useState(false);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [related, setRelated] = useState([]);
@@ -38,6 +40,7 @@ export default function CourseDetails() {
         if (r.data.success) {
           setCourse(r.data.data);
           setEnrolled(!!r.data.enrolled);
+          setExpired(!!r.data.expired);
         } else {
           setNotFound(true);
         }
@@ -47,15 +50,11 @@ export default function CourseDetails() {
   }, [id, user]);
 
   useEffect(() => {
-    if (!course?.category) { setRelated([]); return; }
-    getPublicCourses()
+    if (!course?.programType) { setRelated([]); return; }
+    getPublicCourses(course.programType)
       .then(r => {
         if (r.data?.success) {
-          setRelated(
-            r.data.data
-              .filter(c => c._id !== course._id && c.category === course.category)
-              .slice(0, 4)
-          );
+          setRelated(r.data.data.filter(c => c._id !== course._id).slice(0, 4));
         }
       })
       .catch(() => {});
@@ -71,7 +70,7 @@ export default function CourseDetails() {
       return;
     }
     if (enrolled) { navigate('/profile?tab=courses'); return; }
-    setShowEnroll(true);
+    setShowEnroll(true); // also covers renewal — enrollCourse detects the lapsed enrollment server-side
   };
 
   const handleShare = async () => {
@@ -101,10 +100,10 @@ export default function CourseDetails() {
     );
   }
 
-  const price = course.discountPrice > 0 ? course.discountPrice : course.price;
+  const price = getEffectivePrice(course);
   const originalPrice = course.discountPrice > 0 ? course.price : null;
   const discountPct = originalPrice ? Math.round((1 - price / originalPrice) * 100) : null;
-  const videosCount = course.modules?.reduce((s, m) => s + (m.videos?.length || 0), 0) || 0;
+  const videosCount = getTotalVideos(course);
   const updated = course.updatedAt
     ? new Date(course.updatedAt).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
     : null;
@@ -202,6 +201,37 @@ export default function CourseDetails() {
                 <li><i className="fas fa-check" />Practical Examples</li>
                 {course.certificate && <li><i className="fas fa-check" />Certificate of Completion</li>}
               </ul>
+
+              {course.resources?.length > 0 && (() => {
+                const labels = RESOURCE_LABELS_BY_CATEGORY[course.programType] || {};
+                const grouped = {};
+                course.resources.forEach(r => { (grouped[r.type] = grouped[r.type] || []).push(r); });
+                return Object.entries(grouped).map(([type, items]) => (
+                  <div key={type}>
+                    <h5 className="course-details-heading">{labels[type] || RESOURCE_TYPE_LABELS[type] || type}</h5>
+                    <ul className="course-resource-list">
+                      {items.sort((a, b) => (a.order || 0) - (b.order || 0)).map((r, i) => (
+                        <li key={r._id || i}>
+                          <i className="fas fa-file-download me-2" />
+                          {enrolled ? (
+                            <a href={r.fileUrl} target="_blank" rel="noreferrer">{r.title}</a>
+                          ) : (
+                            <span className="text-muted">{r.title} <i className="fas fa-lock ms-1" /></span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ));
+              })()}
+
+              {course.programType === 'training' && (
+                <div className="course-live-sessions-link">
+                  <i className="fas fa-video me-2" style={{ color: 'var(--gold)' }} />
+                  <span>Live training sessions are held regularly.</span>
+                  <Link to="/live" className="ms-2">View Live Sessions <i className="fas fa-arrow-right ms-1" /></Link>
+                </div>
+              )}
             </div>
           </div>
 
@@ -219,8 +249,9 @@ export default function CourseDetails() {
                 )}
 
                 <button className="btn btn-gold w-100 mt-3 py-2" onClick={handlePrimaryAction} disabled={comingSoon}>
-                  {comingSoon ? 'Coming Soon' : !user ? 'Login to Enroll' : enrolled ? 'Continue Learning' : (price === 0 ? 'Enroll Free' : 'Enroll Now')}
+                  {comingSoon ? 'Coming Soon' : !user ? 'Login to Enroll' : enrolled ? 'Continue Learning' : expired ? 'Renew Enrollment' : (price === 0 ? 'Enroll Free' : 'Enroll Now')}
                 </button>
+                {expired && <p className="text-center small text-danger mt-2 mb-0"><i className="fas fa-exclamation-circle me-1"></i>Your access has expired.</p>}
                 <button className="btn btn-outline-secondary w-100 mt-2" onClick={() => setShowPreview(true)}>
                   <i className="fas fa-play me-1" style={{ color: 'var(--gold)' }} />Watch Preview
                 </button>

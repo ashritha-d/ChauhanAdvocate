@@ -1,125 +1,76 @@
 import { useEffect, useState } from 'react';
-import usePolling from '../hooks/usePolling';
+import { Link } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
-import { getPublicCourses, getMyEnrollments } from '../api';
-import { useUserAuth } from '../context/UserAuthContext';
-import CourseCard from '../components/CourseCard';
-import CourseEnrollModal from '../components/CourseEnrollModal';
-import CoursePreviewModal from '../components/CoursePreviewModal';
+import { getPublicCourses } from '../api';
+import { COURSE_CATEGORY_LIST } from '../utils/courseCategories';
+import { getEffectivePrice } from '../utils/helpers';
 
 export default function Courses() {
-  const { user, authHeader } = useUserAuth();
-  const [courses, setCourses] = useState([]);
+  const [stats, setStats] = useState(null); // { [programType]: { count, startingPrice } }
   const [loading, setLoading] = useState(true);
-  const [slowLoad, setSlowLoad] = useState(false);
-  const [enrolledIds, setEnrolledIds] = useState(new Set());
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [previewCourse, setPreviewCourse] = useState(null);
-
-  const fetchCourses = () => {
-    setLoading(true);
-    setSlowLoad(false);
-    const slowTimer = setTimeout(() => setSlowLoad(true), 5000);
-    getPublicCourses()
-      .then(r => { if (r.data.success) setCourses(r.data.data); })
-      .catch(() => {
-        // Auto-retry once after 10 seconds on failure (Render cold start)
-        setTimeout(() => {
-          getPublicCourses()
-            .then(r => { if (r.data.success) setCourses(r.data.data); })
-            .catch(() => {})
-            .finally(() => setLoading(false));
-        }, 10000);
-        return;
-      })
-      .finally(() => { clearTimeout(slowTimer); setLoading(false); });
-  };
-
-  useEffect(() => { fetchCourses(); }, []);
-  usePolling(fetchCourses, 60000);
 
   useEffect(() => {
-    if (!user) { setEnrolledIds(new Set()); return; }
-    getMyEnrollments(authHeader())
+    getPublicCourses()
       .then(r => {
-        if (r.data?.success) {
-          const ids = r.data.data
-            .filter(e => e.paymentStatus === 'paid')
-            .map(e => e.courseId?._id)
-            .filter(Boolean);
-          setEnrolledIds(new Set(ids));
-        }
+        if (!r.data.success) return;
+        const byCategory = {};
+        r.data.data.forEach(c => {
+          const key = c.programType || 'training';
+          if (!byCategory[key]) byCategory[key] = { count: 0, startingPrice: null };
+          byCategory[key].count += 1;
+          const price = getEffectivePrice(c);
+          if (byCategory[key].startingPrice === null || price < byCategory[key].startingPrice) {
+            byCategory[key].startingPrice = price;
+          }
+        });
+        setStats(byCategory);
       })
-      .catch(() => {});
-  }, [user]);
-
-  const handlePayNow = (course) => {
-    setPreviewCourse(null);
-    setSelectedCourse(course);
-  };
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
-    <section id="courses" className="section-padding bg-light">
+    <section id="courses" className="section-padding" style={{ background: 'var(--darker)' }}>
       <SEOHead
-        title="Junior Advocate Practice Classes"
-        description="Enroll in professional legal training courses by Advocate Chauhan. Practical guidance for aspiring and junior advocates in criminal, civil, and corporate law – based in Hyderabad."
+        title="Our Courses"
+        description="Choose the learning path that matches your career goals — Internship Program, Junior Advocate Training, or Judiciary Exam Preparation."
         canonical="/courses"
       />
       <div className="container">
         <div className="text-center mb-5" data-aos="fade-up">
-          <div className="section-label">Learn from Experts</div>
-          <h2 className="section-title">Junior Advocate <span className="text-gold">Practice Classes</span></h2>
-          <p className="section-subtitle">Professional legal training courses for aspiring and junior advocates</p>
+          <div className="section-label">Learning Portal</div>
+          <h2 className="section-title" style={{ color: '#fff' }}>Our <span className="text-gold">Courses</span></h2>
+          <p className="section-subtitle" style={{ color: 'rgba(255,255,255,0.65)' }}>Choose the learning path that matches your career goals.</p>
         </div>
 
-        {loading ? (
-          <div className="text-center py-5">
-            <div className="spinner-border" style={{ color: 'var(--gold)' }}></div>
-            {slowLoad && (
-              <div className="mt-3">
-                <p className="text-muted small mb-2">Server is starting up, please wait a moment…</p>
-                <button className="btn btn-sm btn-outline-secondary" onClick={fetchCourses}>
-                  <i className="fas fa-redo me-1"></i>Retry Now
-                </button>
+        <div className="row g-4 justify-content-center">
+          {COURSE_CATEGORY_LIST.map((cat, i) => {
+            const st = stats?.[cat.key];
+            return (
+              <div className="col-lg-4 col-md-6" key={cat.key} data-aos="fade-up" data-aos-delay={i * 100}>
+                <Link to={`/courses/category/${cat.key}`} className="course-category-card">
+                  <div className="course-category-icon"><i className={cat.icon}></i></div>
+                  <h4 className="course-category-title">{cat.shortTitle}</h4>
+                  <p className="course-category-desc">{cat.description}</p>
+                  <div className="course-category-stats">
+                    {loading ? (
+                      <span className="skeleton-shimmer" style={{ display: 'inline-block', height: 14, width: 100, borderRadius: 4 }} />
+                    ) : st ? (
+                      <>
+                        <span><i className="fas fa-graduation-cap me-1"></i>{st.count} course{st.count !== 1 ? 's' : ''}</span>
+                        <span><i className="fas fa-rupee-sign me-1"></i>From {st.startingPrice === 0 ? 'Free' : `₹${st.startingPrice}`}</span>
+                      </>
+                    ) : (
+                      <span>Coming Soon</span>
+                    )}
+                  </div>
+                  <span className="course-category-cta">{cat.buttonLabel}<i className="fas fa-arrow-right ms-2"></i></span>
+                </Link>
               </div>
-            )}
-          </div>
-        ) : courses.length === 0 ? (
-          <div className="text-center py-5">
-            <i className="fas fa-graduation-cap fa-3x mb-3" style={{ color: 'var(--gold)' }}></i>
-            <h5>Courses Coming Soon</h5>
-            <p className="text-muted">We are preparing comprehensive legal training courses. Stay tuned!</p>
-          </div>
-        ) : (
-          <div className="row g-4">
-            {courses.map((course, i) => (
-              <div key={course._id} className="col-xl-3 col-lg-4 col-md-6 col-12" data-aos="fade-up" data-aos-delay={i * 80}>
-                <CourseCard
-                  course={course}
-                  enrolled={enrolledIds.has(course._id)}
-                  onEnroll={() => setSelectedCourse(course)}
-                  onPreview={() => setPreviewCourse(course)}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
-
-      {selectedCourse && (
-        <CourseEnrollModal
-          course={selectedCourse}
-          onClose={() => setSelectedCourse(null)}
-        />
-      )}
-
-      {previewCourse && (
-        <CoursePreviewModal
-          course={previewCourse}
-          onClose={() => setPreviewCourse(null)}
-          onPayNow={() => handlePayNow(previewCourse)}
-        />
-      )}
     </section>
   );
 }

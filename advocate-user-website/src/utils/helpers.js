@@ -27,3 +27,13 @@ export const formatDate = (dateStr) => {
 };
 
 export const truncate = (str, n) => (str && str.length > n ? str.substring(0, n) + '...' : str);
+
+// Shared across CourseCard, CourseDetails, CourseEnrollModal, Profile — was duplicated
+// identically in all four before being extracted here.
+export const getTotalVideos = (course) =>
+  course?.modules?.reduce((s, m) => s + (m.videos?.length || 0), 0) || 0;
+
+// The price actually charged (discount price when set, else the base price) — was
+// duplicated identically across CourseCard, CourseDetails, CourseEnrollModal, Courses.
+export const getEffectivePrice = (course) =>
+  course?.discountPrice > 0 ? course.discountPrice : (course?.price || 0);

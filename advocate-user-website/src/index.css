@@ -361,6 +361,68 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   .course-details-thumb { height: 220px; }
 }
 
+.course-resource-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.course-resource-list li { font-size: 0.88rem; color: #555; display: flex; align-items: center; }
+.course-resource-list li i.fa-file-download { color: var(--gold); }
+.course-resource-list a { color: var(--dark); font-weight: 600; text-decoration: none; }
+.course-resource-list a:hover { color: var(--gold); }
+
+.course-live-sessions-link {
+  margin-top: 20px; padding: 14px 18px; border-radius: 10px;
+  background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.25);
+  font-size: 0.88rem; color: #555; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+}
+.course-live-sessions-link a { color: var(--gold); font-weight: 700; text-decoration: none; }
+.course-live-sessions-link a:hover { text-decoration: underline; }
+
+/* ── Courses Landing Page (3 category cards) ── */
+.course-category-card {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  height: 100%; padding: 40px 28px; border-radius: 18px;
+  background: linear-gradient(160deg, #1c2540, #141a30);
+  border: 1px solid rgba(201,168,76,0.2);
+  text-decoration: none; transition: all 0.3s;
+}
+.course-category-card:hover {
+  transform: translateY(-8px); border-color: var(--gold);
+  box-shadow: 0 16px 44px rgba(201,168,76,0.18);
+}
+.course-category-icon {
+  width: 84px; height: 84px; border-radius: 50%; margin-bottom: 20px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.1rem; color: #fff;
+}
+.course-category-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.25rem; color: #fff; margin-bottom: 10px; }
+.course-category-desc { color: rgba(255,255,255,0.6); font-size: 0.88rem; line-height: 1.6; margin-bottom: 18px; flex: 1; }
+.course-category-stats { display: flex; gap: 16px; font-size: 0.78rem; color: rgba(255,255,255,0.75); margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+.course-category-stats i { color: var(--gold); }
+.course-category-cta {
+  display: inline-flex; align-items: center; color: var(--gold); font-weight: 700; font-size: 0.9rem;
+  padding: 10px 22px; border: 1.5px solid var(--gold); border-radius: 30px; transition: all 0.2s;
+}
+.course-category-card:hover .course-category-cta { background: var(--gold); color: #fff; }
+
+.course-category-icon-lg {
+  width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 16px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #fff;
+}
+
+/* ── Profile: Recently Watched + Test Scores ── */
+.recently-watched-strip { background: #f9f5e8; border-radius: 12px; padding: 16px 20px; }
+.recently-watched-title { font-weight: 700; color: var(--dark); font-size: 0.92rem; margin-bottom: 10px; }
+.recently-watched-chip {
+  background: #fff; border: 1px solid #e5d8b0; border-radius: 20px; padding: 6px 16px;
+  font-size: 0.82rem; color: var(--dark); cursor: pointer; transition: all 0.2s;
+}
+.recently-watched-chip:hover { border-color: var(--gold); color: var(--gold-dark); }
+.recently-watched-chip i { color: var(--gold); }
+
+.course-test-scores { margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.15); }
+.course-test-scores-title { font-weight: 700; color: #f1f5f9; font-size: 0.85rem; margin-bottom: 8px; }
+.course-test-score-row { display: flex; justify-content: space-between; font-size: 0.8rem; color: rgba(255,255,255,0.7); padding: 3px 0; }
+
 /* ── Draft Cards & Grid ── */
 .draft-view-tabs {
   display: flex;

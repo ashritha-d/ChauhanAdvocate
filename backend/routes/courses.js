@@ -20,14 +20,19 @@ router.get('/public/:id', (req, res, next) => {
 router.post('/enroll', protectUser, c.enrollCourse);
 router.get('/my-enrollments', protectUser, c.getMyEnrollments);
 router.post('/progress', protectUser, c.updateProgress);
+router.post('/last-watched', protectUser, c.markLastWatched);
+router.put('/enrollments/:id/notes', protectUser, c.saveNotes);
+router.put('/enrollments/:id/certificate-issued', protectUser, c.markCertificateIssued);
 
 // Admin — video upload/delete (must come before /:id routes)
 router.post('/upload-video', protect, videoUpload.single('video'), c.uploadVideo);
+router.post('/upload-videos-bulk', protect, videoUpload.array('videos', 10), c.uploadVideosBulk);
 router.delete('/delete-video/:filename', protect, c.deleteVideo);
 
 // Admin — enrollment management
 router.get('/enrollments/all', protect, c.getAllEnrollments);
 router.put('/enrollments/:id', protect, c.updateEnrollment);
+router.post('/enrollments/:id/test-scores', protect, c.addTestScore);
 
 // Admin — course CRUD
 router.get('/', protect, c.getAllCourses);

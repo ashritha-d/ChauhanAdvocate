@@ -74,11 +74,14 @@ export const getNewsPage   = (page = 1, limit = 9, search = '', from = '', to = 
 };
 
 // ── Courses / LMS ─────────────────────────────────────────────────────────────
-export const getPublicCourses = () => api.get('/courses/public');
+export const getPublicCourses = (programType) => api.get('/courses/public', { params: programType ? { programType } : {} });
 export const getPublicCourse = (id, headers = {}) => api.get(`/courses/public/${id}`, { headers });
 export const enrollCourse = (data, headers) => api.post('/courses/enroll', data, { headers });
 export const getMyEnrollments = (headers) => api.get('/courses/my-enrollments', { headers });
 export const updateCourseProgress = (data, headers) => api.post('/courses/progress', data, { headers });
+export const markLastWatched = (data, headers) => api.post('/courses/last-watched', data, { headers });
+export const saveEnrollmentNotes = (id, notes, headers) => api.put(`/courses/enrollments/${id}/notes`, { notes }, { headers });
+export const markCertificateIssued = (id, headers) => api.put(`/courses/enrollments/${id}/certificate-issued`, {}, { headers });
 
 // ── Internship Programme ────────────────────────────────────────────────────
 export const submitInternshipApplication = (formData) => api.post('/internships', formData);

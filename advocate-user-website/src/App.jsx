@@ -17,6 +17,7 @@ import Profile from './pages/Profile';
 import Gallery from './pages/Gallery';
 import Courses from './pages/Courses';
 import CourseDetails from './pages/CourseDetails';
+import CourseCategoryListing from './pages/CourseCategoryListing';
 import MagazinesPage from './pages/Magazines';
 import DraftsPage from './pages/Drafts';
 import BooksPage from './pages/Books';
@@ -221,6 +222,11 @@ export default function App() {
             <Route path="/courses" element={
               <AppLayout>
                 <Courses />
+              </AppLayout>
+            } />
+            <Route path="/courses/category/:programType" element={
+              <AppLayout>
+                <CourseCategoryListing />
               </AppLayout>
             } />
             <Route path="/courses/:id" element={

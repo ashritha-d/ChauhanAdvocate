@@ -11,7 +11,8 @@ const ALLOWED_EXTS = ['mp4', 'mov', 'avi', 'webm', 'mkv'];
 const EMPTY_COURSE = {
   title: '', shortDescription: '', description: '', price: 0, discountPrice: 0,
   instructor: '', duration: '', category: '', level: 'beginner', language: 'Telugu / English',
-  status: 'available', sortOrder: 0,
+  status: 'available', sortOrder: 0, programType: 'training', banner: '',
+  validityDays: 365, enrollmentLimit: 0, resources: [],
   isActive: true, isFeatured: false, certificate: false, modules: [],
 };
 const EMPTY_MODULE = { title: '', order: 0, videos: [] };
@@ -20,6 +21,19 @@ const EMPTY_VIDEO = {
   uploadedVideoPath: '', videoSize: '', thumbnailUrl: '',
   duration: '', isPreview: false, order: 0,
 };
+const EMPTY_RESOURCE = { title: '', type: 'study_material', fileUrl: '', order: 0 };
+const PROGRAM_LABELS = {
+  internship: 'Internship',
+  training: 'Training',
+  judiciary: 'Judiciary Prep',
+};
+const RESOURCE_TYPES = [
+  { value: 'study_material', label: 'Study Material' },
+  { value: 'assignment', label: 'Assignment' },
+  { value: 'case_study', label: 'Case Study' },
+  { value: 'previous_paper', label: 'Previous Paper' },
+  { value: 'mock_test', label: 'Mock Test' },
+];
 
 // ── Client-side thumbnail from local video file ───────────────────────────────
 async function generateVideoThumbnail(file) {
@@ -189,6 +203,106 @@ function VideoUploadZone({ videoPath, videoSize, onUploaded, onRemove }) {
   );
 }
 
+// ── Bulk Video Upload Zone — multiple files in one drop, one video entry per file ──
+function BulkVideoUploadZone({ onUploaded }) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+  const [dragOver, setDragOver] = useState(false);
+  const fileRef = useRef();
+
+  const handleFiles = async fileList => {
+    const files = Array.from(fileList || []);
+    if (files.length === 0) return;
+    for (const file of files) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (!ALLOWED_EXTS.includes(ext)) {
+        setError(`"${file.name}": unsupported format. Allowed: MP4, MOV, AVI, WEBM, MKV`);
+        return;
+      }
+      if (file.size > MAX_VIDEO_MB * 1024 * 1024) {
+        setError(`"${file.name}" exceeds ${MAX_VIDEO_MB} MB.`);
+        return;
+      }
+    }
+    setError(''); setUploading(true);
+    try {
+      const fd = new FormData();
+      files.forEach(f => fd.append('videos', f));
+      const r = await api.post('/courses/upload-videos-bulk', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 0,
+      });
+      onUploaded(r.data.data || []);
+    } catch (e) {
+      setError(e.response?.data?.message || 'Bulk upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div>
+      <div
+        className={`border rounded p-3 text-center ${dragOver ? 'border-primary' : ''}`}
+        style={{ borderStyle: 'dashed', cursor: uploading ? 'default' : 'pointer', background: dragOver ? 'rgba(13,110,253,0.05)' : '#fafafa', minHeight: 70 }}
+        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={e => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
+        onClick={() => !uploading && fileRef.current?.click()}
+      >
+        {uploading ? (
+          <div className="small text-muted"><i className="fas fa-spinner fa-spin me-1"></i>Uploading videos…</div>
+        ) : (
+          <>
+            <i className="fas fa-layer-group fa-lg text-muted mb-1" style={{ display: 'block' }}></i>
+            <div className="small text-muted">Drag &amp; drop multiple videos, or <span className="text-primary fw-semibold">choose files</span></div>
+            <div className="text-muted mt-1" style={{ fontSize: '0.7rem' }}>One entry per file &nbsp;·&nbsp; Max {MAX_VIDEO_MB} MB each</div>
+          </>
+        )}
+      </div>
+      {error && <div className="text-danger small mt-1"><i className="fas fa-exclamation-triangle me-1"></i>{error}</div>}
+      <input type="file" multiple ref={fileRef} accept={VIDEO_ACCEPT} className="d-none"
+        onChange={e => { const files = e.target.files; e.target.value = ''; handleFiles(files); }} />
+    </div>
+  );
+}
+
+// ── Paste multiple video URLs (one per line) — a lightweight "playlist import" ──
+function BulkUrlAdder({ onAdd }) {
+  const [text, setText] = useState('');
+  const [open, setOpen] = useState(false);
+
+  if (!open) {
+    return (
+      <button type="button" className="btn btn-xs btn-outline-secondary mt-2" onClick={() => setOpen(true)}>
+        <i className="fas fa-link me-1"></i>Paste Multiple URLs
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-2">
+      <textarea
+        className="form-control form-control-sm"
+        rows={3}
+        placeholder={'One video URL per line\nhttps://youtube.com/watch?v=...\nhttps://youtube.com/watch?v=...'}
+        value={text}
+        onChange={e => setText(e.target.value)}
+      />
+      <div className="d-flex gap-2 mt-1">
+        <button
+          type="button"
+          className="btn btn-xs btn-primary"
+          onClick={() => { onAdd(text); setText(''); setOpen(false); }}
+        >
+          <i className="fas fa-plus me-1"></i>Add Videos
+        </button>
+        <button type="button" className="btn btn-xs btn-outline-secondary" onClick={() => { setText(''); setOpen(false); }}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 export default function Courses() {
   const [courses, setCourses] = useState([]);
@@ -201,13 +315,16 @@ export default function Courses() {
   const [deleting, setDeleting] = useState(false);
   const [enrolFilter, setEnrolFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [viewProgress, setViewProgress] = useState(null);
+  const [scoreForm, setScoreForm] = useState({ title: '', score: '', maxScore: '' });
+  const [savingScore, setSavingScore] = useState(false);
 
   // Track video paths uploaded in this editing session — clean up on cancel
   const stagedUploads = useRef([]);
 
   const loadCourses = () => {
     setLoading(true);
-    api.get('/courses').then(r => { const data = r.data.data || []; console.log('Loaded Courses:', data); setCourses(data); }).catch(() => {}).finally(() => setLoading(false));
+    api.get('/courses').then(r => { setCourses(r.data.data || []); }).catch(() => {}).finally(() => setLoading(false));
   };
 
   const loadEnrollments = () => {
@@ -251,12 +368,34 @@ export default function Courses() {
 
   const handleDelete = async () => {
     setDeleting(true);
-    try { await api.delete(`/courses/${confirmDelete}`); setConfirmDelete(null); loadCourses(); } catch {}
+    try {
+      await api.delete(`/courses/${confirmDelete}`);
+      setConfirmDelete(null);
+      loadCourses();
+    } catch (e) {
+      alert(e.response?.data?.message || 'Delete failed');
+    }
     setDeleting(false);
   };
 
   const handleEnrollStatus = async (id, status) => {
     try { await api.put(`/courses/enrollments/${id}`, { paymentStatus: status }); loadEnrollments(); } catch {}
+  };
+
+  const handleAddTestScore = async () => {
+    if (!scoreForm.title || scoreForm.score === '' || scoreForm.maxScore === '') return;
+    setSavingScore(true);
+    try {
+      const r = await api.post(`/courses/enrollments/${viewProgress._id}/test-scores`, {
+        title: scoreForm.title, score: Number(scoreForm.score), maxScore: Number(scoreForm.maxScore),
+      });
+      // Response's courseId isn't populated — merge just the updated testScores in,
+      // keeping the already-populated course data we already have.
+      setViewProgress(v => ({ ...v, testScores: r.data.data.testScores }));
+      setScoreForm({ title: '', score: '', maxScore: '' });
+      loadEnrollments();
+    } catch { alert('Failed to add test score'); }
+    setSavingScore(false);
   };
 
   const setField = (k, v) => setEditCourse(c => ({ ...c, [k]: v }));
@@ -327,6 +466,83 @@ export default function Courses() {
     setVideoFields(mi, vi, { uploadedVideoPath: '', videoSize: '' });
   };
 
+  // Bulk add — one video entry per uploaded file
+  const handleBulkVideosUploaded = (mi, files) => {
+    setEditCourse(c => {
+      const modules = [...c.modules];
+      const existing = modules[mi].videos || [];
+      const newVideos = files.map((f, idx) => ({
+        ...EMPTY_VIDEO,
+        title: f.originalName?.replace(/\.[^.]+$/, '') || `Video ${existing.length + idx + 1}`,
+        videoSourceType: 'upload',
+        uploadedVideoPath: f.path,
+        videoSize: f.size,
+        order: existing.length + idx,
+      }));
+      files.forEach(f => stagedUploads.current.push(f.path));
+      modules[mi] = { ...modules[mi], videos: [...existing, ...newVideos] };
+      return { ...c, modules };
+    });
+  };
+
+  // Bulk add — one video entry per pasted URL (one per line)
+  const handleBulkUrlsAdd = (mi, text) => {
+    const urls = text.split('\n').map(s => s.trim()).filter(Boolean);
+    if (urls.length === 0) return;
+    setEditCourse(c => {
+      const modules = [...c.modules];
+      const existing = modules[mi].videos || [];
+      const newVideos = urls.map((url, idx) => ({
+        ...EMPTY_VIDEO,
+        title: `Video ${existing.length + idx + 1}`,
+        videoSourceType: 'url',
+        videoUrl: url,
+        order: existing.length + idx,
+      }));
+      modules[mi] = { ...modules[mi], videos: [...existing, ...newVideos] };
+      return { ...c, modules };
+    });
+  };
+
+  // ── Resources (study materials / assignments / case studies / previous papers / mock tests) ──
+  const addResource = () => setEditCourse(c => ({
+    ...c,
+    resources: [...(c.resources || []), { ...EMPTY_RESOURCE, order: c.resources?.length || 0 }],
+  }));
+
+  const removeResource = i => setEditCourse(c => ({
+    ...c,
+    resources: c.resources.filter((_, idx) => idx !== i),
+  }));
+
+  const setResourceField = (i, k, v) => setEditCourse(c => {
+    const resources = [...c.resources];
+    resources[i] = { ...resources[i], [k]: v };
+    return { ...c, resources };
+  });
+
+  const RESOURCE_ALLOWED_EXTS = ['pdf', 'doc', 'docx'];
+  const MAX_RESOURCE_MB = 20; // matches backend/middleware/upload.js's limit
+
+  const handleResourceFileUpload = async (i, file) => {
+    if (!file) return;
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!RESOURCE_ALLOWED_EXTS.includes(ext)) {
+      alert(`Unsupported file type ".${ext}". Allowed: PDF, DOC, DOCX.`);
+      return;
+    }
+    if (file.size > MAX_RESOURCE_MB * 1024 * 1024) {
+      alert(`File too large. Maximum size is ${MAX_RESOURCE_MB} MB.`);
+      return;
+    }
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const r = await api.post('/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      if (r.data.url) setResourceField(i, 'fileUrl', r.data.url);
+    } catch (e) { alert(e.response?.data?.message || 'File upload failed. Please try again.'); }
+  };
+
   const filtered = courses.filter(c => !search || c.title.toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -369,16 +585,17 @@ export default function Courses() {
         {view === 'courses' && (
           <div className="table-responsive">
             <table className="table admin-table">
-              <thead><tr><th>Title</th><th>Category</th><th>Price</th><th>Students</th><th>Level</th><th>Status</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Title</th><th>Program</th><th>Category</th><th>Price</th><th>Students</th><th>Level</th><th>Status</th><th>Actions</th></tr></thead>
               <tbody>
-                {loading && <tr><td colSpan="7" className="text-center py-4"><div className="spinner-border spinner-border-sm"></div></td></tr>}
-                {!loading && filtered.length === 0 && <tr><td colSpan="7" className="text-center text-muted py-4">No existing data found.</td></tr>}
+                {loading && <tr><td colSpan="8" className="text-center py-4"><div className="spinner-border spinner-border-sm"></div></td></tr>}
+                {!loading && filtered.length === 0 && <tr><td colSpan="8" className="text-center text-muted py-4">No existing data found.</td></tr>}
                 {!loading && filtered.map(c => (
                   <tr key={c._id}>
                     <td>
                       <div className="fw-semibold">{c.title}</div>
                       <small className="text-muted">{c.instructor}</small>
                     </td>
+                    <td><span className="badge bg-dark">{PROGRAM_LABELS[c.programType] || c.programType || '—'}</span></td>
                     <td>{c.category || <span className="text-muted">—</span>}</td>
                     <td>
                       {c.price === 0 ? <span className="badge bg-success">Free</span> : (
@@ -449,6 +666,11 @@ export default function Courses() {
                           <i className="fas fa-image"></i>
                         </a>
                       )}
+                      {en.paymentStatus === 'paid' && (
+                        <button className="btn btn-xs btn-outline-secondary ms-1" onClick={() => setViewProgress(en)} title="View Progress">
+                          <i className="fas fa-chart-line"></i>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -517,6 +739,18 @@ export default function Courses() {
                     <label className="form-label">Thumbnail URL</label>
                     <input className="form-control" value={editCourse.thumbnail || ''} onChange={e => setField('thumbnail', e.target.value)} placeholder="https://..." />
                   </div>
+                  <div className="col-md-4">
+                    <label className="form-label">Banner URL</label>
+                    <input className="form-control" value={editCourse.banner || ''} onChange={e => setField('banner', e.target.value)} placeholder="https://... (wide hero image)" />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label">Program Category *</label>
+                    <select className="form-select" value={editCourse.programType} onChange={e => setField('programType', e.target.value)}>
+                      <option value="internship">Internship Program (LL.B Students)</option>
+                      <option value="training">Training Program (Junior Advocates)</option>
+                      <option value="judiciary">Judiciary Exam Preparation</option>
+                    </select>
+                  </div>
                   <div className="col-md-3">
                     <label className="form-label">Sort Order</label>
                     <input type="number" className="form-control" value={editCourse.sortOrder} onChange={e => setField('sortOrder', Number(e.target.value))} placeholder="0" />
@@ -527,6 +761,14 @@ export default function Courses() {
                       <option value="available">Available</option>
                       <option value="coming-soon">Coming Soon</option>
                     </select>
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label">Validity (Days)</label>
+                    <input type="number" className="form-control" value={editCourse.validityDays ?? 365} onChange={e => setField('validityDays', Number(e.target.value))} placeholder="365" />
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label">Enrollment Limit</label>
+                    <input type="number" className="form-control" value={editCourse.enrollmentLimit ?? 0} onChange={e => setField('enrollmentLimit', Number(e.target.value))} placeholder="0 = unlimited" />
                   </div>
                   <div className="col-md-4 d-flex gap-3 align-items-end pb-2">
                     <div className="form-check">
@@ -659,6 +901,58 @@ export default function Courses() {
                         <button type="button" className="btn btn-xs btn-outline-primary mt-1" onClick={() => addVideo(mi)}>
                           <i className="fas fa-plus me-1"></i>Add Video
                         </button>
+
+                        {/* Bulk add — multi-file upload + paste-URLs (playlist) */}
+                        <div className="mt-2 pt-2 border-top">
+                          <div className="small fw-semibold text-muted mb-1"><i className="fas fa-layer-group me-1"></i>Bulk Add Videos</div>
+                          <BulkVideoUploadZone onUploaded={files => handleBulkVideosUploaded(mi, files)} />
+                          <BulkUrlAdder onAdd={text => handleBulkUrlsAdd(mi, text)} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Resources — study materials / assignments / case studies / previous papers / mock tests */}
+                  <div className="col-12 mt-2">
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                      <h6 className="mb-0 fw-bold">Resources <small className="text-muted fw-normal">(materials, assignments, mock tests, etc.)</small></h6>
+                      <button type="button" className="btn btn-sm btn-outline-gold" onClick={addResource}>
+                        <i className="fas fa-plus me-1"></i>Add Resource
+                      </button>
+                    </div>
+                    {(editCourse.resources || []).length === 0 && (
+                      <p className="text-muted small">No resources added yet.</p>
+                    )}
+                    {(editCourse.resources || []).map((res, ri) => (
+                      <div key={ri} className="row g-2 align-items-center mb-2 border rounded p-2 bg-light">
+                        <div className="col-md-4">
+                          <input className="form-control form-control-sm" placeholder="Title" value={res.title} onChange={e => setResourceField(ri, 'title', e.target.value)} />
+                        </div>
+                        <div className="col-md-3">
+                          <select className="form-select form-select-sm" value={res.type} onChange={e => setResourceField(ri, 'type', e.target.value)}>
+                            {RESOURCE_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                          </select>
+                        </div>
+                        <div className="col-md-4">
+                          {res.fileUrl ? (
+                            <div className="d-flex align-items-center gap-2">
+                              <a href={res.fileUrl} target="_blank" rel="noreferrer" className="small text-truncate" style={{ maxWidth: 160 }}>
+                                <i className="fas fa-file-pdf me-1 text-danger"></i>File attached
+                              </a>
+                              <button type="button" className="btn btn-xs btn-outline-secondary" onClick={() => setResourceField(ri, 'fileUrl', '')}>Change</button>
+                            </div>
+                          ) : (
+                            <input
+                              type="file"
+                              accept=".pdf,.doc,.docx"
+                              className="form-control form-control-sm"
+                              onChange={e => { const f = e.target.files[0]; e.target.value = ''; if (f) handleResourceFileUpload(ri, f); }}
+                            />
+                          )}
+                        </div>
+                        <div className="col-md-1 text-end">
+                          <button type="button" className="btn btn-xs btn-outline-danger" onClick={() => removeResource(ri)}><i className="fas fa-trash"></i></button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -674,6 +968,74 @@ export default function Courses() {
           </div>
         </div>
       )}
+
+      {/* View Progress modal */}
+      {viewProgress && (() => {
+        const course = viewProgress.courseId || {};
+        const totalVideos = course.modules?.reduce((s, m) => s + (m.videos?.length || 0), 0) || 0;
+        const pct = totalVideos > 0 ? Math.round(((viewProgress.completedVideos || 0) / totalVideos) * 100) : 0;
+        const isExpired = viewProgress.expiresAt && new Date(viewProgress.expiresAt) < new Date();
+        return (
+          <div className="modal fade show d-block" style={{ background: 'rgba(0,0,0,0.5)' }}>
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title"><i className="fas fa-chart-line me-2"></i>Student Progress</h5>
+                  <button className="btn-close" onClick={() => setViewProgress(null)}></button>
+                </div>
+                <div className="modal-body">
+                  <p className="mb-1"><strong>{viewProgress.userId?.name}</strong> — {course.title}</p>
+                  <div className="d-flex justify-content-between small mb-1">
+                    <span>Progress</span><span>{viewProgress.completedVideos || 0}/{totalVideos} videos ({pct}%)</span>
+                  </div>
+                  <div className="progress mb-3" style={{ height: 8 }}>
+                    <div className="progress-bar bg-success" style={{ width: `${pct}%` }}></div>
+                  </div>
+                  <div className="d-flex justify-content-between small mb-3">
+                    <span>Access Valid Till</span>
+                    <span className={isExpired ? 'text-danger fw-semibold' : ''}>
+                      {viewProgress.expiresAt ? new Date(viewProgress.expiresAt).toLocaleDateString('en-IN') : '—'}
+                      {isExpired && ' (Expired)'}
+                    </span>
+                  </div>
+
+                  {course.programType === 'judiciary' && (
+                    <>
+                      <hr />
+                      <h6 className="fw-bold small">Test Scores</h6>
+                      {(viewProgress.testScores || []).length === 0 && <p className="text-muted small">No test scores logged yet.</p>}
+                      {(viewProgress.testScores || []).map((t, i) => (
+                        <div key={i} className="d-flex justify-content-between small py-1 border-bottom">
+                          <span>{t.title}</span><span className="fw-semibold">{t.score}/{t.maxScore}</span>
+                        </div>
+                      ))}
+                      <div className="row g-2 mt-2">
+                        <div className="col-5">
+                          <input className="form-control form-control-sm" placeholder="Test title" value={scoreForm.title} onChange={e => setScoreForm(f => ({ ...f, title: e.target.value }))} />
+                        </div>
+                        <div className="col-3">
+                          <input type="number" className="form-control form-control-sm" placeholder="Score" value={scoreForm.score} onChange={e => setScoreForm(f => ({ ...f, score: e.target.value }))} />
+                        </div>
+                        <div className="col-3">
+                          <input type="number" className="form-control form-control-sm" placeholder="Max" value={scoreForm.maxScore} onChange={e => setScoreForm(f => ({ ...f, maxScore: e.target.value }))} />
+                        </div>
+                        <div className="col-1">
+                          <button className="btn btn-sm btn-gold w-100" onClick={handleAddTestScore} disabled={savingScore}>
+                            <i className="fas fa-plus"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-light" onClick={() => setViewProgress(null)}>Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <ConfirmModal
         show={!!confirmDelete}
