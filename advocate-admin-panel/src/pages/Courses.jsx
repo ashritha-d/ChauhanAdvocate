@@ -522,7 +522,15 @@ export default function Courses() {
   };
 
   const handleEnrollStatus = async (id, status) => {
-    try { await api.put(`/courses/enrollments/${id}`, { paymentStatus: status }); loadEnrollments(); } catch {}
+    try {
+      await api.put(`/courses/enrollments/${id}`, { paymentStatus: status });
+      showToast(status === 'paid' ? 'Enrollment approved.' : 'Payment rejected.');
+    } catch (e) {
+      showToast(e.response?.data?.message || 'Failed to update enrollment status.', 'error');
+    }
+    // Refetch regardless of outcome — the enrollment update can succeed server-side
+    // even if a downstream step (e.g. notification) throws, so always reflect current state.
+    loadEnrollments();
   };
 
   const handleAddTestScore = async () => {

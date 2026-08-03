@@ -5,6 +5,17 @@ const path = require('path');
 const fs = require('fs');
 const { cloudinary } = require('../middleware/videoUpload');
 
+// Notifications are a side-effect of enrollment/payment state changes, not part of
+// the transaction itself — a failure here (e.g. a schema/validation issue) must never
+// block the enrollment update or the response the student/admin is waiting on.
+async function notifyUser(data) {
+  try {
+    await UserNotification.create(data);
+  } catch (e) {
+    console.error('UserNotification.create failed (non-blocking):', e.message);
+  }
+}
+
 // ── Public ────────────────────────────────────────────────────────────────────
 
 // Drops admin-disabled videos entirely, then — for viewers without full access —
@@ -99,7 +110,7 @@ exports.enrollCourse = async (req, res) => {
 
     if (isFree) {
       await Course.findByIdAndUpdate(courseId, { $inc: { totalStudents: 1 } });
-      await UserNotification.create({
+      await notifyUser({
         userId,
         title: 'Course Enrolled',
         message: `You have been enrolled in "${course.title}". Start learning now!`,
@@ -108,7 +119,7 @@ exports.enrollCourse = async (req, res) => {
         referenceType: 'Enrollment',
       });
     } else {
-      await UserNotification.create({
+      await notifyUser({
         userId,
         title: 'Payment Under Review',
         message: `Your payment for "${course.title}" is under review. You will get access once approved.`,
@@ -329,7 +340,7 @@ exports.updateEnrollment = async (req, res) => {
 
     if (isApproving) {
       await Course.findByIdAndUpdate(existing.courseId._id, { $inc: { totalStudents: 1 } });
-      await UserNotification.create({
+      await notifyUser({
         userId: existing.userId._id,
         title: 'Course Access Granted',
         message: `Your payment for "${existing.courseId.title}" has been approved. You can now access all course content!`,
@@ -340,7 +351,7 @@ exports.updateEnrollment = async (req, res) => {
     }
 
     if (paymentStatus === 'failed') {
-      await UserNotification.create({
+      await notifyUser({
         userId: existing.userId._id,
         title: 'Payment Rejected',
         message: `Your payment for "${existing.courseId.title}" was not verified. Please resubmit or contact support.`,

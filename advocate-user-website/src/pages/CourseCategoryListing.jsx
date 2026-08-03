@@ -94,15 +94,15 @@ export default function CourseCategoryListing() {
 
         <div className="d-flex gap-2 flex-wrap justify-content-center mb-4">
           <input
-            className="form-control form-control-sm"
-            style={{ maxWidth: 260, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }}
+            className="form-control form-control-sm course-listing-search"
+            style={{ maxWidth: 260 }}
             placeholder="Search courses..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
           <select
-            className="form-select form-select-sm"
-            style={{ maxWidth: 180, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }}
+            className="form-select form-select-sm course-listing-filter"
+            style={{ maxWidth: 180 }}
             value={levelFilter}
             onChange={e => setLevelFilter(e.target.value)}
           >

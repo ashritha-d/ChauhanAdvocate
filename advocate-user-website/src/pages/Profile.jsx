@@ -338,6 +338,24 @@ export default function Profile() {
     setDataLoading(false);
   };
 
+  // Background refresh so a "Payment Review" enrollment flips to "Active" as soon as
+  // an admin approves it, without the student needing to reload. Deliberately skips
+  // setDataLoading/setNotesDraft — those would blank the tab (interrupting an open
+  // video player) or clobber notes the student is mid-typing.
+  const refreshEnrollmentsQuietly = async () => {
+    try {
+      const r = await getMyEnrollments(authHeader());
+      if (r.data.success) setEnrollments(r.data.data);
+    } catch { /* silent */ }
+    fetchUnreadCount();
+  };
+
+  useEffect(() => {
+    if (!user || tab !== 'courses') return;
+    const interval = setInterval(refreshEnrollmentsQuietly, 20000);
+    return () => clearInterval(interval);
+  }, [tab, user]);
+
   const handleNotesChange = (enrollmentId, value) => {
     setNotesDraft(d => ({ ...d, [enrollmentId]: value }));
     clearTimeout(notesTimers.current[enrollmentId]);
