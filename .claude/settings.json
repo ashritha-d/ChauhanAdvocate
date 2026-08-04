@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node measure-cards.js)",
+      "Bash(node debug-footer.js)",
+      "Bash(node screenshot-final.js)"
+    ]
+  }
+}
