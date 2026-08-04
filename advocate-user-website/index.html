@@ -32,8 +32,8 @@
   <link rel="icon" type="image/jpeg" href="%BASE_URL%logo.jpeg?cachebust" />
 
   <!-- Connect early to the origin the page depends on most for data (the API origin serves every homepage section) -->
-  <link rel="preconnect" href="https://chauhanadvocate.onrender.com" />
-  <link rel="dns-prefetch" href="https://chauhanadvocate.onrender.com" />
+  <link rel="preconnect" href="%VITE_API_BASE%" />
+  <link rel="dns-prefetch" href="%VITE_API_BASE%" />
 
   <!-- Fonts are self-hosted (see src/index.css @font-face) — no Google Fonts round-trip.
        Preload the two variable-font files so text doesn't wait on CSS discovery. -->

@@ -35,7 +35,7 @@ export default function InternshipPayment() {
   const [screen, setScreen]         = useState('payment');
   const [result, setResult]         = useState(null);
 
-  const API_BASE = 'https://chauhanadvocate.onrender.com';
+  const API_BASE = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'https://chauhanadvocate.onrender.com';
 
   useEffect(() => {
     if (!user) { navigate('/login', { state: { from: '/internship-payment' } }); return; }

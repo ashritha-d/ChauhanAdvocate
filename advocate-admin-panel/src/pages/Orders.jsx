@@ -6,7 +6,7 @@ import ConfirmModal from '../components/ConfirmModal';
 
 const STATUSES = ['pending', 'reviewed', 'closed'];
 const STATUS_BADGE = { pending: 'badge-pending', reviewed: 'badge-confirmed', closed: 'badge-completed' };
-const BACKEND = 'https://chauhanadvocate.onrender.com';
+const BACKEND = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'https://chauhanadvocate.onrender.com';
 
 export default function Orders() {
   const [items, setItems] = useState([]);

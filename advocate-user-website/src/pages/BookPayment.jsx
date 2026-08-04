@@ -23,7 +23,7 @@ function CopyButton({ text }) {
 }
 
 function PaymentDetails({ s, method }) {
-  const API_BASE = 'https://chauhanadvocate.onrender.com';
+  const API_BASE = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'https://chauhanadvocate.onrender.com';
   const qrUrl = s.payment_qr_image
     ? (s.payment_qr_image.startsWith('http') ? s.payment_qr_image : API_BASE + s.payment_qr_image)
     : '';

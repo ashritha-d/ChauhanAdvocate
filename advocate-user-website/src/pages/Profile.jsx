@@ -461,7 +461,7 @@ export default function Profile() {
     try {
       const r = await downloadMagazineFull(magazineId, authHeader());
       if (r.data.success && r.data.url) {
-        const url = r.data.url.startsWith('http') ? r.data.url : `https://chauhanadvocate.onrender.com${r.data.url}`;
+        const url = r.data.url.startsWith('http') ? r.data.url : `${import.meta.env.VITE_API_BASE?.replace('/api', '') || 'https://chauhanadvocate.onrender.com'}${r.data.url}`;
         const a = document.createElement('a');
         a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.click();
       }

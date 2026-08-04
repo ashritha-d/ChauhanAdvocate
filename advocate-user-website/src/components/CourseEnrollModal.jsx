@@ -24,7 +24,7 @@ export default function CourseEnrollModal({ course, onClose }) {
       if (screenshot) {
         const fd = new FormData();
         fd.append('file', screenshot);
-        const upRes = await fetch(`${import.meta.env.VITE_API_URL || 'https://chauhanadvocate.onrender.com/api'}/upload`, {
+        const upRes = await fetch(`${import.meta.env.VITE_API_BASE || 'https://chauhanadvocate.onrender.com/api'}/upload`, {
           method: 'POST',
           headers: authHeader(),
           body: fd,

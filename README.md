@@ -4,7 +4,7 @@ Full-stack legal services web application with three portals: public user websit
 
 **Live URLs**
 - User Website: https://ashritha-d.github.io/ChauhanAdvocate/
-- Backend API: https://chauhanadvocate.onrender.com/api
+- Backend API: https://advocatechauhan-fqgugda3cgd3e6fp.southindia-01.azurewebsites.net/api
 
 ---
 
@@ -238,7 +238,7 @@ ALLOWED_ORIGINS=https://ashritha-d.github.io
 ### User Website (`advocate-user-website/.env.production`)
 
 ```env
-VITE_API_BASE=https://chauhanadvocate.onrender.com/api
+VITE_API_BASE=https://advocatechauhan-fqgugda3cgd3e6fp.southindia-01.azurewebsites.net/api
 VITE_TURNSTILE_SITE_KEY=your_cloudflare_turnstile_site_key
 ```
 

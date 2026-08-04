@@ -1278,10 +1278,11 @@ Cloudinary root/
 ### Frontend mediaUrl Helper
 ```js
 // advocate-user-website/src/utils/helpers.js
+export const API_BASE = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'http://localhost:5000';
 export function mediaUrl(path) {
   if (!path) return '';
   if (path.startsWith('http')) return path; // Already a Cloudinary URL
-  return `https://chauhanadvocate.onrender.com${path}`; // Legacy local path
+  return `${API_BASE}${path}`; // Legacy local path
 }
 ```
 
@@ -1357,7 +1358,7 @@ Authorization: Bearer {WHATSAPP_ACCESS_TOKEN}
 
 | Variable | Purpose |
 |----------|---------|
-| `VITE_API_BASE` | Backend API URL (e.g. `https://chauhanadvocate.onrender.com/api`) |
+| `VITE_API_BASE` | Backend API URL (e.g. `https://advocatechauhan-fqgugda3cgd3e6fp.southindia-01.azurewebsites.net/api`) |
 | `VITE_TURNSTILE_SITE_KEY` | Cloudflare Turnstile public site key |
 
 ---
@@ -1528,7 +1529,7 @@ Axios Request (advocate-user-website/src/api/axios.js)
   │    → sets Authorization: Bearer <token>
   │
   ▼
-HTTPS → chauhanadvocate.onrender.com/api/payments/manual
+HTTPS → advocatechauhan-fqgugda3cgd3e6fp.southindia-01.azurewebsites.net/api/payments/manual
   │
   ▼
 Express Server (backend/server.js)

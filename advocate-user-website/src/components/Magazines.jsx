@@ -214,7 +214,7 @@ export default function Magazines() {
     try {
       const r = await downloadMagazinePreview(magazine._id);
       if (r.data.success && r.data.url) {
-        const url = r.data.url.startsWith('http') ? r.data.url : `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://chauhanadvocate.onrender.com'}${r.data.url}`;
+        const url = r.data.url.startsWith('http') ? r.data.url : `${import.meta.env.VITE_API_BASE?.replace('/api', '') || 'https://chauhanadvocate.onrender.com'}${r.data.url}`;
         window.open(url, '_blank', 'noopener,noreferrer');
       }
     } catch (e) {
@@ -227,7 +227,7 @@ export default function Magazines() {
     try {
       const r = await downloadMagazineFull(magazine._id, authHeader());
       if (r.data.success && r.data.url) {
-        const url = r.data.url.startsWith('http') ? r.data.url : `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://chauhanadvocate.onrender.com'}${r.data.url}`;
+        const url = r.data.url.startsWith('http') ? r.data.url : `${import.meta.env.VITE_API_BASE?.replace('/api', '') || 'https://chauhanadvocate.onrender.com'}${r.data.url}`;
         const a = document.createElement('a');
         a.href = url;
         a.target = '_blank';

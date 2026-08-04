@@ -7,7 +7,7 @@ import { mediaUrl } from '../utils/helpers';
 import { useUserAuth } from '../context/UserAuthContext';
 import TurnstileWidget from '../components/TurnstileWidget';
 
-const API_BASE = 'https://chauhanadvocate.onrender.com';
+const API_BASE = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'https://chauhanadvocate.onrender.com';
 
 const PER_PAGE = 9;
 const DOWNLOADS_KEY = 'downloadedDraftIds';

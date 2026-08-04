@@ -13,7 +13,7 @@ import { mediaUrl } from '../utils/helpers';
 
 const PLACEHOLDER = `${import.meta.env.BASE_URL}placeholder-lawyer.svg`;
 const PER_PAGE = 9;
-const API_BASE = 'https://chauhanadvocate.onrender.com';
+const API_BASE = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'https://chauhanadvocate.onrender.com';
 
 const METHODS = [
   { id: 'upi_id',  icon: 'fa-mobile-alt', label: 'UPI / GPay' },
@@ -253,7 +253,7 @@ export default function MagazinesPage() {
       const r = await downloadMagazinePreview(mag._id);
       if (r.data.success && r.data.url) {
         const url = r.data.url.startsWith('http') ? r.data.url
-          : `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://chauhanadvocate.onrender.com'}${r.data.url}`;
+          : `${API_BASE}${r.data.url}`;
         window.open(url, '_blank', 'noopener,noreferrer');
       }
     } catch (e) {
@@ -267,7 +267,7 @@ export default function MagazinesPage() {
       const r = await downloadMagazineFull(mag._id, authHeader());
       if (r.data.success && r.data.url) {
         const url = r.data.url.startsWith('http') ? r.data.url
-          : `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://chauhanadvocate.onrender.com'}${r.data.url}`;
+          : `${API_BASE}${r.data.url}`;
         const a = document.createElement('a');
         a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
         a.click();
