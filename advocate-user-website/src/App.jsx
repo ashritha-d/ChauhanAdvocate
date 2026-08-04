@@ -216,7 +216,7 @@ export default function App() {
     </Helmet>
     <SiteProvider>
       <UserAuthProvider>
-        <BrowserRouter basename="/ChauhanAdvocate">
+        <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
           <ScrollToHash />
           <ForcePasswordChangeGuard />
           <Routes>

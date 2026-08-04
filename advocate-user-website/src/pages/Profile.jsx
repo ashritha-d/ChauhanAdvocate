@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import SEOHead from '../components/SEOHead';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useUserAuth } from '../context/UserAuthContext';
 import { useSite } from '../context/SiteContext';
 import {
@@ -821,7 +821,7 @@ export default function Profile() {
                 <div>
                   <div className="d-flex align-items-center justify-content-between mb-4">
                     <h4 className="profile-section-title mb-0">My Courses</h4>
-                    <a href="/ChauhanAdvocate/courses" className="btn btn-gold btn-sm"><i className="fas fa-plus me-1"></i>Browse Courses</a>
+                    <Link to="/courses" className="btn btn-gold btn-sm"><i className="fas fa-plus me-1"></i>Browse Courses</Link>
                   </div>
                   {dataLoading
                     ? <div className="text-center py-5"><div className="spinner-border text-warning"></div></div>
@@ -830,7 +830,7 @@ export default function Profile() {
                       <div className="profile-empty">
                         <i className="fas fa-graduation-cap"></i>
                         <p>No courses enrolled yet</p>
-                        <a href="/ChauhanAdvocate/courses" className="btn btn-gold btn-sm">Browse Courses</a>
+                        <Link to="/courses" className="btn btn-gold btn-sm">Browse Courses</Link>
                       </div>
                     ) : (
                       <>
