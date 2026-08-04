@@ -1,11 +1,19 @@
 const router = require('express').Router();
 const c = require('../controllers/courseController');
 const { protect } = require('../middleware/auth');           // admin
-const { protectUser } = require('../middleware/userAuth');   // user
+const { protectUser, optionalUserAuth } = require('../middleware/userAuth');   // user
 const videoUpload = require('../middleware/videoUpload');
 
 // Public — no auth needed
 router.get('/public', c.getPublicCourses);
+
+// Video streaming — the frontend never receives a raw Cloudinary URL. It first
+// asks for a short-lived, video-scoped access token (optionalUserAuth: logged-out
+// visitors can still get one for isPreview videos), then <video src> points at the
+// stream endpoint with that token — which is what a <video> tag can actually send,
+// since it can't attach an Authorization header.
+router.get('/:courseId/videos/:videoId/access-token', optionalUserAuth, c.getVideoAccessToken);
+router.get('/stream/:videoId', c.streamVideo);
 
 // Public course detail — optional user auth (to check enrollment)
 router.get('/public/:id', (req, res, next) => {

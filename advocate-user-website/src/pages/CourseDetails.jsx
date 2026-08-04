@@ -176,7 +176,7 @@ export default function CourseDetails() {
                       </div>
                       <ul className="curriculum-lessons">
                         {(mod.videos || []).map((v, vi) => {
-                          const locked = !v.videoUrl && !v.uploadedVideoPath;
+                          const locked = !v.videoUrl && !v.hasUpload;
                           return (
                             <li key={v._id || vi} className={locked ? 'is-locked' : ''}>
                               <i className={`fas ${locked ? 'fa-lock' : 'fa-play-circle'} me-2`} />

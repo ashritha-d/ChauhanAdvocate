@@ -82,6 +82,10 @@ export const updateCourseProgress = (data, headers) => api.post('/courses/progre
 export const markLastWatched = (data, headers) => api.post('/courses/last-watched', data, { headers });
 export const saveEnrollmentNotes = (id, notes, headers) => api.put(`/courses/enrollments/${id}/notes`, { notes }, { headers });
 export const markCertificateIssued = (id, headers) => api.put(`/courses/enrollments/${id}/certificate-issued`, {}, { headers });
+// Video streaming — never fetch the raw video URL; ask for a short-lived, video-scoped
+// token instead and build the <video src> from it. headers can be {} for an isPreview
+// video watched anonymously.
+export const getVideoStreamToken = (courseId, videoId, headers = {}) => api.get(`/courses/${courseId}/videos/${videoId}/access-token`, { headers });
 
 // ── Internship Programme ────────────────────────────────────────────────────
 export const submitInternshipApplication = (formData) => api.post('/internships', formData);

@@ -87,6 +87,11 @@ api.interceptors.response.use(
     } catch (refreshErr) {
       safeRemove('userToken');
       flushQueue(refreshErr);
+      // The access token is unrecoverable (expired, revoked, or the session was
+      // claimed by another device/logged out) — tell UserAuthContext to drop its
+      // `user` state too, so the UI reacts immediately instead of looking "logged
+      // in" until the next full page load.
+      window.dispatchEvent(new Event('auth:sessionExpired'));
       return Promise.reject(error);
     } finally {
       isRefreshing = false;

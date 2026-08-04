@@ -18,6 +18,7 @@ import JrAdvocateModal from '../components/JrAdvocateModal';
 import CourseEnrollModal from '../components/CourseEnrollModal';
 import { downloadCertificate } from '../utils/certificate';
 import { isPasswordValid, PASSWORD_REQUIREMENT_MESSAGE } from '../utils/passwordValidation';
+import { isVideoPlayable, resolveVideoSrc } from '../utils/videoStream';
 
 const TABS = [
   { id: 'dashboard',     icon: 'fa-tachometer-alt', label: 'Dashboard' },
@@ -64,17 +65,15 @@ function getVideoEmbed(url) {
   return null; // MP4 direct (including Cloudinary-uploaded videos)
 }
 
-// A video may come from a pasted URL (`videoUrl`) or an admin-uploaded Cloudinary
-// file (`uploadedVideoPath`) — previously only `videoUrl` was ever checked, silently
-// locking every uploaded video for students.
-function getPlayableUrl(video) {
-  return video?.videoUrl || video?.uploadedVideoPath || '';
-}
-
 function CoursePlayer({ enrollment, authHeader, onClose }) {
   const course = enrollment.courseId;
   const [detail, setDetail] = useState(null);
   const [currentVideo, setCurrentVideo] = useState(null);
+  // The actual playable src is resolved async (a fresh streaming token per video —
+  // the raw Cloudinary URL never reaches this component at all), separate from
+  // `currentVideo` (the metadata) so the UI can show a brief loading state.
+  const [currentVideoSrc, setCurrentVideoSrc] = useState(null);
+  const [videoSrcError, setVideoSrcError] = useState('');
   const [completedSet, setCompletedSet] = useState(
     new Set((enrollment.progress || []).map(p => p.videoId?.toString()).filter(Boolean))
   );
@@ -94,15 +93,27 @@ function CoursePlayer({ enrollment, authHeader, onClose }) {
             }
           }
           const first = resume || r.data.data.modules?.[0]?.videos?.[0];
-          if (first && getPlayableUrl(first)) setCurrentVideo(first);
+          if (first && isVideoPlayable(first)) setCurrentVideo(first);
         }
       })
       .catch(() => {})
       .finally(() => setLoadingDetail(false));
   }, [course._id]);
 
+  // Resolve the actual src whenever the selected video changes.
+  useEffect(() => {
+    if (!currentVideo) { setCurrentVideoSrc(null); return; }
+    let cancelled = false;
+    setCurrentVideoSrc(null);
+    setVideoSrcError('');
+    resolveVideoSrc(currentVideo, course._id, authHeader())
+      .then(src => { if (!cancelled) setCurrentVideoSrc(src); })
+      .catch(err => { if (!cancelled) setVideoSrcError(err.message || 'Could not load this video.'); });
+    return () => { cancelled = true; };
+  }, [currentVideo?._id]);
+
   const handleSelectVideo = (video, moduleId) => {
-    if (!getPlayableUrl(video)) return;
+    if (!isVideoPlayable(video)) return;
     setCurrentVideo(video);
     markLastWatched({ courseId: course._id, videoId: video._id, moduleId }, authHeader()).catch(() => {});
   };
@@ -126,7 +137,7 @@ function CoursePlayer({ enrollment, authHeader, onClose }) {
     }
     const idx = flat.findIndex(f => f.video._id === currentVideo?._id);
     const next = idx >= 0 ? flat[idx + 1] : null;
-    if (next && getPlayableUrl(next.video)) handleSelectVideo(next.video, next.moduleId);
+    if (next && isVideoPlayable(next.video)) handleSelectVideo(next.video, next.moduleId);
   };
 
   const totalVideos = getTotalVideos(detail);
@@ -152,7 +163,7 @@ function CoursePlayer({ enrollment, authHeader, onClose }) {
                   <i className="fas fa-folder me-1"></i>{mod.title || `Module ${mi + 1}`}
                 </div>
                 {(mod.videos || []).map((vid, vi) => {
-                  const playable = !!getPlayableUrl(vid);
+                  const playable = isVideoPlayable(vid);
                   return (
                     <div
                       key={vi}
@@ -173,21 +184,41 @@ function CoursePlayer({ enrollment, authHeader, onClose }) {
           {/* Main — video player */}
           <div className="course-player-main">
             <div className="course-player-video">
-              {currentVideo ? (
-                (() => {
-                  const playUrl = getPlayableUrl(currentVideo);
-                  const embed = getVideoEmbed(playUrl);
-                  return embed
-                    ? <iframe src={embed} title={currentVideo.title} allowFullScreen allow="autoplay; encrypted-media"></iframe>
-                    : <video controls src={playUrl} onEnded={handleVideoEnded} style={{ width: '100%', height: '100%', background: '#000' }}></video>;
-                })()
-              ) : (
+              {!currentVideo ? (
                 <div className="d-flex align-items-center justify-content-center h-100" style={{ background: '#111', color: '#aaa' }}>
                   <div className="text-center">
                     <i className="fas fa-play-circle fa-3x mb-2"></i>
                     <p className="small mb-0">Select a video to start watching</p>
                   </div>
                 </div>
+              ) : videoSrcError ? (
+                <div className="d-flex align-items-center justify-content-center h-100" style={{ background: '#111', color: '#f87171' }}>
+                  <div className="text-center px-3">
+                    <i className="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <p className="small mb-0">{videoSrcError}</p>
+                  </div>
+                </div>
+              ) : !currentVideoSrc ? (
+                <div className="d-flex align-items-center justify-content-center h-100" style={{ background: '#111' }}>
+                  <div className="spinner-border" style={{ color: 'var(--gold)' }}></div>
+                </div>
+              ) : (
+                (() => {
+                  const embed = getVideoEmbed(currentVideoSrc);
+                  return embed
+                    ? <iframe src={embed} title={currentVideo.title} allowFullScreen allow="autoplay; encrypted-media"></iframe>
+                    : (
+                      <video
+                        controls
+                        controlsList="nodownload"
+                        disablePictureInPicture
+                        onContextMenu={e => e.preventDefault()}
+                        src={currentVideoSrc}
+                        onEnded={handleVideoEnded}
+                        style={{ width: '100%', height: '100%', background: '#000' }}
+                      ></video>
+                    );
+                })()
               )}
             </div>
 

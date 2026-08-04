@@ -1,9 +1,13 @@
 const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
 const UserNotification = require('../models/UserNotification');
+const User = require('../models/User');
 const path = require('path');
 const fs = require('fs');
+const https = require('https');
+const { URL } = require('url');
 const { cloudinary } = require('../middleware/videoUpload');
+const { generateVideoAccessToken, verifyVideoAccessToken } = require('../utils/videoAccess');
 
 // Notifications are a side-effect of enrollment/payment state changes, not part of
 // the transaction itself — a failure here (e.g. a schema/validation issue) must never
@@ -22,12 +26,26 @@ async function notifyUser(data) {
 // strips the playable source from every video except the ones the admin explicitly
 // flagged as a free preview (previously only the first video in the course was ever
 // unlocked, ignoring the isPreview flag admins can set on any video).
+//
+// uploadedVideoPath (the raw Cloudinary URL) is stripped for EVERY viewer, even
+// fully-authorized ones — it's never sent to the frontend at all. Playback instead
+// goes through the token-based streaming endpoint (getVideoAccessToken/streamVideo),
+// requested using courseId+videoId once the student actually presses play.
+// `hasUpload` just tells the frontend "yes, request a stream token for this one."
 function visibleVideos(modules, hasFullAccess) {
   return (modules || []).map(m => ({
     ...m,
     videos: (m.videos || [])
       .filter(v => v.isPublished !== false)
-      .map(v => (hasFullAccess || v.isPreview) ? { ...v } : { ...v, videoUrl: null, uploadedVideoPath: null }),
+      .map(v => {
+        const allowed = hasFullAccess || v.isPreview;
+        return {
+          ...v,
+          uploadedVideoPath: undefined,
+          hasUpload: !!v.uploadedVideoPath,
+          videoUrl: allowed ? v.videoUrl : null,
+        };
+      }),
   }));
 }
 
@@ -423,4 +441,155 @@ exports.deleteVideo = async (req, res) => {
     if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
     res.json({ success: true });
   } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+};
+
+// ── Video streaming (protected — no raw Cloudinary URL ever reaches the frontend) ──
+
+function findVideoInCourse(course, videoId) {
+  for (const mod of course.modules || []) {
+    const video = (mod.videos || []).find(v => v._id.toString() === videoId);
+    if (video) return { video, module: mod };
+  }
+  return null;
+}
+
+// Fetches the video from Cloudinary server-side and pipes it straight through,
+// forwarding the Range header so seeking/scrubbing works (206 Partial Content) —
+// the actual Cloudinary URL is never sent to the client, only these bytes are.
+function proxyVideo(cloudinaryUrl, req, res) {
+  return new Promise((resolve, reject) => {
+    const target = new URL(cloudinaryUrl);
+    const options = {
+      hostname: target.hostname,
+      path: target.pathname + target.search,
+      method: 'GET',
+      headers: req.headers.range ? { range: req.headers.range } : {},
+    };
+
+    const proxyReq = https.request(options, proxyRes => {
+      res.status(proxyRes.statusCode);
+      ['content-type', 'content-length', 'content-range', 'accept-ranges', 'cache-control', 'etag', 'last-modified']
+        .forEach(h => { if (proxyRes.headers[h]) res.set(h, proxyRes.headers[h]); });
+      // 'inline' (not 'attachment') so the browser plays it rather than offering a save dialog.
+      res.set('Content-Disposition', 'inline');
+      proxyRes.pipe(res);
+      proxyRes.on('end', resolve);
+      proxyRes.on('error', reject);
+    });
+    proxyReq.on('error', err => {
+      if (!res.headersSent) res.status(502).json({ success: false, message: 'Video streaming failed' });
+      reject(err);
+    });
+    req.on('close', () => proxyReq.destroy());
+    proxyReq.end();
+  });
+}
+
+// Step 1 of the authorization chain: mint a short-lived, video-scoped token. Called
+// with optionalUserAuth so an anonymous visitor can still get one for isPreview
+// videos (preserving the existing "watch a free preview without logging in" UX) —
+// anyone without full access is only ever granted a token for a preview video.
+exports.getVideoAccessToken = async (req, res) => {
+  try {
+    const { courseId, videoId } = req.params;
+    const course = await Course.findOne({ _id: courseId, isActive: true });
+    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+
+    const found = findVideoInCourse(course, videoId);
+    if (!found || found.video.isPublished === false) {
+      return res.status(404).json({ success: false, message: 'Video not found' });
+    }
+    const { video } = found;
+    if (video.videoSourceType !== 'upload' || !video.uploadedVideoPath) {
+      return res.status(400).json({ success: false, message: 'This video is not served through the streaming endpoint' });
+    }
+
+    const userId = req.user?._id;
+    let hasFullAccess = false;
+    if (userId) {
+      const enrollment = await Enrollment.findOne({ userId, courseId, paymentStatus: 'paid' });
+      hasFullAccess = !!(enrollment && (!enrollment.expiresAt || enrollment.expiresAt > new Date()));
+    }
+
+    if (!hasFullAccess && !video.isPreview) {
+      return res.status(403).json({
+        success: false,
+        message: userId ? 'You are not enrolled in this course, or your access has expired.' : 'Please log in and enroll to watch this video.',
+      });
+    }
+
+    const token = generateVideoAccessToken({
+      userId: userId ? userId.toString() : null,
+      sessionId: req.user?.activeSessionId || null,
+      courseId: course._id.toString(),
+      videoId: video._id.toString(),
+      preview: !hasFullAccess,
+    });
+
+    res.json({ success: true, streamUrl: `/courses/stream/${video._id}?token=${token}` });
+  } catch (e) { res.status(500).json({ success: false, message: e.message }); }
+};
+
+// The full authorization chain, isolated from response-writing/proxying so it can
+// be unit-tested directly: authenticated -> enrolled -> access still valid ->
+// authorized for this specific video -> allow. Every claim in the token is
+// re-verified fresh against the DB here, never trusted at face value, so a
+// still-time-valid token stops working the moment the underlying enrollment
+// expires, the session is invalidated, or the video is unpublished — no token
+// revocation list needed.
+async function authorizeVideoStream(token, videoId) {
+  if (!token) return { ok: false, status: 401, message: 'Missing access token' };
+
+  let decoded;
+  try { decoded = verifyVideoAccessToken(token); }
+  catch { return { ok: false, status: 401, message: 'Invalid or expired video access token' }; }
+
+  if (decoded.videoId !== videoId) {
+    return { ok: false, status: 403, message: 'Token does not match requested video' };
+  }
+
+  const course = await Course.findOne({ _id: decoded.courseId, isActive: true });
+  if (!course) return { ok: false, status: 404, message: 'Course not found' };
+  const found = findVideoInCourse(course, videoId);
+  if (!found || found.video.isPublished === false || !found.video.uploadedVideoPath) {
+    return { ok: false, status: 404, message: 'Video not found' };
+  }
+  const { video } = found;
+
+  if (decoded.preview) {
+    if (!video.isPreview) {
+      return { ok: false, status: 403, message: 'This video is no longer available as a preview' };
+    }
+  } else {
+    if (!decoded.uid) return { ok: false, status: 401, message: 'Not authorized' };
+    const user = await User.findById(decoded.uid).select('+activeSessionId');
+    if (!user || !user.isActive) return { ok: false, status: 401, message: 'Account not found or deactivated' };
+    if (decoded.sid && decoded.sid !== user.activeSessionId) {
+      return { ok: false, status: 401, message: 'Session no longer active — logged in elsewhere or session expired' };
+    }
+    const enrollment = await Enrollment.findOne({ userId: decoded.uid, courseId: course._id, paymentStatus: 'paid' });
+    const stillValid = enrollment && (!enrollment.expiresAt || enrollment.expiresAt > new Date());
+    if (!stillValid) {
+      return { ok: false, status: 403, message: 'Your enrollment is no longer active' };
+    }
+  }
+
+  return { ok: true, video };
+}
+exports.authorizeVideoStream = authorizeVideoStream; // exported for direct testing
+
+// Step 2: the actual streaming request from <video src>. Public route (a <video>
+// tag cannot send an Authorization header) — authorization happens entirely via
+// the token, checked by authorizeVideoStream above.
+exports.streamVideo = async (req, res) => {
+  try {
+    const { videoId } = req.params;
+    const { token } = req.query;
+    const result = await authorizeVideoStream(token, videoId);
+    if (!result.ok) return res.status(result.status).json({ success: false, message: result.message });
+
+    await proxyVideo(result.video.uploadedVideoPath, req, res);
+  } catch (e) {
+    if (!res.headersSent) res.status(500).json({ success: false, message: e.message });
+  }
 };

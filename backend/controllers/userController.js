@@ -1,11 +1,13 @@
 const crypto = require('crypto');
 const User = require('../models/User');
+const RefreshToken = require('../models/RefreshToken');
 const Appointment = require('../models/Appointment');
 const BookOrder = require('../models/BookOrder');
 const UserNotification = require('../models/UserNotification');
 const {
   generateUserToken, issueRefreshToken, consumeRefreshToken, revokeRefreshToken,
   setRefreshCookie, clearRefreshCookie, parseCookieHeader, REFRESH_COOKIE_NAME,
+  claimSession, releaseSession, forceNewSession,
 } = require('../middleware/userAuth');
 const { sendOTPEmail } = require('../services/email');
 const securityLogger = require('../services/securityLogger');
@@ -55,7 +57,10 @@ exports.register = async (req, res) => {
       type: 'general',
     });
 
-    const token = generateUserToken(user);
+    // A brand-new account can't already have a session, so this always succeeds —
+    // still going through claimSession keeps every login path consistent.
+    const sessionId = await claimSession(user._id);
+    const token = generateUserToken(user, sessionId);
     const { raw, expiresAt } = await issueRefreshToken(user._id, getIp(req), req.headers['user-agent'] || '');
     setRefreshCookie(res, raw, expiresAt);
     res.status(201).json({ success: true, message: 'Account created successfully', token, user: sanitizeUser(user) });
@@ -91,10 +96,21 @@ exports.login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
+    // Single-device enforcement: this must happen before any state changes below,
+    // and via one atomic operation, so two near-simultaneous login requests can't
+    // both succeed (see claimSession's findOneAndUpdate for the race-safety).
+    const sessionId = await claimSession(user._id);
+    if (!sessionId) {
+      return res.status(409).json({
+        success: false,
+        message: 'This account is already logged in on another device. Please log out from that device before logging in here.',
+      });
+    }
+
     user.lastLogin = new Date();
     await user.save({ validateBeforeSave: false });
 
-    const token = generateUserToken(user);
+    const token = generateUserToken(user, sessionId);
     const { raw, expiresAt } = await issueRefreshToken(user._id, getIp(req), req.headers['user-agent'] || '');
     setRefreshCookie(res, raw, expiresAt);
     res.json({ success: true, message: 'Login successful', token, user: sanitizeUser(user) });
@@ -248,7 +264,10 @@ exports.changePassword = async (req, res) => {
     user.mustChangePassword = false;
     await user.save();
 
-    const token = generateUserToken(user);
+    // Rotate the session too — invalidates any other device that was active, while
+    // seamlessly keeping this (the legitimate, currently-authenticated) request working.
+    const sessionId = await forceNewSession(user._id);
+    const token = generateUserToken(user, sessionId);
     res.json({ success: true, message: 'Password changed successfully', token, user: sanitizeUser(user) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -408,6 +427,10 @@ exports.adminResetUserPassword = async (req, res) => {
     user.mustChangePassword = true;
     user.tokenVersion = (user.tokenVersion || 0) + 1;
     await user.save();
+    // The user isn't the one making this request, so there's no "their" session to
+    // hand a fresh id to — just free the slot; login with the temp password claims
+    // a new one through the normal flow.
+    await releaseSession(user._id);
 
     await UserNotification.create({
       userId: user._id,
@@ -443,7 +466,9 @@ exports.refreshToken = async (req, res) => {
     const raw = parseCookieHeader(req.headers.cookie, REFRESH_COOKIE_NAME);
     const { user, family } = await consumeRefreshToken(raw);
 
-    const accessToken = generateUserToken(user);
+    // Refreshing extends the SAME session, it never creates a new one — the sid
+    // travels forward unchanged from whatever this device's session already is.
+    const accessToken = generateUserToken(user, user.activeSessionId);
     const { raw: newRaw, expiresAt } = await issueRefreshToken(
       user._id, getIp(req), req.headers['user-agent'] || '', family,
     );
@@ -459,7 +484,14 @@ exports.refreshToken = async (req, res) => {
 exports.logoutUser = async (req, res) => {
   try {
     const raw = parseCookieHeader(req.headers.cookie, REFRESH_COOKIE_NAME);
-    if (raw) await revokeRefreshToken(raw);
+    if (raw) {
+      // Look up the owner before revoking, so the session slot can be freed —
+      // this route has no Bearer token to identify the user by (the access token
+      // may well already be expired by the time someone clicks Logout).
+      const record = await RefreshToken.findOne({ tokenHash: RefreshToken.hashToken(raw) });
+      if (record) await releaseSession(record.userId);
+      await revokeRefreshToken(raw);
+    }
   } catch { /* best-effort revocation */ }
   clearRefreshCookie(res);
   res.json({ success: true, message: 'Logged out successfully' });
@@ -473,5 +505,8 @@ function sanitizeUser(user) {
   delete obj.otpExpiry;
   delete obj.resetPasswordToken;
   delete obj.resetPasswordExpiry;
+  delete obj.activeSessionId;
+  delete obj.sessionCreatedAt;
+  delete obj.lastActivityAt;
   return obj;
 }

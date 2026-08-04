@@ -83,6 +83,17 @@ export function UserAuthProvider({ children }) {
     callLogoutApi().catch(() => {});
   };
 
+  // The axios interceptor dispatches this once a 401 proves unrecoverable (token
+  // expired/revoked, or — most relevantly here — another device claimed the
+  // account's single active session). Calling /users/logout again is a harmless
+  // no-op in that case (the session was already invalidated server-side); what
+  // matters is clearing OUR local state so the UI stops looking logged in.
+  useEffect(() => {
+    const handler = () => logout();
+    window.addEventListener('auth:sessionExpired', handler);
+    return () => window.removeEventListener('auth:sessionExpired', handler);
+  }, []);
+
   const updateUser = (userData) => setUser(userData);
 
   const authHeader = () => {

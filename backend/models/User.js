@@ -16,6 +16,14 @@ const userSchema = new mongoose.Schema({
   mustChangePassword: { type: Boolean, default: false },
   // SEC-06: Incremented on password change / deactivation to invalidate existing JWTs
   tokenVersion: { type: Number, default: 0 },
+  // Single-device session enforcement — an opaque id claimed at login and embedded in
+  // the JWT ('sid'); every request re-checks it matches so a second device can never
+  // hold a simultaneously-valid session. select:false keeps it out of default queries
+  // and (via sanitizeUser) out of every API response — this is internal bookkeeping,
+  // not something the frontend should ever see.
+  activeSessionId: { type: String, default: null, select: false },
+  sessionCreatedAt: { type: Date, default: null, select: false },
+  lastActivityAt: { type: Date, default: null, select: false },
   otp: { type: String, select: false },
   otpExpiry: { type: Date, select: false },
   resetPasswordToken: { type: String, select: false },

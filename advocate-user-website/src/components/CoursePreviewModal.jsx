@@ -1,22 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getPublicCourse } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
+import { resolveVideoSrc } from '../utils/videoStream';
 
 const PREVIEW_SECONDS = 60;
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
-const MEDIA_BASE = API_BASE.replace('/api', '');
-
-function getEffectiveUrl(video) {
-  if (!video) return null;
-  if (video.videoSourceType === 'upload' || (!video.videoUrl && video.uploadedVideoPath)) {
-    if (!video.uploadedVideoPath) return null;
-    // Cloudinary URLs are absolute; legacy local paths need the server base prepended
-    return video.uploadedVideoPath.startsWith('http')
-      ? video.uploadedVideoPath
-      : MEDIA_BASE + video.uploadedVideoPath;
-  }
-  return video.videoUrl || null;
-}
 
 function getVideoType(url) {
   if (!url) return null;
@@ -138,6 +125,9 @@ function Mp4Preview({ src, onTimeUpdate, onLock }) {
       ref={videoRef}
       src={src}
       controls
+      controlsList="nodownload"
+      disablePictureInPicture
+      onContextMenu={e => e.preventDefault()}
       autoPlay
       style={{ width: '100%', height: '100%', background: '#000', display: 'block' }}
       onTimeUpdate={handleTimeUpdate}
@@ -180,6 +170,7 @@ export default function CoursePreviewModal({ course, onClose, onPayNow }) {
   const { user, authHeader } = useUserAuth();
   const [loading, setLoading] = useState(true);
   const [previewVideo, setPreviewVideo] = useState(null);
+  const [effectiveUrl, setEffectiveUrl] = useState(null);
   const [isPaid, setIsPaid] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [locked, setLocked] = useState(false);
@@ -187,18 +178,25 @@ export default function CoursePreviewModal({ course, onClose, onPayNow }) {
   useEffect(() => {
     const headers = user ? authHeader() : {};
     getPublicCourse(course._id, headers)
-      .then(r => {
-        if (r.data.success) {
-          setIsPaid(!!r.data.enrolled);
-          const modules = r.data.data.modules || [];
-          let first = null;
-          for (const mod of modules) {
-            for (const vid of mod.videos || []) {
-              if (vid.videoUrl || vid.uploadedVideoPath) { first = vid; break; }
-            }
-            if (first) break;
+      .then(async r => {
+        if (!r.data.success) return;
+        setIsPaid(!!r.data.enrolled);
+        const modules = r.data.data.modules || [];
+        let first = null;
+        for (const mod of modules) {
+          for (const vid of mod.videos || []) {
+            if (vid.videoUrl || vid.hasUpload) { first = vid; break; }
           }
-          setPreviewVideo(first);
+          if (first) break;
+        }
+        setPreviewVideo(first);
+        if (first) {
+          // The raw Cloudinary URL never reaches this component — an uploaded
+          // video resolves to a short-lived streaming token instead. Awaited here
+          // (rather than left to resolve after loading flips false) so the modal
+          // doesn't flash "no preview available" for a moment first.
+          try { setEffectiveUrl(await resolveVideoSrc(first, course._id, headers)); }
+          catch { setEffectiveUrl(null); }
         }
       })
       .catch(() => {})
@@ -209,7 +207,6 @@ export default function CoursePreviewModal({ course, onClose, onPayNow }) {
   const handleLock = useCallback(() => setLocked(true), []);
 
   const remaining = Math.max(0, PREVIEW_SECONDS - elapsed);
-  const effectiveUrl = getEffectiveUrl(previewVideo);
   const videoType = getVideoType(effectiveUrl);
 
   const renderVideo = () => {
@@ -244,6 +241,9 @@ export default function CoursePreviewModal({ course, onClose, onPayNow }) {
       return (
         <video
           controls
+          controlsList="nodownload"
+          disablePictureInPicture
+          onContextMenu={e => e.preventDefault()}
           autoPlay
           src={effectiveUrl}
           style={{ width: '100%', height: '100%', background: '#000', display: 'block' }}
