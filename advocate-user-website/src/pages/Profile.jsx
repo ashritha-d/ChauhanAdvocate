@@ -17,6 +17,7 @@ import AppointmentModal from '../components/AppointmentModal';
 import JrAdvocateModal from '../components/JrAdvocateModal';
 import CourseEnrollModal from '../components/CourseEnrollModal';
 import { downloadCertificate } from '../utils/certificate';
+import { isPasswordValid, PASSWORD_REQUIREMENT_MESSAGE } from '../utils/passwordValidation';
 
 const TABS = [
   { id: 'dashboard',     icon: 'fa-tachometer-alt', label: 'Dashboard' },
@@ -234,7 +235,7 @@ function CoursePlayer({ enrollment, authHeader, onClose }) {
 }
 
 export default function Profile() {
-  const { user, loading: authLoading, logout, updateUser, fetchUnreadCount, authHeader, unreadCount } = useUserAuth();
+  const { user, loading: authLoading, login, logout, updateUser, fetchUnreadCount, authHeader, unreadCount } = useUserAuth();
   const { settings: s } = useSite();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -497,12 +498,17 @@ export default function Profile() {
     e.preventDefault();
     if (!pwdForm.currentPassword || !pwdForm.newPassword || !pwdForm.confirmPassword) { showAlert('danger', 'All fields are required'); return; }
     if (pwdForm.newPassword !== pwdForm.confirmPassword) { showAlert('danger', 'New passwords do not match'); return; }
+    if (!isPasswordValid(pwdForm.newPassword)) { showAlert('danger', PASSWORD_REQUIREMENT_MESSAGE); return; }
     setSaving(true);
     try {
       const r = await changeUserPassword(pwdForm, authHeader());
       if (r.data.success) {
         setPwdForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
         showAlert('success', 'Password changed successfully!');
+        // The backend bumps tokenVersion on every password change, which invalidates
+        // the token we're currently holding — must swap in the fresh one it returns,
+        // and sync the updated user (clears mustChangePassword after a forced reset).
+        if (r.data.token) login(r.data.token, r.data.user || user);
       } else showAlert('danger', r.data.message);
     } catch (err) {
       showAlert('danger', err.response?.data?.message || 'Failed to change password');
@@ -1414,11 +1420,18 @@ export default function Profile() {
                   {/* Change Password */}
                   <div className="profile-card mb-4">
                     <div className="profile-card-header"><i className="fas fa-lock text-gold me-2"></i>Change Password</div>
+                    {user?.mustChangePassword && (
+                      <div className="alert alert-warning d-flex align-items-center gap-2 mb-3">
+                        <i className="fas fa-exclamation-triangle"></i>
+                        <span>Your password was reset by an administrator. Please set a new password below to continue using your account.</span>
+                      </div>
+                    )}
+                    <p className="text-muted small mb-3">{PASSWORD_REQUIREMENT_MESSAGE}</p>
                     <form onSubmit={handlePasswordChange}>
                       <div className="row g-3">
                         {[
                           { key: 'currentPassword', label: 'Current Password', placeholder: 'Enter current password' },
-                          { key: 'newPassword', label: 'New Password', placeholder: 'At least 6 characters' },
+                          { key: 'newPassword', label: 'New Password', placeholder: '6-10 characters' },
                           { key: 'confirmPassword', label: 'Confirm New Password', placeholder: 'Re-enter new password' },
                         ].map(({ key, label, placeholder }) => (
                           <div className="col-md-4" key={key}>

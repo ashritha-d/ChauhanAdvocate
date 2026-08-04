@@ -21,11 +21,13 @@ export default function Users() {
   const [page, setPage]       = useState(1);
   const [pages, setPages]     = useState(1);
   const [total, setTotal]     = useState(0);
-  const [modal, setModal]     = useState(null); // 'delete' | 'notify' | 'view'
+  const [modal, setModal]     = useState(null); // 'delete' | 'notify' | 'view' | 'resetPassword' | 'resetPasswordResult'
   const [selected, setSelected] = useState(null);
   const [notifyMsg, setNotifyMsg] = useState('');
   const [saving, setSaving]   = useState(false);
   const [toast, setToast]     = useState(null);
+  const [tempPassword, setTempPassword] = useState(''); // shown exactly once, never persisted or re-fetchable
+  const [copied, setCopied]   = useState(false);
 
   const showToast = (msg, type = 'success') => setToast({ msg, type });
 
@@ -73,6 +75,30 @@ export default function Users() {
       setModal(null); setNotifyMsg('');
     } catch (e) { showToast(e.response?.data?.message || 'Failed', 'error'); }
     setSaving(false);
+  };
+
+  const handleResetPassword = async () => {
+    setSaving(true);
+    try {
+      const r = await api.put(`/users/${selected._id}/reset-password`);
+      setTempPassword(r.data.tempPassword);
+      setCopied(false);
+      setModal('resetPasswordResult');
+      showToast('Password reset — share the temporary password with the user');
+    } catch (e) { showToast(e.response?.data?.message || 'Reset failed', 'error'); }
+    setSaving(false);
+  };
+
+  const handleCopyTempPassword = () => {
+    navigator.clipboard?.writeText(tempPassword).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const closeResetPasswordResult = () => {
+    setModal(null);
+    setTempPassword(''); // never keep the plaintext around after the admin closes this
   };
 
   const fmtDate = d => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -127,6 +153,7 @@ export default function Users() {
                 <thead>
                   <tr>
                     <th className="px-4">User</th>
+                    <th>User ID</th>
                     <th>Phone</th>
                     <th>Status</th>
                     <th>Last Login</th>
@@ -136,7 +163,7 @@ export default function Users() {
                 </thead>
                 <tbody>
                   {users.length === 0 ? (
-                    <tr><td colSpan={6} className="text-center py-5" style={{ color: '#6c757d' }}>No users found</td></tr>
+                    <tr><td colSpan={7} className="text-center py-5" style={{ color: '#6c757d' }}>No users found</td></tr>
                   ) : users.map(u => (
                     <tr key={u._id}>
                       <td className="px-4">
@@ -148,6 +175,7 @@ export default function Users() {
                           </div>
                         </div>
                       </td>
+                      <td style={{ fontSize: '0.72rem', color: '#6b7280', fontFamily: 'monospace' }} title={u._id}>{u._id.slice(-8)}</td>
                       <td style={{ fontSize: '0.83rem', color: '#374151' }}>{u.phone}</td>
                       <td>
                         <span style={{ background: u.isActive ? '#dcfce7' : '#fee2e2', color: u.isActive ? '#166534' : '#991b1b', padding: '3px 12px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600 }}>
@@ -160,6 +188,11 @@ export default function Users() {
                         <div className="d-flex gap-1">
                           <button className="sa-action-btn sa-action-edit" title="Send Notification" onClick={() => { setSelected(u); setModal('notify'); }}>
                             <i className="fas fa-bell"></i>
+                          </button>
+                          <button className="sa-action-btn" title="Reset Password"
+                            style={{ background: '#78350f33', color: '#fbbf24', border: 'none' }}
+                            onClick={() => { setSelected(u); setModal('resetPassword'); }}>
+                            <i className="fas fa-key"></i>
                           </button>
                           <button className="sa-action-btn" title={u.isActive ? 'Suspend' : 'Activate'}
                             style={{ background: u.isActive ? '#7f1d1d33' : '#06402a33', color: u.isActive ? '#f87171' : '#34d399', border: 'none' }}
@@ -230,6 +263,62 @@ export default function Users() {
                 <button className="btn sa-btn-primary" onClick={handleNotify} disabled={saving}>
                   {saving ? 'Sending…' : 'Send Notification'}
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Password confirmation */}
+      {modal === 'resetPassword' && (
+        <div className="modal show d-block" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: 440 }}>
+            <div className="modal-content sa-modal">
+              <div className="modal-header sa-modal-header border-0">
+                <h5 className="modal-title fw-bold" style={{ color: '#fbbf24' }}><i className="fas fa-key me-2"></i>Reset Password</h5>
+                <button className="btn-close btn-close-white" onClick={() => setModal(null)}></button>
+              </div>
+              <div className="modal-body sa-modal-body">
+                <p style={{ color: '#9ca3af' }}>
+                  This generates a new temporary password for <strong style={{ color: '#e2e8f0' }}>{selected?.name}</strong> and
+                  signs them out of any active sessions. They will be required to set their own password on next login.
+                </p>
+                <p style={{ color: '#9ca3af', fontSize: '0.82rem' }}>Their current password is never shown — only a new temporary one is generated.</p>
+              </div>
+              <div className="modal-footer sa-modal-footer border-0">
+                <button className="btn sa-btn-outline" onClick={() => setModal(null)}>Cancel</button>
+                <button className="btn" style={{ background: '#fbbf24', color: '#1a1a2e', fontWeight: 600 }} onClick={handleResetPassword} disabled={saving}>
+                  {saving ? 'Resetting…' : 'Reset Password'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* One-time temporary password display — never shown again after closing */}
+      {modal === 'resetPasswordResult' && (
+        <div className="modal show d-block" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: 440 }}>
+            <div className="modal-content sa-modal">
+              <div className="modal-header sa-modal-header border-0">
+                <h5 className="modal-title fw-bold" style={{ color: '#34d399' }}><i className="fas fa-check-circle me-2"></i>Password Reset</h5>
+                <button className="btn-close btn-close-white" onClick={closeResetPasswordResult}></button>
+              </div>
+              <div className="modal-body sa-modal-body">
+                <p style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
+                  Share this temporary password with <strong style={{ color: '#e2e8f0' }}>{selected?.name}</strong> securely (phone/in person).
+                  It will <strong>not</strong> be shown again after you close this window.
+                </p>
+                <div className="d-flex align-items-center gap-2" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, padding: '10px 14px' }}>
+                  <code style={{ flex: 1, fontSize: '1.1rem', color: '#fbbf24', letterSpacing: 1 }}>{tempPassword}</code>
+                  <button type="button" className="btn sa-btn-outline btn-sm" onClick={handleCopyTempPassword}>
+                    <i className={`fas ${copied ? 'fa-check' : 'fa-copy'} me-1`}></i>{copied ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+              <div className="modal-footer sa-modal-footer border-0">
+                <button className="btn sa-btn-primary" onClick={closeResetPasswordResult}>Done</button>
               </div>
             </div>
           </div>

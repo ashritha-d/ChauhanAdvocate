@@ -3,6 +3,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
 import { userRegister } from '../api';
 import { useUserAuth } from '../context/UserAuthContext';
+import { getPasswordChecks, isPasswordValid, PASSWORD_REQUIREMENT_MESSAGE } from '../utils/passwordValidation';
+
+const PWD_CHECK_ITEMS = [
+  { key: 'length', label: '6-10 characters' },
+  { key: 'uppercase', label: 'One uppercase letter' },
+  { key: 'lowercase', label: 'One lowercase letter' },
+  { key: 'number', label: 'One number' },
+  { key: 'special', label: 'One special character' },
+];
 
 export default function Register() {
   const { login } = useUserAuth();
@@ -19,12 +28,17 @@ export default function Register() {
     setFieldErrors(fe => ({ ...fe, [k]: '' }));
   };
 
+  const pwdChecks = getPasswordChecks(form.password);
+  const pwdValid = isPasswordValid(form.password);
+  const confirmValid = form.confirmPassword.length > 0 && form.password === form.confirmPassword;
+  const canSubmit = pwdValid && confirmValid;
+
   const validate = () => {
     const errs = {};
     if (!form.name.trim()) errs.name = 'Full name is required';
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Enter a valid email address';
     if (!form.phone || !/^\d{10}$/.test(form.phone.replace(/\D/g, ''))) errs.phone = 'Enter a valid 10-digit mobile number';
-    if (!form.password || form.password.length < 6) errs.password = 'Password must be at least 6 characters';
+    if (!pwdValid) errs.password = PASSWORD_REQUIREMENT_MESSAGE;
     if (form.password !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match';
     return errs;
   };
@@ -128,14 +142,28 @@ export default function Register() {
                   className={`auth-input ${fieldErrors.password ? 'is-invalid' : ''}`}
                   value={form.password}
                   onChange={set('password')}
-                  placeholder="At least 6 characters"
+                  placeholder="6-10 characters"
                   autoComplete="new-password"
+                  aria-describedby="password-requirements"
                 />
                 <button type="button" className="auth-input-toggle" onClick={() => setShowPwd(v => !v)} tabIndex={-1}>
                   <i className={`fas ${showPwd ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                 </button>
               </div>
               {fieldErrors.password && <div className="auth-field-error"><i className="fas fa-exclamation-circle me-1"></i>{fieldErrors.password}</div>}
+              <div className="password-requirements" id="password-requirements">
+                <p className="password-requirements-hint">{PASSWORD_REQUIREMENT_MESSAGE}</p>
+                <ul className="pwd-check-list">
+                  {PWD_CHECK_ITEMS.map(item => {
+                    const met = pwdChecks[item.key];
+                    return (
+                      <li key={item.key} className={`pwd-check-item ${met ? 'is-met' : ''}`}>
+                        <i className={`fas ${met ? 'fa-check-circle' : 'fa-circle'}`}></i>{item.label}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             </div>
 
             {/* Confirm Password */}
@@ -145,7 +173,7 @@ export default function Register() {
                 <i className="fas fa-lock auth-input-icon"></i>
                 <input
                   type={showConfirm ? 'text' : 'password'}
-                  className={`auth-input ${fieldErrors.confirmPassword ? 'is-invalid' : ''}`}
+                  className={`auth-input ${fieldErrors.confirmPassword || (form.confirmPassword && !confirmValid) ? 'is-invalid' : ''}`}
                   value={form.confirmPassword}
                   onChange={set('confirmPassword')}
                   placeholder="Re-enter your password"
@@ -155,10 +183,17 @@ export default function Register() {
                   <i className={`fas ${showConfirm ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                 </button>
               </div>
-              {fieldErrors.confirmPassword && <div className="auth-field-error"><i className="fas fa-exclamation-circle me-1"></i>{fieldErrors.confirmPassword}</div>}
+              {fieldErrors.confirmPassword ? (
+                <div className="auth-field-error"><i className="fas fa-exclamation-circle me-1"></i>{fieldErrors.confirmPassword}</div>
+              ) : form.confirmPassword && (
+                <div className={`auth-field-error ${confirmValid ? 'is-match' : ''}`}>
+                  <i className={`fas ${confirmValid ? 'fa-check-circle' : 'fa-exclamation-circle'} me-1`}></i>
+                  {confirmValid ? 'Passwords match' : 'Passwords do not match'}
+                </div>
+              )}
             </div>
 
-            <button type="submit" className="btn btn-gold w-100 py-3" disabled={loading}>
+            <button type="submit" className="btn btn-gold w-100 py-3" disabled={loading || !canSubmit}>
               {loading
                 ? <><i className="fas fa-spinner fa-spin me-2"></i>Creating Account...</>
                 : <><i className="fas fa-user-plus me-2"></i>Create Account</>

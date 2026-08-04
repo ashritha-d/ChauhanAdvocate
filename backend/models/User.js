@@ -11,6 +11,9 @@ const userSchema = new mongoose.Schema({
   profilePhoto: { type: String, default: '' },
   isActive: { type: Boolean, default: true },
   lastLogin: { type: Date },
+  // Set when an admin resets a user's password to a temporary one — forces the
+  // user to set their own password before they can use the account normally.
+  mustChangePassword: { type: Boolean, default: false },
   // SEC-06: Incremented on password change / deactivation to invalidate existing JWTs
   tokenVersion: { type: Number, default: 0 },
   otp: { type: String, select: false },

@@ -8,7 +8,7 @@ const {
   getProfile, updateProfile, changePassword, uploadPhoto,
   getMyAppointments, getMyOrders,
   getNotifications, markNotificationRead, markAllNotificationsRead,
-  adminGetUsers, adminGetUser, adminUpdateUserStatus, adminDeleteUser, adminSendNotification,
+  adminGetUsers, adminGetUser, adminUpdateUserStatus, adminDeleteUser, adminSendNotification, adminResetUserPassword,
   refreshToken, logoutUser,
 } = require('../controllers/userController');
 
@@ -40,5 +40,6 @@ router.get('/:id', protect, adminGetUser);
 router.put('/:id/status', protect, adminUpdateUserStatus);
 router.delete('/:id', protect, adminDeleteUser);
 router.post('/:id/notify', protect, adminSendNotification);
+router.put('/:id/reset-password', protect, adminResetUserPassword);
 
 module.exports = router;

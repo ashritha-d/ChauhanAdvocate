@@ -77,6 +77,16 @@
 }
 .auth-input-toggle:hover { color: var(--gold); }
 .auth-field-error { color: #f87171; font-size: 0.78rem; margin-top: 4px; }
+.auth-field-error.is-match { color: #4ade80; }
+
+/* Real-time password-strength checklist */
+.password-requirements { margin-top: 8px; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; }
+.password-requirements-hint { color: rgba(255,255,255,0.5); font-size: 0.74rem; margin: 0 0 6px; line-height: 1.4; }
+.pwd-check-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.pwd-check-item { font-size: 0.76rem; display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.4); transition: color 0.15s; }
+.pwd-check-item i { font-size: 0.7rem; }
+.pwd-check-item.is-met { color: #4ade80; }
+
 .auth-link { color: var(--gold); font-weight: 600; text-decoration: none; }
 .auth-link:hover { color: #e0bc66; text-decoration: underline; }
 .auth-switch { color: rgba(255,255,255,0.5); font-size: 0.88rem; text-align: center; }

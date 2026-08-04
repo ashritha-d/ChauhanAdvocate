@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { SiteProvider } from './context/SiteContext';
 import { UserAuthProvider } from './context/UserAuthContext';
@@ -48,6 +48,21 @@ function ConditionalFooter() {
 function ConditionalNewsTicker() {
   const { user } = useUserAuth();
   return user ? null : <NewsTicker />;
+}
+
+// An admin-issued temporary password sets user.mustChangePassword — this
+// redirects the user straight to the password-change form on every page until
+// they set their own password, rather than just hoping they notice a banner.
+function ForcePasswordChangeGuard() {
+  const { user } = useUserAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (user?.mustChangePassword && location.pathname !== '/profile') {
+      navigate('/profile?tab=settings&forceChangePassword=1', { replace: true });
+    }
+  }, [user?.mustChangePassword, location.pathname, navigate]);
+  return null;
 }
 
 function GlobalModals() {
@@ -203,6 +218,7 @@ export default function App() {
       <UserAuthProvider>
         <BrowserRouter basename="/ChauhanAdvocate">
           <ScrollToHash />
+          <ForcePasswordChangeGuard />
           <Routes>
             <Route path="/" element={
               <AppLayout>

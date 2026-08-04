@@ -9,6 +9,7 @@ const {
 } = require('../middleware/userAuth');
 const { sendOTPEmail } = require('../services/email');
 const securityLogger = require('../services/securityLogger');
+const { validatePasswordStrength, generateTempPassword } = require('../utils/passwordPolicy');
 
 function getIp(req) {
   return (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
@@ -29,8 +30,9 @@ exports.register = async (req, res) => {
     if (password !== confirmPassword) {
       return res.status(400).json({ success: false, message: 'Passwords do not match' });
     }
-    if (password.length < 6) {
-      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    const pwCheck = validatePasswordStrength(password);
+    if (!pwCheck.valid) {
+      return res.status(400).json({ success: false, message: pwCheck.message });
     }
     if (!/^\d{10}$/.test(phone.replace(/\D/g, ''))) {
       return res.status(400).json({ success: false, message: 'Enter a valid 10-digit mobile number' });
@@ -168,8 +170,9 @@ exports.resetPassword = async (req, res) => {
     if (newPassword !== confirmPassword) {
       return res.status(400).json({ success: false, message: 'Passwords do not match' });
     }
-    if (newPassword.length < 6) {
-      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    const pwCheck = validatePasswordStrength(newPassword);
+    if (!pwCheck.valid) {
+      return res.status(400).json({ success: false, message: pwCheck.message });
     }
 
     const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
@@ -182,6 +185,7 @@ exports.resetPassword = async (req, res) => {
     if (!user) return res.status(400).json({ success: false, message: 'Invalid or expired reset token. Please request a new OTP.' });
 
     user.password = newPassword;
+    user.mustChangePassword = false;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpiry = undefined;
     await user.save();
@@ -229,8 +233,9 @@ exports.changePassword = async (req, res) => {
     if (newPassword !== confirmPassword) {
       return res.status(400).json({ success: false, message: 'New passwords do not match' });
     }
-    if (newPassword.length < 6) {
-      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    const pwCheck = validatePasswordStrength(newPassword);
+    if (!pwCheck.valid) {
+      return res.status(400).json({ success: false, message: pwCheck.message });
     }
 
     const user = await User.findById(req.user._id).select('+password');
@@ -240,10 +245,11 @@ exports.changePassword = async (req, res) => {
     // SEC-06: Bump tokenVersion to invalidate all existing sessions
     user.password = newPassword;
     user.tokenVersion = (user.tokenVersion || 0) + 1;
+    user.mustChangePassword = false;
     await user.save();
 
     const token = generateUserToken(user);
-    res.json({ success: true, message: 'Password changed successfully', token });
+    res.json({ success: true, message: 'Password changed successfully', token, user: sanitizeUser(user) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -381,6 +387,36 @@ exports.adminDeleteUser = async (req, res) => {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     res.json({ success: true, message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Generates a temporary password on the user's behalf rather than letting the
+// admin view or set an arbitrary one — the plaintext is returned exactly once
+// in this response for the admin to relay out-of-band, then never stored or
+// shown again. mustChangePassword forces the user onto their own password
+// before they can use the account, and bumping tokenVersion signs them out
+// of any existing sessions immediately.
+exports.adminResetUserPassword = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const tempPassword = generateTempPassword();
+    user.password = tempPassword;
+    user.mustChangePassword = true;
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
+    await user.save();
+
+    await UserNotification.create({
+      userId: user._id,
+      title: 'Password Reset by Admin',
+      message: 'Your password was reset by an administrator. Please use your new temporary password to log in, then set a new password.',
+      type: 'general',
+    });
+
+    res.json({ success: true, message: 'Password reset successfully', tempPassword });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
