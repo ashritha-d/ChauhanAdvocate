@@ -195,7 +195,7 @@ export default function CourseDetails() {
 
               <h5 className="course-details-heading">What's Included</h5>
               <ul className="course-card-features course-details-features">
-                <li><i className="fas fa-check" />Lifetime Access</li>
+                <li><i className="fas fa-check" />{course.validityDays || 365} Days Access</li>
                 <li><i className="fas fa-check" />Mobile Friendly</li>
                 <li><i className="fas fa-check" />Downloadable Resources</li>
                 <li><i className="fas fa-check" />Practical Examples</li>

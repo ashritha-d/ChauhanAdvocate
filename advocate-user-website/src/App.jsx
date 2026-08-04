@@ -35,6 +35,21 @@ import JrAdvocateModal from './components/JrAdvocateModal';
 import { clearPendingAction } from './utils/pendingAction';
 import { useUserAuth } from './context/UserAuthContext';
 
+// Footer is only ever shown on the Home page — every other page (public or
+// authenticated) hides it. Centralized here so no page has to opt out individually.
+function ConditionalFooter() {
+  const location = useLocation();
+  return location.pathname === '/' ? <Footer /> : null;
+}
+
+// The news ticker is a logged-out-only affordance — it disappears the moment a
+// user logs in (reactive via context, no refresh needed) and stays hidden across
+// every authenticated page, restoring automatically on logout.
+function ConditionalNewsTicker() {
+  const { user } = useUserAuth();
+  return user ? null : <NewsTicker />;
+}
+
 function GlobalModals() {
   const { activeModal, modalData, closeModal } = useUserAuth();
   const handleClose = () => { clearPendingAction(); closeModal(); };
@@ -75,7 +90,7 @@ function AppLayout({ children, hideFooterExtras }) {
       <TopBar />
       <Navbar />
       <div className="nav-spacer" />
-      <NewsTicker />
+      <ConditionalNewsTicker />
       <main>{children}</main>
       <GlobalModals />
       <BookPromoPopup />
@@ -86,7 +101,7 @@ function AppLayout({ children, hideFooterExtras }) {
           <BackToTop />
         </>
       )}
-      <Footer />
+      <ConditionalFooter />
     </>
   );
 }
@@ -98,7 +113,7 @@ function AuthLayout({ children }) {
       <Navbar />
       <main>{children}</main>
       <GlobalModals />
-      <Footer />
+      <ConditionalFooter />
     </>
   );
 }

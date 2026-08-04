@@ -354,7 +354,10 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .course-card-features li { font-size: 0.74rem; color: #555; display: flex; align-items: center; gap: 6px; }
 .course-card-features i { color: #16a34a; font-size: 0.7rem; }
 
-.course-card-footer { padding: 12px 18px 16px; border-top: 1px solid #f0f0f0; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+/* min-height covers the tallest case (discounted price wraps price+original+badge
+   onto 2 lines) so the action buttons start at the same Y position on every card,
+   regardless of whether that particular course has a discount. */
+.course-card-footer { padding: 12px 18px 16px; border-top: 1px solid #f0f0f0; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; min-height: 132px; box-sizing: border-box; }
 .course-card-price { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
 .course-price-free { font-size: 1.1rem; font-weight: 700; color: #16a34a; }
 .course-price-current { font-size: 1.1rem; font-weight: 700; color: var(--gold); }
@@ -1180,7 +1183,10 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .card-carousel-track:active { cursor: grabbing; }
 .card-carousel-track::-webkit-scrollbar { display: none; }
 .card-carousel-track > * { scroll-snap-align: start; }
-.card-carousel-track .course-card { flex: 0 0 320px; min-width: 320px; }
+/* height:auto (overriding the base .course-card's height:100%, which only makes sense
+   inside a stretched Bootstrap grid column) lets flexbox's own stretch algorithm equalize
+   every card to the tallest one in the row — a non-auto height blocks that per spec. */
+.card-carousel-track .course-card { flex: 0 0 320px; min-width: 320px; height: auto; align-self: stretch; }
 
 .cc-nav-btn {
   flex-shrink: 0;
@@ -2694,6 +2700,15 @@ body.drawer-open { overflow: hidden !important; }
   border: 1px solid #e8e3d8;
   padding: 22px;
   transition: box-shadow 0.2s, transform 0.2s;
+  /* flex-column + min-height keeps every card in the grid the same height even
+     across different rows (CSS Grid only auto-stretches items within one row),
+     regardless of how many optional fields (speaker/time/description) a given
+     session has. */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 260px;
+  box-sizing: border-box;
 }
 .live-upcoming-card:hover {
   box-shadow: 0 6px 24px rgba(0,0,0,0.08);
@@ -2714,6 +2729,10 @@ body.drawer-open { overflow: hidden !important; }
   color: var(--dark);
   margin-bottom: 8px;
   line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .live-upcoming-meta {
   font-size: 0.8rem;
@@ -2757,10 +2776,25 @@ body.drawer-open { overflow: hidden !important; }
   overflow: hidden;
   background: #fafafa;
   transition: box-shadow 0.2s;
+  /* flex-column + min-height gives every card the same overall height across
+     the whole grid, not just within one row. */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 210px;
+  box-sizing: border-box;
 }
 .live-past-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-.live-past-img { width: 100%; height: 120px; object-fit: cover; }
-.live-past-body { padding: 14px; }
+.live-past-img { width: 100%; height: 120px; object-fit: cover; flex-shrink: 0; }
+.live-past-img--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  color: var(--gold);
+  font-size: 1.8rem;
+}
+.live-past-body { padding: 14px; display: flex; flex-direction: column; flex: 1; }
 .live-past-badge {
   display: inline-block;
   font-size: 0.65rem;
@@ -2772,6 +2806,7 @@ body.drawer-open { overflow: hidden !important; }
   letter-spacing: 0.8px;
   text-transform: uppercase;
   margin-bottom: 8px;
+  align-self: flex-start;
 }
 .live-past-badge--cancelled { background: #fee2e2; color: #dc2626; }
 .live-past-title {
@@ -2781,8 +2816,12 @@ body.drawer-open { overflow: hidden !important; }
   line-height: 1.3;
   margin-bottom: 6px;
   font-family: 'Playfair Display', serif;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-.live-past-meta { font-size: 0.76rem; color: #888; }
+.live-past-meta { font-size: 0.76rem; color: #888; margin-top: auto; padding-top: 6px; }
 
 @media (max-width: 576px) {
   .live-page-title { font-size: 1.5rem; }
@@ -2950,7 +2989,9 @@ body.drawer-open { overflow: hidden !important; }
   margin-bottom: 10px;
 }
 
-/* Buttons */
+/* Buttons — margin-top:auto pins the button to the bottom of .luc-body's flex
+   column regardless of how many meta lines/countdown blocks precede it, so it
+   lands at the same Y position across every card in the row. */
 .luc-join-btn {
   background: linear-gradient(135deg, #dc3545, #c82333);
   color: #fff;
@@ -2962,6 +3003,7 @@ body.drawer-open { overflow: hidden !important; }
   width: 100%;
   transition: all 0.2s;
   box-shadow: 0 4px 14px rgba(220,53,69,0.35);
+  margin-top: auto;
 }
 .luc-join-btn:hover { background: linear-gradient(135deg, #c82333, #a71d2a); color: #fff; transform: translateY(-1px); }
 
@@ -2975,6 +3017,7 @@ body.drawer-open { overflow: hidden !important; }
   padding: 9px 14px;
   width: 100%;
   transition: all 0.2s;
+  margin-top: auto;
 }
 .luc-more-btn:hover { background: rgba(201,168,76,0.25); color: var(--gold); }
 

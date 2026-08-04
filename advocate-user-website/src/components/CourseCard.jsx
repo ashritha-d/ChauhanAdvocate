@@ -136,7 +136,7 @@ function CourseCard({ course, enrolled = false, onEnroll, onPreview }) {
         </div>
 
         <ul className="course-card-features">
-          <li><i className="fas fa-check" />Lifetime Access</li>
+          <li><i className="fas fa-check" />{course.validityDays || 365} Days Access</li>
           <li><i className="fas fa-check" />Mobile Friendly</li>
           {course.certificate && <li><i className="fas fa-check" />Certificate of Completion</li>}
         </ul>

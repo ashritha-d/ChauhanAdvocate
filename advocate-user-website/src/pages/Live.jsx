@@ -301,7 +301,10 @@ export default function Live() {
             <div className="live-past-grid">
               {past.map(s => (
                 <div key={s._id} className="live-past-card">
-                  {s.banner && <img src={s.banner} alt={s.title} className="live-past-img" />}
+                  {s.banner
+                    ? <img src={s.banner} alt={s.title} className="live-past-img" />
+                    : <div className="live-past-img live-past-img--placeholder"><i className="fas fa-broadcast-tower" /></div>
+                  }
                   <div className="live-past-body">
                     <span className={`live-past-badge ${s.status === 'cancelled' ? 'live-past-badge--cancelled' : ''}`}>
                       {s.status === 'cancelled' ? 'Cancelled' : 'Completed'}

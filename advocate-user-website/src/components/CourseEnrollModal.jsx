@@ -179,7 +179,7 @@ export default function CourseEnrollModal({ course, onClose }) {
                   </>
                 )}
               </div>
-              <span className="small text-muted">Lifetime access</span>
+              <span className="small text-muted">{course.validityDays || 365} Days Access</span>
             </div>
 
             <button
