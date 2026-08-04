@@ -1166,6 +1166,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 
 .card-carousel-track {
   display: flex;
+  align-items: stretch;
   gap: 22px;
   flex: 1;
   min-width: 0;
@@ -1187,6 +1188,7 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
    inside a stretched Bootstrap grid column) lets flexbox's own stretch algorithm equalize
    every card to the tallest one in the row — a non-auto height blocks that per spec. */
 .card-carousel-track .course-card { flex: 0 0 320px; min-width: 320px; height: auto; align-self: stretch; }
+.card-carousel-track .live-update-card { flex: 0 0 280px; align-self: stretch; }
 
 .cc-nav-btn {
   flex-shrink: 0;
