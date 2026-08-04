@@ -338,16 +338,25 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
   font-size: 0.68rem; padding: 4px 8px; border-radius: 6px; white-space: nowrap;
 }
 
-.course-card-body { padding: 18px 18px 12px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
-.course-card-title { font-family: 'Playfair Display', serif; font-size: 1.02rem; font-weight: 700; color: var(--dark); line-height: 1.4; margin: 0; }
-.course-card-desc { font-size: 0.83rem; color: #666; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin: 0; }
-.course-card-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.75rem; color: #888; }
-.course-card-meta span { display: flex; align-items: center; gap: 3px; }
-.course-card-updated { font-size: 0.72rem; color: #aaa; }
+/* Body height is intentionally tight to match the Live Session card system —
+   every child below has an explicit line-clamp or max-height so variable
+   content (long titles, extra meta items) truncates instead of growing the card. */
+.course-card-body { padding: 10px 14px 6px; flex: 1; display: flex; flex-direction: column; gap: 3px; min-height: 0; }
+.course-card-title {
+  font-family: 'Playfair Display', serif; font-size: 0.96rem; font-weight: 700; color: var(--dark);
+  line-height: 1.25; margin: 0;
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+}
+.course-card-desc { font-size: 0.78rem; color: #666; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; margin: 0; }
+/* Capped at 1 line regardless of how many meta items a course has (category,
+   instructor, language, videos, modules, duration) — extra items are clipped
+   rather than pushing the card taller. */
+.course-card-meta { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 0.7rem; color: #888; max-height: 1.3em; overflow: hidden; }
+.course-card-meta span { display: flex; align-items: center; gap: 3px; white-space: nowrap; }
 .course-card-students { font-size: 0.78rem; color: #555; }
 
-.course-card-stats { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem; color: #555; padding: 6px 0; border-top: 1px dashed #eee; border-bottom: 1px dashed #eee; }
-.course-card-stats span { display: flex; align-items: center; gap: 4px; }
+.course-card-stats { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 0.68rem; color: #555; padding: 4px 0; border-top: 1px dashed #eee; max-height: 1.5em; overflow: hidden; }
+.course-card-stats span { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
 .course-card-stats i { color: var(--gold); }
 
 .course-card-features { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
@@ -357,18 +366,23 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 /* min-height covers the tallest case (discounted price wraps price+original+badge
    onto 2 lines) so the action buttons start at the same Y position on every card,
    regardless of whether that particular course has a discount. */
-.course-card-footer { padding: 12px 18px 16px; border-top: 1px solid #f0f0f0; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; min-height: 132px; box-sizing: border-box; }
+.course-card-footer { padding: 8px 16px 10px; border-top: 1px solid #f0f0f0; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; min-height: 103px; box-sizing: border-box; }
 .course-card-price { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
 .course-price-free { font-size: 1.1rem; font-weight: 700; color: #16a34a; }
 .course-price-current { font-size: 1.1rem; font-weight: 700; color: var(--gold); }
 .course-price-original { font-size: 0.85rem; color: #aaa; text-decoration: line-through; }
 .course-price-discount { font-size: 0.68rem; font-weight: 700; color: #16a34a; background: rgba(22,163,74,0.1); padding: 2px 6px; border-radius: 4px; }
 
-.course-card-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.course-card-actions { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
 .course-card-actions-row { display: flex; gap: 6px; }
 .course-card-actions-row .btn { font-size: 0.72rem; padding: 4px 8px; transition: transform 0.15s; }
 .course-card-actions-row .btn:hover { transform: translateY(-1px); }
-.course-card-actions .btn-gold { transition: transform 0.15s; }
+/* Overrides Bootstrap's default .btn-sm sizing (0.875rem) — at that size, longer
+   labels like "Login to Enroll" wrap to 2 lines inside the narrow actions column,
+   which is what was silently growing the footer past its intended height. */
+.course-card-actions .btn-gold {
+  font-size: 0.76rem; padding: 5px 10px; white-space: nowrap; transition: transform 0.15s;
+}
 .course-card-actions .btn-gold:hover { transform: translateY(-1px); }
 
 /* ── Course Details Page ── */

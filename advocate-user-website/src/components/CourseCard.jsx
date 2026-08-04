@@ -49,9 +49,6 @@ function CourseCard({ course, enrolled = false, onEnroll, onPreview }) {
 
   const videosCount = getTotalVideos(course);
   const modulesCount = course.modules?.length || 0;
-  const updated = course.updatedAt
-    ? new Date(course.updatedAt).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
-    : null;
 
   const goToDetails = () => navigate(`/courses/${course._id}`);
 
@@ -118,28 +115,19 @@ function CourseCard({ course, enrolled = false, onEnroll, onPreview }) {
         <p className="course-card-desc">{course.shortDescription || course.description}</p>
 
         <div className="course-card-meta">
-          {course.category && <span><i className="fas fa-tag me-1" />{course.category}</span>}
           {course.instructor && <span><i className="fas fa-user-tie me-1" />{course.instructor}</span>}
           {course.language && <span><i className="fas fa-language me-1" />{course.language}</span>}
-        </div>
-        <div className="course-card-meta">
           <span><i className="fas fa-video me-1" />{videosCount} videos</span>
           <span><i className="fas fa-layer-group me-1" />{modulesCount} modules</span>
           {course.duration && <span><i className="fas fa-clock me-1" />{course.duration}</span>}
         </div>
-        {updated && <div className="course-card-updated"><i className="fas fa-calendar-alt me-1" />Updated: {updated}</div>}
 
         <div className="course-card-stats">
           <span><i className="fas fa-star" />{course.rating > 0 ? course.rating.toFixed(1) : 'New'}</span>
-          <span><i className="fas fa-users" />{course.totalStudents > 0 ? course.totalStudents.toLocaleString('en-IN') : 0} students</span>
-          <span><i className="fas fa-certificate" />{course.certificate ? 'Certificate' : 'No certificate'}</span>
+          <span><i className="fas fa-users" />{course.totalStudents > 0 ? course.totalStudents.toLocaleString('en-IN') : 0}</span>
+          <span><i className="fas fa-check-circle" />{course.validityDays || 365} Days Access</span>
+          {course.certificate && <span><i className="fas fa-certificate" />Certificate</span>}
         </div>
-
-        <ul className="course-card-features">
-          <li><i className="fas fa-check" />{course.validityDays || 365} Days Access</li>
-          <li><i className="fas fa-check" />Mobile Friendly</li>
-          {course.certificate && <li><i className="fas fa-check" />Certificate of Completion</li>}
-        </ul>
       </div>
 
       <div className="course-card-footer">
