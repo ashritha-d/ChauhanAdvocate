@@ -31,6 +31,7 @@ jobs:
           app_location: "/advocate-user-website" # App source code path
           api_location: "" # Api source code path - optional
           output_location: "dist" # Built app content directory - optional
+          app_build_command: "npm run build:azure" # Root-domain build (Static Web Apps serve from their own root, unlike GitHub Pages' /ChauhanAdvocate/ subpath)
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:
