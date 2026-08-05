@@ -74,13 +74,23 @@ export function UserAuthProvider({ children }) {
     if (pending && pending !== 'order') openModal(pending, getPendingActionData());
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Clear client state immediately — the user should feel logged out on THIS
+    // device instantly, regardless of how the backend call below turns out.
     safeStorage('remove', 'userToken');
     setUser(null);
     setUnreadCount(0);
     closeModal();
-    // Best-effort: revoke the refresh cookie on the backend
-    callLogoutApi().catch(() => {});
+    try {
+      await callLogoutApi();
+    } catch (err) {
+      // The backend session may not have been released (e.g. a network error
+      // reaching the server) — this device is still logged out locally, but
+      // surface it rather than silently leaving the server-side session
+      // claimed, which would otherwise block login from another device.
+      console.error('[Logout] Server-side session release failed:', err?.response?.status, err?.response?.data?.message || err?.message);
+      window.alert('You have been logged out on this device, but we could not confirm the server session was closed. If you have trouble logging in elsewhere, please try again in a minute.');
+    }
   };
 
   // The axios interceptor dispatches this once a 401 proves unrecoverable (token

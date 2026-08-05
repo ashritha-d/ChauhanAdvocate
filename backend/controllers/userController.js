@@ -487,15 +487,28 @@ exports.refreshToken = async (req, res) => {
 exports.logoutUser = async (req, res) => {
   try {
     const raw = parseCookieHeader(req.headers.cookie, REFRESH_COOKIE_NAME);
-    if (raw) {
+    if (!raw) {
+      // Never log the token itself — only that one was missing, which is the
+      // exact signature of the browser not sending the cookie back (cross-origin
+      // credentials misconfiguration, cookies disabled, or a client that never
+      // received it on login) — the session release below never even runs.
+      console.warn('[Logout] No refresh-token cookie present on request — server-side session was NOT released.');
+    } else {
       // Look up the owner before revoking, so the session slot can be freed —
       // this route has no Bearer token to identify the user by (the access token
       // may well already be expired by the time someone clicks Logout).
       const record = await RefreshToken.findOne({ tokenHash: RefreshToken.hashToken(raw) });
-      if (record) await releaseSession(record.userId);
+      if (record) {
+        await releaseSession(record.userId);
+        console.log(`[Logout] Session released for user ${record.userId}`);
+      } else {
+        console.warn('[Logout] Refresh-token cookie present but no matching record found (already revoked/expired) — nothing to release.');
+      }
       await revokeRefreshToken(raw);
     }
-  } catch { /* best-effort revocation */ }
+  } catch (err) {
+    console.error('[Logout] Error during session revocation:', err.message);
+  }
   clearRefreshCookie(res);
   res.json({ success: true, message: 'Logged out successfully' });
 };

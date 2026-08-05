@@ -13,6 +13,14 @@ function safeRemove(key) {
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE || 'http://localhost:5000/api',
   timeout: 90000,
+  // Required on every request (not just /refresh and /logout, which had it as a
+  // one-off override) so the browser actually stores and re-sends the HttpOnly
+  // refresh-token cookie across the frontend/backend's separate Azure domains.
+  // Without this on login/register specifically, the cookie is silently never
+  // stored at all — logout then has nothing to send back, so the server-side
+  // session is never released (the exact "already logged in on another device"
+  // bug after an explicit logout).
+  withCredentials: true,
   headers: {
     'Cache-Control': 'no-cache',
     'Pragma': 'no-cache',
