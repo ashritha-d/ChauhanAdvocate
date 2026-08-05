@@ -7,6 +7,7 @@ const NAV = [
     { icon: 'fas fa-tachometer-alt', label: 'Dashboard', page: 'dashboard' },
   ]},
   { label: 'Content', items: [
+    { icon: 'fas fa-image',          label: 'Hero Banners',    page: 'banners' },
     { icon: 'fas fa-rss',            label: 'Latest News',     page: 'news', badge: 'news' },
     { icon: 'fas fa-graduation-cap', label: 'Courses',         page: 'courses' },
     { icon: 'fas fa-book-open',      label: 'Magazines',       page: 'magazines' },

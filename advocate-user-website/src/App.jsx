@@ -301,6 +301,10 @@ export default function App() {
             <Route path="/appointments"  element={<Navigate to="/profile?tab=appointments"  replace />} />
             <Route path="/notifications" element={<Navigate to="/profile?tab=notifications" replace />} />
             <Route path="/settings"      element={<Navigate to="/profile?tab=settings"      replace />} />
+
+            {/* Unmatched routes previously rendered a completely blank page (no route
+                matched, nothing to render) — send them home instead. */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </UserAuthProvider>
