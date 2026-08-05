@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
 import { userForgotPassword, userVerifyOTP, userResetPassword } from '../api';
+import { isPasswordValid, PASSWORD_REQUIREMENT_MESSAGE } from '../utils/passwordValidation';
 
 const STEPS = { EMAIL: 'email', OTP: 'otp', RESET: 'reset', DONE: 'done' };
 
@@ -62,7 +63,7 @@ export default function ForgotPassword() {
   const handleResetPassword = async e => {
     e.preventDefault();
     setError('');
-    if (!newPassword || newPassword.length < 6) { setError('Password must be at least 6 characters'); return; }
+    if (!isPasswordValid(newPassword)) { setError(PASSWORD_REQUIREMENT_MESSAGE); return; }
     if (newPassword !== confirmPassword) { setError('Passwords do not match'); return; }
     setLoading(true);
     try {
@@ -187,7 +188,7 @@ export default function ForgotPassword() {
                       className="auth-input"
                       value={newPassword}
                       onChange={e => setNewPassword(e.target.value)}
-                      placeholder="At least 6 characters"
+                      placeholder="At least 4 characters"
                       required
                     />
                     <button type="button" className="auth-input-toggle" onClick={() => setShowPwd(v => !v)} tabIndex={-1}>

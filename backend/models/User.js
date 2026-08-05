@@ -7,7 +7,10 @@ const userSchema = new mongoose.Schema({
   // UX-01: Email is required — needed for account recovery via OTP
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   phone: { type: String, required: true, trim: true, unique: true },
-  password: { type: String, required: true, minlength: 6, select: false },
+  // Kept in sync with backend/utils/passwordPolicy.js's MIN_LENGTH (4) — this is
+  // a second, independent gate (Mongoose validates before the pre-save hash hook
+  // runs), so it must match or a valid password would be silently rejected here.
+  password: { type: String, required: true, minlength: 4, select: false },
   profilePhoto: { type: String, default: '' },
   isActive: { type: Boolean, default: true },
   lastLogin: { type: Date },

@@ -1,23 +1,17 @@
 // Single source of truth for password strength rules — used by register,
 // self-service reset, change-password, and admin-generated temporary passwords,
 // so the requirement can never drift out of sync between entry points.
-const MIN_LENGTH = 6;
-const MAX_LENGTH = 10;
-// Deliberately simple: letters and numbers only, no special characters
-// required or allowed — chosen for memorability over strength.
-const ALPHANUMERIC_RE = /^[A-Za-z0-9]+$/;
+// Deliberately minimal: any characters are allowed, the only requirement is a
+// minimum length — no upper/lower/number/symbol composition rules.
+const MIN_LENGTH = 4;
 
-const REQUIREMENT_MESSAGE =
-  `Password must be ${MIN_LENGTH}-${MAX_LENGTH} alphanumeric characters (letters and numbers only).`;
+const REQUIREMENT_MESSAGE = `Password must be at least ${MIN_LENGTH} characters long.`;
 
 function validatePasswordStrength(password) {
   if (typeof password !== 'string' || !password) {
     return { valid: false, message: 'Password is required' };
   }
-  if (password.length < MIN_LENGTH || password.length > MAX_LENGTH) {
-    return { valid: false, message: REQUIREMENT_MESSAGE };
-  }
-  if (!ALPHANUMERIC_RE.test(password)) {
+  if (password.length < MIN_LENGTH) {
     return { valid: false, message: REQUIREMENT_MESSAGE };
   }
   return { valid: true, message: '' };
@@ -42,4 +36,4 @@ function generateTempPassword() {
   return chars.join('');
 }
 
-module.exports = { validatePasswordStrength, generateTempPassword, REQUIREMENT_MESSAGE, MIN_LENGTH, MAX_LENGTH };
+module.exports = { validatePasswordStrength, generateTempPassword, REQUIREMENT_MESSAGE, MIN_LENGTH };

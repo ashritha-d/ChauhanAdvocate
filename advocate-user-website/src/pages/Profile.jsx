@@ -1462,7 +1462,7 @@ export default function Profile() {
                       <div className="row g-3">
                         {[
                           { key: 'currentPassword', label: 'Current Password', placeholder: 'Enter current password' },
-                          { key: 'newPassword', label: 'New Password', placeholder: '6-10 characters' },
+                          { key: 'newPassword', label: 'New Password', placeholder: 'At least 4 characters' },
                           { key: 'confirmPassword', label: 'Confirm New Password', placeholder: 'Re-enter new password' },
                         ].map(({ key, label, placeholder }) => (
                           <div className="col-md-4" key={key}>

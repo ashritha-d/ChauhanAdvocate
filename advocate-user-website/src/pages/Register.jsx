@@ -6,8 +6,7 @@ import { useUserAuth } from '../context/UserAuthContext';
 import { getPasswordChecks, isPasswordValid, PASSWORD_REQUIREMENT_MESSAGE } from '../utils/passwordValidation';
 
 const PWD_CHECK_ITEMS = [
-  { key: 'length', label: '6-10 characters' },
-  { key: 'alphanumeric', label: 'Letters and numbers only' },
+  { key: 'length', label: 'At least 4 characters' },
 ];
 
 export default function Register() {
@@ -139,7 +138,7 @@ export default function Register() {
                   className={`auth-input ${fieldErrors.password ? 'is-invalid' : ''}`}
                   value={form.password}
                   onChange={set('password')}
-                  placeholder="6-10 characters"
+                  placeholder="At least 4 characters"
                   autoComplete="new-password"
                   aria-describedby="password-requirements"
                 />

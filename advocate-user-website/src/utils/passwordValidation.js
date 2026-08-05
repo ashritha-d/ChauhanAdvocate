@@ -1,18 +1,15 @@
 // Mirrors backend/utils/passwordPolicy.js exactly — frontend validation is a UX
 // convenience only; the backend re-validates independently and is the real gate.
-export const PASSWORD_REQUIREMENT_MESSAGE =
-  'Password must be 6-10 alphanumeric characters (letters and numbers only).';
+export const PASSWORD_REQUIREMENT_MESSAGE = 'Password must be at least 4 characters long.';
 
-const ALPHANUMERIC_RE = /^[A-Za-z0-9]+$/;
+const MIN_LENGTH = 4;
 
 export function getPasswordChecks(password = '') {
   return {
-    length: password.length >= 6 && password.length <= 10,
-    alphanumeric: password.length > 0 && ALPHANUMERIC_RE.test(password),
+    length: password.length >= MIN_LENGTH,
   };
 }
 
 export function isPasswordValid(password = '') {
-  const c = getPasswordChecks(password);
-  return c.length && c.alphanumeric;
+  return getPasswordChecks(password).length;
 }
