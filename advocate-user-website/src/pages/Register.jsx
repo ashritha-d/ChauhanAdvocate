@@ -7,10 +7,7 @@ import { getPasswordChecks, isPasswordValid, PASSWORD_REQUIREMENT_MESSAGE } from
 
 const PWD_CHECK_ITEMS = [
   { key: 'length', label: '6-10 characters' },
-  { key: 'uppercase', label: 'One uppercase letter' },
-  { key: 'lowercase', label: 'One lowercase letter' },
-  { key: 'number', label: 'One number' },
-  { key: 'special', label: 'One special character' },
+  { key: 'alphanumeric', label: 'Letters and numbers only' },
 ];
 
 export default function Register() {

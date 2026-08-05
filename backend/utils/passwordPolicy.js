@@ -3,11 +3,12 @@
 // so the requirement can never drift out of sync between entry points.
 const MIN_LENGTH = 6;
 const MAX_LENGTH = 10;
-const SPECIAL_CHARS = '!@#$%^&*()_+\\-=\\[\\]{};\':"\\\\|,.<>/?';
-const SPECIAL_RE = new RegExp(`[${SPECIAL_CHARS}]`);
+// Deliberately simple: letters and numbers only, no special characters
+// required or allowed — chosen for memorability over strength.
+const ALPHANUMERIC_RE = /^[A-Za-z0-9]+$/;
 
 const REQUIREMENT_MESSAGE =
-  `Password must be ${MIN_LENGTH}-${MAX_LENGTH} characters and contain uppercase, lowercase, number, and special character.`;
+  `Password must be ${MIN_LENGTH}-${MAX_LENGTH} alphanumeric characters (letters and numbers only).`;
 
 function validatePasswordStrength(password) {
   if (typeof password !== 'string' || !password) {
@@ -16,7 +17,7 @@ function validatePasswordStrength(password) {
   if (password.length < MIN_LENGTH || password.length > MAX_LENGTH) {
     return { valid: false, message: REQUIREMENT_MESSAGE };
   }
-  if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !SPECIAL_RE.test(password)) {
+  if (!ALPHANUMERIC_RE.test(password)) {
     return { valid: false, message: REQUIREMENT_MESSAGE };
   }
   return { valid: true, message: '' };
@@ -28,12 +29,11 @@ function generateTempPassword() {
   const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
   const lower = 'abcdefghijkmnpqrstuvwxyz';
   const digits = '23456789';
-  const special = '!@#$%^&*';
   const pick = chars => chars[Math.floor(Math.random() * chars.length)];
-  const all = upper + lower + digits + special;
+  const all = upper + lower + digits;
 
-  // Guarantee one of each required class, then fill to 8 chars, then shuffle.
-  let chars = [pick(upper), pick(lower), pick(digits), pick(special)];
+  // Guarantee one of each class, then fill to 8 chars, then shuffle.
+  let chars = [pick(upper), pick(lower), pick(digits)];
   while (chars.length < 8) chars.push(pick(all));
   for (let i = chars.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
