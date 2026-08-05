@@ -133,7 +133,10 @@ exports.forgotPassword = async (req, res) => {
     const otp = user.generateOTP();
     await user.save({ validateBeforeSave: false });
 
-    console.log(`[OTP for ${email}]: ${otp}`);
+    // Never log a live credential in production — mirrors the devOtp gate below.
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[OTP for ${email}]: ${otp}`);
+    }
 
     try {
       await sendOTPEmail({ to: email, otp, name: user.name });
