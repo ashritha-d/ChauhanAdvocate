@@ -168,11 +168,10 @@ app.get('/api/gallery', (req, res) => {
 // Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  // Multer's fileFilter/size-limit rejections are client input errors (wrong
-  // type, too large), not server failures — they don't set err.status
-  // themselves, so map them here rather than in every upload route.
-  const isUploadValidationError = err.name === 'MulterError' || err.message === 'File type not allowed';
-  const status = err.status || (isUploadValidationError ? 400 : 500);
+  // Every upload middleware's fileFilter now sets err.status = 400 itself
+  // (client input error, not a server failure); MulterError covers multer's
+  // own built-in size-limit rejections, which don't set err.status.
+  const status = err.status || (err.name === 'MulterError' ? 400 : 500);
   res.status(status).json({
     success: false,
     message: err.message || 'Internal Server Error'

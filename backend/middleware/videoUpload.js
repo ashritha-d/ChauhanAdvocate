@@ -22,7 +22,9 @@ const storage = new CloudinaryStorage({
 const fileFilter = (req, file, cb) => {
   const ext = file.originalname.split('.').pop().toLowerCase();
   if (ALLOWED_EXTS.includes(ext)) return cb(null, true);
-  cb(new Error('Unsupported format. Allowed: MP4, MOV, AVI, WEBM, MKV'));
+  const err = new Error('Unsupported format. Allowed: MP4, MOV, AVI, WEBM, MKV');
+  err.status = 400; // client input error, not a server failure
+  cb(err);
 };
 
 // Server-side backstop matching the admin UI's client-side MAX_VIDEO_MB check (previously

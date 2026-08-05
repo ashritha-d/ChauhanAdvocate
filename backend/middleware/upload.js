@@ -31,7 +31,9 @@ const fileFilter = (req, file, cb) => {
   const ext  = path.extname(file.originalname).toLowerCase().replace('.', '');
   const ok   = /^(jpeg|jpg|png|gif|webp|svg|pdf|mp4|mov|avi|doc|docx)$/.test(ext);
   if (ok) return cb(null, true);
-  cb(new Error('File type not allowed'));
+  const err = new Error('File type not allowed');
+  err.status = 400; // client input error, not a server failure
+  cb(err);
 };
 
 const upload = multer({

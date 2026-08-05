@@ -50,7 +50,7 @@ h1,h2,h3,h4,h5 { font-family: 'Inter', sans-serif; }
 .page-card-body { padding: 24px; }
 
 /* ── Table ── */
-.table-responsive { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,.06); }
+.table-responsive { border-radius: 12px; overflow-x: auto; overflow-y: hidden; box-shadow: 0 1px 6px rgba(0,0,0,.06); }
 .admin-table { margin: 0; }
 .admin-table thead th {
   background: var(--dark);

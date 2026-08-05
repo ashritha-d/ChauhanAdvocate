@@ -23,7 +23,9 @@ const storage = new CloudinaryStorage({
 const fileFilter = (req, file, cb) => {
   const ext = file.originalname.split('.').pop().toLowerCase();
   if (ALLOWED_EXTS.includes(ext)) return cb(null, true);
-  cb(new Error('Unsupported format. Allowed: PNG, JPG, JPEG, WEBP'));
+  const err = new Error('Unsupported format. Allowed: PNG, JPG, JPEG, WEBP');
+  err.status = 400; // client input error, not a server failure
+  cb(err);
 };
 
 module.exports = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } });

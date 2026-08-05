@@ -24,11 +24,11 @@ const fileFilter = (req, file, cb) => {
   if (file.fieldname === 'resume') {
     const allowed = /pdf|doc|docx/;
     if (allowed.test(path.extname(file.originalname).toLowerCase())) cb(null, true);
-    else cb(new Error('Resume must be PDF, DOC, or DOCX'));
+    else { const err = new Error('Resume must be PDF, DOC, or DOCX'); err.status = 400; cb(err); }
   } else if (file.fieldname === 'passportPhoto') {
     const allowed = /jpeg|jpg|png|webp/;
     if (allowed.test(path.extname(file.originalname).toLowerCase())) cb(null, true);
-    else cb(new Error('Photo must be JPG, PNG, or WebP'));
+    else { const err = new Error('Photo must be JPG, PNG, or WebP'); err.status = 400; cb(err); }
   } else {
     cb(null, true);
   }
