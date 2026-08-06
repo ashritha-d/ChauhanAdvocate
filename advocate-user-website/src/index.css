@@ -146,14 +146,35 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 .hero-title { color: #fff; text-shadow: 0 2px 20px rgba(0,0,0,0.3); }
 .hero-subtitle { color: rgba(255,255,255,0.75); }
 
-/* ── Hero Biography ── */
+/* ── Hero Biography ──
+   Justified like Word's Ctrl+J: text-justify: inter-word keeps the spacing
+   adjustment to word-gaps only (never letter-spacing). .hero-bio's own
+   max-width (660px, set inline in Hero.jsx) is what keeps the measure
+   controlled/consistent so the justification has a stable width to work
+   against; this rule intentionally targets only <p> (.hero-bio-para), not
+   the wrapping .hero-bio div, so .hero-bio-toggle ("Read More") — a
+   sibling <button>, not a paragraph — is never touched by it.
+
+   No hyphenation by default: at the full 660px measure (desktop/tablet)
+   there are enough words per line that justify balances naturally without
+   it, and forced mid-word breaks read as less professional for a legal
+   site. Below 576px the column narrows enough that occasional short lines
+   (2-3 words) can open a visibly wide gap, so hyphens: auto is restored
+   there only — confirmed visually at 375px: without it, "outstanding
+   academic achievements. He" opens a noticeably wider gap than surrounding
+   lines; with it, the line break falls mid-word instead and the gap closes. */
 .hero-bio-para {
   font-size: 1rem;
-  line-height: 1.85;
+  line-height: 1.8;
   margin-bottom: 0.85rem;
   color: rgba(255,255,255,0.8);
+  text-align: justify;
+  text-justify: inter-word;
 }
 .hero-bio-para:last-of-type { margin-bottom: 0; }
+@media (max-width: 576px) {
+  .hero-bio-para { hyphens: auto; }
+}
 .hero-bio-toggle {
   background: none;
   border: none;
