@@ -32,7 +32,10 @@ export default function Register() {
   const validate = () => {
     const errs = {};
     if (!form.name.trim()) errs.name = 'Full name is required';
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Enter a valid email address';
+    // Trim first so a whitespace-only email is treated as empty (optional),
+    // not as a present-but-invalid address — matches the backend's handling.
+    const trimmedEmail = form.email.trim();
+    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) errs.email = 'Enter a valid email address';
     if (!form.phone || !/^\d{10}$/.test(form.phone.replace(/\D/g, ''))) errs.phone = 'Enter a valid 10-digit mobile number';
     if (!pwdValid) errs.password = PASSWORD_REQUIREMENT_MESSAGE;
     if (form.password !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match';
