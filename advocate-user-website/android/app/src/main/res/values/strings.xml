@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Advocate Chauhan</string>
+    <string name="title_activity_main">Advocate Chauhan</string>
+    <string name="package_name">com.advocatechauhan.app</string>
+    <string name="custom_url_scheme">com.advocatechauhan.app</string>
+</resources>
