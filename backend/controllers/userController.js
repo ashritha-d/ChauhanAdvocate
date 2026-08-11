@@ -81,27 +81,21 @@ exports.login = async (req, res) => {
   try {
     const { identifier, password } = req.body;
     if (!identifier || !password) {
-      return res.status(400).json({ success: false, message: 'Email/mobile and password are required' });
+      return res.status(400).json({ success: false, message: 'Mobile number and password are required' });
     }
 
+    // Login is mobile-only — email is still a valid, optional field on the
+    // User model (set at registration), it's just never used as a login
+    // identifier. No stripping of spaces/dashes here, unlike registration's
+    // phone field; login is intentionally strict so a malformed identifier
+    // fails fast with a clear message instead of falling through to a query
+    // that can never match.
     const trimmedIdentifier = identifier.trim();
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedIdentifier);
-    let query;
-    if (isEmail) {
-      query = { email: trimmedIdentifier.toLowerCase() };
-    } else {
-      // Not email-shaped, so it must be a bare 10-digit mobile number — no
-      // stripping of spaces/dashes here, unlike registration's phone field;
-      // login is intentionally strict so malformed identifiers fail fast
-      // with a clear message instead of just falling through to a generic
-      // "invalid credentials" from a query that can never match.
-      if (!/^\d{10}$/.test(trimmedIdentifier)) {
-        return res.status(400).json({ success: false, message: 'Mobile number must be exactly 10 digits.' });
-      }
-      query = { phone: trimmedIdentifier };
+    if (!/^\d{10}$/.test(trimmedIdentifier)) {
+      return res.status(400).json({ success: false, message: 'Mobile number must be exactly 10 digits.' });
     }
 
-    const user = await User.findOne(query).select('+password');
+    const user = await User.findOne({ phone: trimmedIdentifier }).select('+password');
     if (!user || !user.isActive) {
       await securityLogger.warn('USER_LOGIN_FAILED', { identifier, reason: !user ? 'not found' : 'inactive' }, req);
       return res.status(401).json({ success: false, message: 'Invalid credentials or account deactivated' });

@@ -19,23 +19,20 @@ export default function Login() {
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 
-  // The identifier field accepts either an email or a mobile number, so this
-  // must never restrict typing in general (letters, @, . all stay free —
-  // that's what email login needs). The only thing it enforces in real time
-  // is a 10-digit cap, and only once the value is *purely* digits — a value
-  // containing any non-digit character (i.e. anything email-shaped) is left
-  // completely alone. Handles paste the same way as typing: for a controlled
-  // input, onChange fires with the full resulting value either way, so a
-  // pasted 11+ digit numeric string hits the same length check and gets cut
-  // to the first 10 digits.
+  // Login is mobile-only now (email login removed) — non-digit characters
+  // (letters, spaces, hyphens, @, .) are stripped silently as they're typed,
+  // and the result is capped at 10 digits. Handles paste the same way as
+  // typing: for a controlled input, onChange fires with the full resulting
+  // value either way, so a pasted string (numeric or not, any length) goes
+  // through the same digit-only + 10-digit-cap logic.
   const handleIdentifierChange = e => {
-    const raw = e.target.value;
-    if (/^\d+$/.test(raw) && raw.length > 10) {
-      setForm(f => ({ ...f, identifier: raw.slice(0, 10) }));
+    const digitsOnly = e.target.value.replace(/\D/g, '');
+    if (digitsOnly.length > 10) {
+      setForm(f => ({ ...f, identifier: digitsOnly.slice(0, 10) }));
       setIdentifierError('Mobile number must be exactly 10 digits.');
       return;
     }
-    setForm(f => ({ ...f, identifier: raw }));
+    setForm(f => ({ ...f, identifier: digitsOnly }));
     setIdentifierError('');
   };
 
@@ -43,12 +40,12 @@ export default function Login() {
     e.preventDefault();
     setError('');
     if (!form.identifier || !form.password) { setError('Please fill in all fields'); return; }
-    // Mirrors the backend's login validation: anything not shaped like an
-    // email must be a bare 10-digit mobile number — no stripping of spaces/
-    // dashes, so malformed input is caught here instead of a round trip.
-    const trimmedIdentifier = form.identifier.trim();
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedIdentifier);
-    if (!isEmail && !/^\d{10}$/.test(trimmedIdentifier)) {
+    // Mirrors the backend's login validation. The real-time handler already
+    // keeps form.identifier digits-only and capped at 10, but this stays as
+    // a defensive final check (e.g. against a bypassed onChange) and is what
+    // actually catches the fewer-than-10-digits case, which can't be
+    // detected live.
+    if (!/^\d{10}$/.test(form.identifier.trim())) {
       setError('Mobile number must be exactly 10 digits.');
       return;
     }
@@ -101,16 +98,17 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="mb-3">
-              <label className="auth-label">Email Address or Mobile Number</label>
+              <label className="auth-label">Mobile Number</label>
               <div className="auth-input-wrap">
                 <i className="fas fa-user auth-input-icon"></i>
                 <input
                   type="text"
+                  inputMode="numeric"
                   className={`auth-input ${identifierError ? 'is-invalid' : ''}`}
                   value={form.identifier}
                   onChange={handleIdentifierChange}
-                  placeholder="Email or 10-digit mobile"
-                  autoComplete="username"
+                  placeholder="Enter 10-digit mobile number"
+                  autoComplete="tel"
                   required
                 />
               </div>
