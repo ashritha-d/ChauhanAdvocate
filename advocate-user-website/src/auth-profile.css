@@ -225,7 +225,14 @@
 .psc-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; margin: 0 auto 12px; }
 .psc-value { font-size: 1.8rem; font-weight: 800; color: #1a1a2e; font-family: 'Playfair Display', serif; line-height: 1; }
 .psc-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
-.profile-card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+/* Explicit color needed: index.css has an unrelated .profile-content rule
+   (a completely different dark-themed section elsewhere on the site) that
+   sets color: rgba(255,255,255,0.85) — a class-name collision. Without this,
+   any plain text here (bare <strong>/<span>, no .text-muted) silently
+   inherits near-white-on-white. Bootstrap's .text-muted etc. already escape
+   it via !important, which is why this went unnoticed until real data
+   populated the plain <strong> list items. */
+.profile-card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); color: #333; }
 .profile-card-header { font-weight: 700; color: #1a1a2e; font-size: 0.95rem; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
 .profile-list-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
 .profile-list-item:last-child { border-bottom: none; }

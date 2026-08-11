@@ -10,7 +10,7 @@ import {
   getMyEnrollments, getPublicCourse, updateCourseProgress,
   markLastWatched, saveEnrollmentNotes, markCertificateIssued,
   getMyMagazinePurchases, downloadMagazineFull, getDrafts,
-  getMyInternships, getMyDraftPurchases,
+  getMyInternships, getMyDraftPurchases, getActiveNews,
 } from '../api';
 import { mediaUrl, getTotalVideos } from '../utils/helpers';
 import AppointmentModal from '../components/AppointmentModal';
@@ -281,6 +281,7 @@ export default function Profile() {
   const [myDraftPurchases, setMyDraftPurchases] = useState(null);
   const [myDownloadedIds, setMyDownloadedIds] = useState([]);
   const [myInternships, setMyInternships] = useState(null);
+  const [latestNews, setLatestNews] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const fileInputRef = useRef();
@@ -322,6 +323,18 @@ export default function Profile() {
     if (tab === 'internship') loadInternships();
     if (tab === 'applications') loadApplications();
     if (tab === 'notifications') loadNotifications();
+    // Dashboard needs a bit of everything for its summary cards/sections —
+    // reuses the same loaders every other tab uses (several already guard
+    // against re-fetching once loaded, e.g. loadDrafts/loadInternships).
+    if (tab === 'dashboard') {
+      loadAppointments();
+      loadOrders();
+      loadEnrollments();
+      loadMyMagazines();
+      loadDrafts();
+      loadInternships();
+      loadLatestNews();
+    }
   }, [tab, user]);
 
   const showAlert = (type, msg) => {
@@ -457,6 +470,16 @@ export default function Profile() {
     setDataLoading(false);
   };
 
+  // Dashboard-only — "Latest Updates". Doesn't toggle dataLoading (that flag
+  // blanks whichever tab is showing a full-page spinner elsewhere); this is
+  // a small, independent card that can show its own empty state instead.
+  const loadLatestNews = async () => {
+    try {
+      const r = await getActiveNews(3);
+      if (r.data.success) setLatestNews(r.data.data);
+    } catch { /* silent */ }
+  };
+
   const handleMagazineDownload = async (magazineId, title) => {
     try {
       const r = await downloadMagazineFull(magazineId, authHeader());
@@ -547,18 +570,39 @@ export default function Profile() {
     setSaving(false);
   };
 
-  const apptStats = {
-    total: appointments.length,
-    pending: appointments.filter(a => a.status === 'pending').length,
-    confirmed: appointments.filter(a => a.status === 'confirmed').length,
-    completed: appointments.filter(a => a.status === 'completed').length,
-  };
+  // ── Dashboard-only derived values ──────────────────────────────────────
+  const now = new Date();
+  const upcomingAppointments = appointments
+    .filter(a => a.status !== 'cancelled' && new Date(a.date) >= new Date(now.toDateString()))
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 3);
 
-  const orderStats = {
-    total: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    delivered: orders.filter(o => o.status === 'delivered').length,
-  };
+  // Same "in-progress course to resume" logic as the Courses tab's
+  // "Recently Watched" strip — most-recently-accessed active enrollment.
+  const continueLearningEnrollment = enrollments
+    .filter(e => e.courseId && e.paymentStatus === 'paid' && e.lastVideoId && e.lastAccessedAt && !(e.expiresAt && new Date(e.expiresAt) < now))
+    .sort((a, b) => new Date(b.lastAccessedAt) - new Date(a.lastAccessedAt))[0] || null;
+
+  const recentOrders = [...orders]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 3);
+
+  const draftsCount = (myDraftPurchases?.length || 0) + myDownloadedIds.length;
+
+  const INTERNSHIP_STATUS_LABEL = { pending: 'Pending Review', under_review: 'Under Review', selected: 'Selected', rejected: 'Rejected', completed: 'Completed' };
+  const latestInternship = myInternships?.length
+    ? [...myInternships].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
+    : null;
+  const internshipStatusLabel = latestInternship ? (INTERNSHIP_STATUS_LABEL[latestInternship.status] || latestInternship.status) : 'Not Applied';
+
+  const summaryCards = [
+    { key: 'appointments',  icon: 'fa-calendar-check', label: 'Upcoming Appointments', value: upcomingAppointments.length, color: '#c9a84c', bg: 'rgba(201,168,76,0.15)',  tab: 'appointments' },
+    { key: 'courses',       icon: 'fa-graduation-cap', label: 'My Courses',            value: enrollments.length,          color: '#198754', bg: 'rgba(25,135,84,0.12)',   tab: 'courses' },
+    { key: 'magazines',     icon: 'fa-book-open',      label: 'My Magazines',          value: myMagazines.length,          color: '#0dcaf0', bg: 'rgba(13,202,240,0.15)',  tab: 'magazines' },
+    { key: 'drafts',        icon: 'fa-file-alt',       label: 'My Drafts',             value: draftsCount,                 color: '#0d6efd', bg: 'rgba(13,110,253,0.12)',  tab: 'drafts' },
+    { key: 'internship',    icon: 'fa-user-graduate',  label: 'My Internship',         value: internshipStatusLabel,       color: '#fd7e14', bg: 'rgba(253,126,20,0.12)',  tab: 'internship' },
+    { key: 'notifications', icon: 'fa-bell',           label: 'Notifications',         value: unreadCount,                 color: '#dc3545', bg: 'rgba(220,53,69,0.12)',   tab: 'notifications' },
+  ];
 
   if (authLoading) {
     return (
@@ -633,47 +677,163 @@ export default function Profile() {
               {/* ── Dashboard ── */}
               {tab === 'dashboard' && (
                 <div>
+                  <p className="text-muted mb-4">Here's an overview of your appointments, learning, orders, and activities.</p>
+
+                  {/* Summary cards */}
+                  <div className="profile-stats-grid mb-4">
+                    {summaryCards.map(c => (
+                      <div key={c.key} className="profile-stat-card" onClick={() => setTab(c.tab)}>
+                        <div className="psc-icon" style={{ background: c.bg, color: c.color }}>
+                          <i className={`fas ${c.icon}`}></i>
+                        </div>
+                        <div className="psc-value" style={typeof c.value !== 'number' ? { fontSize: '1rem' } : undefined}>{c.value}</div>
+                        <div className="psc-label">{c.label}</div>
+                      </div>
+                    ))}
+                  </div>
+
                   <div className="row g-4">
+                    {/* Upcoming Appointments */}
                     <div className="col-lg-6">
                       <div className="profile-card">
                         <div className="profile-card-header">
-                          <i className="fas fa-calendar-check text-gold me-2"></i>Recent Appointments
+                          <i className="fas fa-calendar-check text-gold me-2"></i>Upcoming Appointments
                         </div>
-                        {appointments.length === 0 && apptStats.total === 0
-                          ? <div className="profile-empty"><i className="fas fa-calendar-times"></i><p>No appointments yet</p><a onClick={() => setShowApptModal(true)} className="btn btn-gold btn-sm">Book Now</a></div>
-                          : appointments.slice(0, 3).map(a => (
-                            <div key={a._id} className="profile-list-item">
-                              <div>
-                                <strong>{a.service}</strong>
-                                <small className="d-block text-muted">{formatDate(a.date)} at {a.time}</small>
+                        {upcomingAppointments.length === 0 ? (
+                          <div className="profile-empty">
+                            <i className="fas fa-calendar-times"></i>
+                            <p>You don't have any upcoming appointments.</p>
+                            <button className="btn btn-gold btn-sm" onClick={() => setShowApptModal(true)}>Book an Appointment</button>
+                          </div>
+                        ) : (
+                          <>
+                            {upcomingAppointments.map(a => (
+                              <div key={a._id} className="profile-list-item">
+                                <div>
+                                  <strong>{a.service}</strong>
+                                  <small className="d-block text-muted">{formatDate(a.date)} at {a.time}</small>
+                                </div>
+                                <span className={`badge bg-${STATUS_BADGE[a.status] || 'secondary'}`}>{a.status}</span>
                               </div>
-                              <span className={`badge bg-${STATUS_BADGE[a.status] || 'secondary'}`}>{a.status}</span>
-                            </div>
-                          ))
-                        }
-                        {apptStats.total === 0 && appointments.length === 0 && (
-                          <button className="btn btn-link text-gold p-0 mt-2" onClick={() => { setTab('appointments'); loadAppointments(); }}>Load appointments</button>
+                            ))}
+                            <button className="btn btn-outline-secondary btn-sm mt-3" onClick={() => setTab('appointments')}>View Details</button>
+                          </>
                         )}
                       </div>
                     </div>
+
+                    {/* Continue Learning */}
+                    <div className="col-lg-6">
+                      <div className="profile-card">
+                        <div className="profile-card-header">
+                          <i className="fas fa-graduation-cap text-gold me-2"></i>Continue Learning
+                        </div>
+                        {!continueLearningEnrollment ? (
+                          <div className="profile-empty">
+                            <i className="fas fa-graduation-cap"></i>
+                            <p>You haven't enrolled in any courses yet.</p>
+                            <Link to="/courses" className="btn btn-gold btn-sm">Browse Courses</Link>
+                          </div>
+                        ) : (() => {
+                          const course = continueLearningEnrollment.courseId;
+                          const totalVideos = getTotalVideos(course);
+                          const pct = totalVideos > 0 ? Math.round(((continueLearningEnrollment.completedVideos || 0) / totalVideos) * 100) : 0;
+                          return (
+                            <>
+                              <strong>{course.title}</strong>
+                              <div className="d-flex justify-content-between small mb-1 mt-2">
+                                <span>Progress</span>
+                                <span>{continueLearningEnrollment.completedVideos}/{totalVideos} videos</span>
+                              </div>
+                              <div className="progress" style={{ height: 6 }}>
+                                <div className="progress-bar bg-success" style={{ width: `${pct}%` }}></div>
+                              </div>
+                              <div className="text-end small text-muted mt-1">{pct}% complete</div>
+                              <small className="d-block text-muted mt-2">
+                                <i className="fas fa-history me-1"></i>Last accessed {formatDate(continueLearningEnrollment.lastAccessedAt)}
+                              </small>
+                              <button className="btn btn-gold btn-sm mt-3" onClick={() => setTab('courses')}>Continue Course</button>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Recent Orders */}
                     <div className="col-lg-6">
                       <div className="profile-card">
                         <div className="profile-card-header">
                           <i className="fas fa-book text-gold me-2"></i>Recent Orders
                         </div>
-                        {orders.length === 0 && orderStats.total === 0
-                          ? <div className="profile-empty"><i className="fas fa-book-open"></i><p>No orders yet</p></div>
-                          : orders.slice(0, 3).map(o => (
-                            <div key={o._id} className="profile-list-item">
-                              <div>
-                                <strong>{o.bookTitle}</strong>
-                                <small className="d-block text-muted">Qty: {o.quantity} · {formatDate(o.createdAt)}</small>
+                        {recentOrders.length === 0 ? (
+                          <div className="profile-empty">
+                            <i className="fas fa-book-open"></i>
+                            <p>No orders yet.</p>
+                            <button className="btn btn-gold btn-sm" onClick={() => navigate('/books')}>Browse Books</button>
+                          </div>
+                        ) : (
+                          <>
+                            {recentOrders.map(o => (
+                              <div key={o._id} className="profile-list-item">
+                                <div>
+                                  <strong>{o.bookTitle}</strong>
+                                  <small className="d-block text-muted">₹{(o.bookPrice || 0) * (o.quantity || 1)} · {formatDate(o.createdAt)}</small>
+                                </div>
+                                <span className={`badge bg-${STATUS_BADGE[o.status] || 'secondary'}`}>{o.status}</span>
                               </div>
-                              <span className={`badge bg-${STATUS_BADGE[o.status] || 'secondary'}`}>{o.status}</span>
-                            </div>
-                          ))
-                        }
+                            ))}
+                            <button className="btn btn-outline-secondary btn-sm mt-3" onClick={() => setTab('orders')}>View Orders</button>
+                          </>
+                        )}
                       </div>
+                    </div>
+
+                    {/* Latest Updates */}
+                    <div className="col-lg-6">
+                      <div className="profile-card">
+                        <div className="profile-card-header">
+                          <i className="fas fa-newspaper text-gold me-2"></i>Latest Updates
+                        </div>
+                        {latestNews.length === 0 ? (
+                          <div className="profile-empty">
+                            <i className="fas fa-newspaper"></i>
+                            <p>No updates right now.</p>
+                          </div>
+                        ) : (
+                          <>
+                            {latestNews.map((n, i) => (
+                              <div key={n._id || i} className="profile-list-item" style={{ alignItems: 'flex-start' }}>
+                                <div>
+                                  <strong>{n.title}</strong>
+                                  {n.description && <small className="d-block text-muted">{n.description.slice(0, 80)}{n.description.length > 80 ? '…' : ''}</small>}
+                                  <small className="d-block text-muted mt-1"><i className="fas fa-calendar-alt me-1"></i>{formatDate(n.date)}</small>
+                                </div>
+                                {n.link ? (
+                                  <a href={n.link} target="_blank" rel="noreferrer" className="btn btn-link text-gold p-0" style={{ whiteSpace: 'nowrap' }}>{n.linkLabel || 'Read More'}</a>
+                                ) : (
+                                  <button className="btn btn-link text-gold p-0" style={{ whiteSpace: 'nowrap' }} onClick={() => navigate('/news')}>Read More</button>
+                                )}
+                              </div>
+                            ))}
+                            <button className="btn btn-outline-secondary btn-sm mt-3" onClick={() => navigate('/news')}>View All</button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="profile-card mt-4">
+                    <div className="profile-card-header">
+                      <i className="fas fa-bolt text-gold me-2"></i>Quick Actions
+                    </div>
+                    <div className="d-flex flex-wrap gap-2">
+                      <button className="btn btn-gold btn-sm" onClick={() => setShowApptModal(true)}><i className="fas fa-calendar-check me-1"></i>Book Appointment</button>
+                      <Link to="/courses" className="btn btn-outline-secondary btn-sm"><i className="fas fa-graduation-cap me-1"></i>Browse Courses</Link>
+                      <button className="btn btn-outline-secondary btn-sm" onClick={() => navigate('/books')}><i className="fas fa-book me-1"></i>Browse Books</button>
+                      <button className="btn btn-outline-secondary btn-sm" onClick={() => navigate('/magazines')}><i className="fas fa-book-open me-1"></i>View Magazines</button>
+                      <button className="btn btn-outline-secondary btn-sm" onClick={() => setTab('drafts')}><i className="fas fa-file-alt me-1"></i>My Drafts</button>
+                      <button className="btn btn-outline-secondary btn-sm" onClick={() => setTab('internship')}><i className="fas fa-user-graduate me-1"></i>My Internship</button>
                     </div>
                   </div>
                 </div>
