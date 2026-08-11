@@ -15,8 +15,29 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [identifierError, setIdentifierError] = useState('');
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  // The identifier field accepts either an email or a mobile number, so this
+  // must never restrict typing in general (letters, @, . all stay free —
+  // that's what email login needs). The only thing it enforces in real time
+  // is a 10-digit cap, and only once the value is *purely* digits — a value
+  // containing any non-digit character (i.e. anything email-shaped) is left
+  // completely alone. Handles paste the same way as typing: for a controlled
+  // input, onChange fires with the full resulting value either way, so a
+  // pasted 11+ digit numeric string hits the same length check and gets cut
+  // to the first 10 digits.
+  const handleIdentifierChange = e => {
+    const raw = e.target.value;
+    if (/^\d+$/.test(raw) && raw.length > 10) {
+      setForm(f => ({ ...f, identifier: raw.slice(0, 10) }));
+      setIdentifierError('Mobile number must be exactly 10 digits.');
+      return;
+    }
+    setForm(f => ({ ...f, identifier: raw }));
+    setIdentifierError('');
+  };
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -85,14 +106,15 @@ export default function Login() {
                 <i className="fas fa-user auth-input-icon"></i>
                 <input
                   type="text"
-                  className="auth-input"
+                  className={`auth-input ${identifierError ? 'is-invalid' : ''}`}
                   value={form.identifier}
-                  onChange={set('identifier')}
+                  onChange={handleIdentifierChange}
                   placeholder="Email or 10-digit mobile"
                   autoComplete="username"
                   required
                 />
               </div>
+              {identifierError && <div className="auth-field-error"><i className="fas fa-exclamation-circle me-1"></i>{identifierError}</div>}
             </div>
 
             <div className="mb-4">
