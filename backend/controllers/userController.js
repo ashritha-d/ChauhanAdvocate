@@ -21,12 +21,13 @@ function getIp(req) {
 exports.register = async (req, res) => {
   try {
     const { name, email, phone, password, confirmPassword } = req.body;
+    // Email is optional — treat missing/blank/whitespace-only the same way.
+    const cleanEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
 
-    // UX-01: Email is now required — it is needed for password reset
-    if (!name || !email || !phone || !password || !confirmPassword) {
-      return res.status(400).json({ success: false, message: 'Name, email, mobile, and password are required' });
+    if (!name || !phone || !password || !confirmPassword) {
+      return res.status(400).json({ success: false, message: 'Name, mobile, and password are required' });
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       return res.status(400).json({ success: false, message: 'Enter a valid email address' });
     }
     if (password !== confirmPassword) {
@@ -40,15 +41,17 @@ exports.register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Enter a valid 10-digit mobile number' });
     }
 
-    const cleanEmail = email.toLowerCase().trim();
-    const [emailExists, phoneExists] = await Promise.all([
-      User.findOne({ email: cleanEmail }),
-      User.findOne({ phone: phone.trim() }),
-    ]);
+    const existsChecks = [User.findOne({ phone: phone.trim() })];
+    if (cleanEmail) existsChecks.push(User.findOne({ email: cleanEmail }));
+    const [phoneExists, emailExists] = await Promise.all(existsChecks);
     if (emailExists) return res.status(400).json({ success: false, message: 'Email is already registered' });
     if (phoneExists) return res.status(400).json({ success: false, message: 'Mobile number is already registered' });
 
-    const user = await User.create({ name: name.trim(), email: cleanEmail, phone: phone.trim(), password });
+    // Omit email entirely when blank (rather than storing '') so the sparse
+    // unique index only ever sees it on documents that actually set it.
+    const userData = { name: name.trim(), phone: phone.trim(), password };
+    if (cleanEmail) userData.email = cleanEmail;
+    const user = await User.create(userData);
 
     await UserNotification.create({
       userId: user._id,
@@ -81,8 +84,22 @@ exports.login = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email/mobile and password are required' });
     }
 
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
-    const query = isEmail ? { email: identifier.toLowerCase().trim() } : { phone: identifier.trim() };
+    const trimmedIdentifier = identifier.trim();
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedIdentifier);
+    let query;
+    if (isEmail) {
+      query = { email: trimmedIdentifier.toLowerCase() };
+    } else {
+      // Not email-shaped, so it must be a bare 10-digit mobile number — no
+      // stripping of spaces/dashes here, unlike registration's phone field;
+      // login is intentionally strict so malformed identifiers fail fast
+      // with a clear message instead of just falling through to a generic
+      // "invalid credentials" from a query that can never match.
+      if (!/^\d{10}$/.test(trimmedIdentifier)) {
+        return res.status(400).json({ success: false, message: 'Mobile number must be exactly 10 digits.' });
+      }
+      query = { phone: trimmedIdentifier };
+    }
 
     const user = await User.findOne(query).select('+password');
     if (!user || !user.isActive) {

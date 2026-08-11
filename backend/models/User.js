@@ -4,8 +4,13 @@ const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
-  // UX-01: Email is required — needed for account recovery via OTP
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  // Optional — required: false + sparse: true so multiple users can register
+  // without one; a plain (non-sparse) unique index would reject the second
+  // no-email user, since a missing field indexes as null and the two nulls
+  // would collide on uniqueness. Users who skip email lose email-based
+  // password recovery (OTP), which is an inherent, accepted trade-off of
+  // leaving it blank — not something this change otherwise compensates for.
+  email: { type: String, required: false, unique: true, sparse: true, lowercase: true, trim: true },
   phone: { type: String, required: true, trim: true, unique: true },
   // Kept in sync with backend/utils/passwordPolicy.js's MIN_LENGTH (4) — this is
   // a second, independent gate (Mongoose validates before the pre-save hash hook

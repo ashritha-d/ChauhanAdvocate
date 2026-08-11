@@ -22,6 +22,15 @@ export default function Login() {
     e.preventDefault();
     setError('');
     if (!form.identifier || !form.password) { setError('Please fill in all fields'); return; }
+    // Mirrors the backend's login validation: anything not shaped like an
+    // email must be a bare 10-digit mobile number — no stripping of spaces/
+    // dashes, so malformed input is caught here instead of a round trip.
+    const trimmedIdentifier = form.identifier.trim();
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedIdentifier);
+    if (!isEmail && !/^\d{10}$/.test(trimmedIdentifier)) {
+      setError('Mobile number must be exactly 10 digits.');
+      return;
+    }
     setLoading(true);
     try {
       const r = await userLogin(form);
