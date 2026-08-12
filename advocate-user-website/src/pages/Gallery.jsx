@@ -35,17 +35,10 @@ export default function Gallery() {
         description="Browse the photo gallery of Advocate Chauhan – Balu Law Chamber. Court proceedings, client events, and legal milestones captured over 15+ years of practice in Hyderabad."
         canonical="/gallery"
       />
-      {/* Hero */}
-      <div className="gallery-hero">
-        <div className="container text-center">
-          <div className="section-label" style={{ color: 'rgba(201,168,76,0.9)' }}>Our Gallery</div>
-          <h1 className="gallery-hero-title">Photo <span className="text-gold">Gallery</span></h1>
-          <p className="gallery-hero-sub">Moments from our practice and community engagements</p>
-        </div>
-      </div>
+      <h1 className="visually-hidden">Photo Gallery</h1>
 
       {/* Grid */}
-      <div className="section-padding bg-white">
+      <div className="section-padding bg-white" style={{ paddingTop: '2rem' }}>
         <div className="container">
           {loading && (
             <div className="text-center py-5">

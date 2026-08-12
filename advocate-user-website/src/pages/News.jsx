@@ -48,18 +48,9 @@ export default function NewsPage() {
         description="Stay informed with the latest legal news, landmark judgements, and law updates from Advocate Chauhan. Covering criminal, civil, family, and corporate law developments in India."
         canonical="/news"
       />
-      {/* Page Header */}
-      <div className="news-page-hero">
-        <div className="container">
-          <div className="section-label" style={{ color: 'rgba(201,168,76,0.8)' }}>Stay Informed</div>
-          <h1 className="section-title text-white">
-            Latest <span className="text-gold">News</span>
-          </h1>
-          <p className="text-white-50">Legal news, court updates, and important announcements</p>
-        </div>
-      </div>
+      <h1 className="visually-hidden">Latest News</h1>
 
-      <div className="container mt-4">
+      <div className="container" style={{ paddingTop: '2rem' }}>
         {/* Search / Filter bar */}
         <form onSubmit={handleSearch} className="news-filter-bar mb-5" data-aos="fade-up">
           <div className="row g-2 align-items-end">

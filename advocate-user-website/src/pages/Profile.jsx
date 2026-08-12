@@ -10,7 +10,7 @@ import {
   getMyEnrollments, getPublicCourse, updateCourseProgress,
   markLastWatched, saveEnrollmentNotes, markCertificateIssued,
   getMyMagazinePurchases, downloadMagazineFull, getDrafts,
-  getMyInternships, getMyDraftPurchases, getActiveNews,
+  getMyInternships, getMyDraftPurchases,
 } from '../api';
 import { mediaUrl, getTotalVideos } from '../utils/helpers';
 import AppointmentModal from '../components/AppointmentModal';
@@ -19,19 +19,6 @@ import CourseEnrollModal from '../components/CourseEnrollModal';
 import { downloadCertificate } from '../utils/certificate';
 import { isPasswordValid, PASSWORD_REQUIREMENT_MESSAGE } from '../utils/passwordValidation';
 import { isVideoPlayable, resolveVideoSrc } from '../utils/videoStream';
-
-const TABS = [
-  { id: 'dashboard',     icon: 'fa-tachometer-alt', label: 'Dashboard' },
-  { id: 'appointments',  icon: 'fa-calendar-alt',   label: 'My Appointments' },
-  { id: 'orders',        icon: 'fa-book',           label: 'My Orders' },
-  { id: 'courses',       icon: 'fa-graduation-cap', label: 'My Courses' },
-  { id: 'magazines',     icon: 'fa-book-open',      label: 'My Magazines' },
-  { id: 'drafts',        icon: 'fa-file-alt',       label: 'Drafts' },
-  { id: 'internship',    icon: 'fa-graduation-cap', label: 'My Internship' },
-  { id: 'applications',  icon: 'fa-user-tie',       label: 'My Applications' },
-  { id: 'notifications', icon: 'fa-bell',           label: 'Notifications' },
-  { id: 'settings',      icon: 'fa-user-cog',       label: 'Profile Settings' },
-];
 
 const STATUS_BADGE = {
   pending: 'warning',
@@ -281,7 +268,6 @@ export default function Profile() {
   const [myDraftPurchases, setMyDraftPurchases] = useState(null);
   const [myDownloadedIds, setMyDownloadedIds] = useState([]);
   const [myInternships, setMyInternships] = useState(null);
-  const [latestNews, setLatestNews] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const fileInputRef = useRef();
@@ -313,6 +299,17 @@ export default function Profile() {
     if (user) setProfileForm({ name: user.name, phone: user.phone });
   }, [user]);
 
+  // Now that tab switching happens exclusively via links elsewhere in the
+  // app (navbar dropdown, mobile drawer — the left sidebar that used to
+  // call setTab() directly is gone), a query-string-only navigation to an
+  // already-mounted /profile route needs to actually update the visible
+  // tab. useState's initializer only runs once at mount, so without this
+  // the URL would change but the tab wouldn't.
+  useEffect(() => {
+    const t = searchParams.get('tab');
+    if (t) setTab(t);
+  }, [searchParams]);
+
   useEffect(() => {
     if (!user) return;
     if (tab === 'appointments') loadAppointments();
@@ -333,7 +330,6 @@ export default function Profile() {
       loadMyMagazines();
       loadDrafts();
       loadInternships();
-      loadLatestNews();
     }
   }, [tab, user]);
 
@@ -468,16 +464,6 @@ export default function Profile() {
       setMyInternships(r.data.success ? (r.data.data || []) : []);
     } catch { setMyInternships([]); }
     setDataLoading(false);
-  };
-
-  // Dashboard-only — "Latest Updates". Doesn't toggle dataLoading (that flag
-  // blanks whichever tab is showing a full-page spinner elsewhere); this is
-  // a small, independent card that can show its own empty state instead.
-  const loadLatestNews = async () => {
-    try {
-      const r = await getActiveNews(3);
-      if (r.data.success) setLatestNews(r.data.data);
-    } catch { /* silent */ }
   };
 
   const handleMagazineDownload = async (magazineId, title) => {
@@ -653,26 +639,7 @@ export default function Profile() {
             </div>
           )}
 
-          <div className="profile-layout">
-            {/* Sidebar Tabs */}
-            <nav className="profile-nav">
-              {TABS.map(t => (
-                <button
-                  key={t.id}
-                  className={`profile-nav-item ${tab === t.id ? 'active' : ''}`}
-                  onClick={() => setTab(t.id)}
-                >
-                  <i className={`fas ${t.icon}`}></i>
-                  <span>{t.label}</span>
-                  {t.id === 'notifications' && unreadCount > 0 && (
-                    <span className="profile-nav-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
-                  )}
-                </button>
-              ))}
-            </nav>
-
-            {/* Main Content */}
-            <div className="profile-content">
+          <div className="profile-content">
 
               {/* ── Dashboard ── */}
               {tab === 'dashboard' && (
@@ -760,7 +727,7 @@ export default function Profile() {
                     </div>
 
                     {/* Recent Orders */}
-                    <div className="col-lg-6">
+                    <div className="col-12">
                       <div className="profile-card">
                         <div className="profile-card-header">
                           <i className="fas fa-book text-gold me-2"></i>Recent Orders
@@ -783,39 +750,6 @@ export default function Profile() {
                               </div>
                             ))}
                             <button className="btn btn-outline-secondary btn-sm mt-3" onClick={() => setTab('orders')}>View Orders</button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Latest Updates */}
-                    <div className="col-lg-6">
-                      <div className="profile-card">
-                        <div className="profile-card-header">
-                          <i className="fas fa-newspaper text-gold me-2"></i>Latest Updates
-                        </div>
-                        {latestNews.length === 0 ? (
-                          <div className="profile-empty">
-                            <i className="fas fa-newspaper"></i>
-                            <p>No updates right now.</p>
-                          </div>
-                        ) : (
-                          <>
-                            {latestNews.map((n, i) => (
-                              <div key={n._id || i} className="profile-list-item" style={{ alignItems: 'flex-start' }}>
-                                <div>
-                                  <strong>{n.title}</strong>
-                                  {n.description && <small className="d-block text-muted">{n.description.slice(0, 80)}{n.description.length > 80 ? '…' : ''}</small>}
-                                  <small className="d-block text-muted mt-1"><i className="fas fa-calendar-alt me-1"></i>{formatDate(n.date)}</small>
-                                </div>
-                                {n.link ? (
-                                  <a href={n.link} target="_blank" rel="noreferrer" className="btn btn-link text-gold p-0" style={{ whiteSpace: 'nowrap' }}>{n.linkLabel || 'Read More'}</a>
-                                ) : (
-                                  <button className="btn btn-link text-gold p-0" style={{ whiteSpace: 'nowrap' }} onClick={() => navigate('/news')}>Read More</button>
-                                )}
-                              </div>
-                            ))}
-                            <button className="btn btn-outline-secondary btn-sm mt-3" onClick={() => navigate('/news')}>View All</button>
                           </>
                         )}
                       </div>
@@ -1672,7 +1606,6 @@ export default function Profile() {
               )}
 
             </div>
-          </div>
         </div>
       </div>
 

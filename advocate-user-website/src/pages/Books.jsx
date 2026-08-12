@@ -120,11 +120,7 @@ export default function BooksPage() {
         canonical="/books"
       />
       <div className="container">
-        <div className="text-center mb-5" data-aos="fade-up">
-          <div className="section-label">Legal Library</div>
-          <h2 className="section-title">Books &amp; <span className="text-gold">Publications</span></h2>
-          <p className="section-subtitle">Purchase legal books and guides authored by Advocate Chauhan</p>
-        </div>
+        <h1 className="visually-hidden">Books &amp; Publications</h1>
 
         {/* Search + filter controls */}
         <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-3">
