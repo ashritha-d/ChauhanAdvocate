@@ -66,11 +66,7 @@ export default function Contact() {
   return (
     <section id="contact" className="section-padding bg-white">
       <div className="container">
-        <div className="text-center mb-5" data-aos="fade-up">
-          <div className="section-label">Get In Touch</div>
-          <h2 className="section-title">Contact <span className="text-gold">Us</span></h2>
-          <p className="section-subtitle">We're here to help with your legal needs</p>
-        </div>
+        <h2 className="visually-hidden">Contact Us</h2>
 
         {/* Two equal-height columns */}
         <div className="row g-4 contact-equal-row">
