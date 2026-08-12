@@ -150,11 +150,7 @@ export default function DraftsPage() {
         canonical="/drafts"
       />
       <div className="container">
-        <div className="text-center mb-4" data-aos="fade-up">
-          <div className="section-label">Legal Templates</div>
-          <h2 className="section-title">Legal <span className="text-gold">Drafts</span></h2>
-          <p className="section-subtitle">Download professionally drafted legal document templates</p>
-        </div>
+        <h1 className="visually-hidden">Legal Drafts</h1>
 
         {/* Search + filter controls */}
         <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-3">

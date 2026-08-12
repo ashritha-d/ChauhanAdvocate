@@ -34,20 +34,14 @@ export default function Courses() {
   }, []);
 
   return (
-    <section id="courses" className="section-padding" style={{ background: 'var(--darker)' }}>
+    <section id="courses" className="section-padding" style={{ background: 'var(--darker)', paddingTop: '2rem' }}>
       <SEOHead
         title="Our Courses"
         description="Choose the learning path that matches your career goals — Internship Program, Junior Advocate Training, or Judiciary Exam Preparation."
         canonical="/courses"
       />
       <div className="container">
-        <div className="text-center mb-5" data-aos="fade-up">
-          <div className="section-label">Learning Portal</div>
-          <h2 className="section-title" style={{ color: '#fff' }}>Our Learning <span className="text-gold">Programs</span></h2>
-          <p className="section-subtitle" style={{ color: 'rgba(255,255,255,0.65)' }}>
-            A complete legal learning portal — from LL.B internships to judiciary exam preparation. Choose the path that matches your career goals.
-          </p>
-        </div>
+        <h1 className="visually-hidden">Our Learning Programs</h1>
 
         <div className="row g-4 justify-content-center">
           {COURSE_CATEGORY_LIST.map((cat, i) => {

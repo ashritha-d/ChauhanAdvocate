@@ -40,9 +40,16 @@ const AUTH_NAV_LINKS = [
 ];
 
 const USER_DROPDOWN_LINKS = [
-  { to: '/profile',                  icon: 'fa-user-circle', label: 'My Profile' },
+  { to: '/profile',                  icon: 'fa-user-circle',  label: 'My Profile' },
   { to: '/profile?tab=appointments', icon: 'fa-calendar-alt', label: 'My Appointments' },
   { to: '/profile?tab=orders',       icon: 'fa-book',         label: 'My Orders' },
+  { to: '/profile?tab=courses',      icon: 'fa-graduation-cap', label: 'My Courses' },
+  { to: '/profile?tab=magazines',    icon: 'fa-book-open',    label: 'My Magazines' },
+  { to: '/profile?tab=drafts',       icon: 'fa-file-alt',     label: 'Drafts' },
+  { to: '/profile?tab=internship',   icon: 'fa-graduation-cap', label: 'My Internship' },
+  { to: '/profile?tab=applications', icon: 'fa-user-tie',     label: 'My Applications' },
+  // Notifications is already covered by its own bell icon in the navbar
+  // and its own entry in the mobile drawer — not duplicated here.
   { to: '/profile?tab=settings',     icon: 'fa-user-cog',     label: 'Profile Settings' },
 ];
 

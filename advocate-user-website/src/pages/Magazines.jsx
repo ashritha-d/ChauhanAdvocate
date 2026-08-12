@@ -297,11 +297,7 @@ export default function MagazinesPage() {
         canonical="/magazines"
       />
       <div className="container">
-        <div className="text-center mb-5" data-aos="fade-up">
-          <div className="section-label">Publications</div>
-          <h2 className="section-title">Legal <span className="text-gold">Magazines</span></h2>
-          <p className="section-subtitle">Browse and download curated legal publications and magazines</p>
-        </div>
+        <h1 className="visually-hidden">Legal Magazines</h1>
 
         {/* Search + filter controls */}
         <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-3">

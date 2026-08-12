@@ -1069,12 +1069,6 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 ══════════════════════════════════════════════════════════════ */
 .news-page-section { background: #f8f9fa; }
 
-.news-page-hero {
-  background: linear-gradient(135deg, var(--darker), #16213e);
-  padding: 110px 0 48px;
-  margin-bottom: 0;
-}
-
 .news-filter-bar {
   background: #fff;
   border-radius: 14px;
@@ -1163,7 +1157,6 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
 }
 
 @media (max-width: 576px) {
-  .news-page-hero { padding: 90px 0 32px; }
   .news-filter-bar { padding: 14px 16px; }
 }
 
